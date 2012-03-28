@@ -1,3 +1,9 @@
+#--------------------------------------------------------
+# Copyright (C) 2012 Rajendran Thirupugalsamy
+# See LICENSE for full copyright and license information.
+# See COPYING for distribution information.
+#--------------------------------------------------------
+ 
 #-------------------------------------------------
 #
 # Project created by QtCreator 2012-01-02T17:45:25

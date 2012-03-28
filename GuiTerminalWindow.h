@@ -12,7 +12,7 @@
 #include <QFontInfo>
 #include <QFontMetrics>
 #include <QtNetwork/QTcpSocket>
-#include <QWidget>
+#include <QAbstractScrollArea>
 #include "QtCommon.h"
 #include "GuiMainWindow.h"
 extern "C" {
@@ -24,7 +24,7 @@ extern "C" {
 #define NEXTCOLOURS 240
 #define NALLCOLOURS (NCFGCOLOURS + NEXTCOLOURS)
 
-class GuiTerminalWindow : public QWidget
+class GuiTerminalWindow : public QAbstractScrollArea
 {
     Q_OBJECT
 public:

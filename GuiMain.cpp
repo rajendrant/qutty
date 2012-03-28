@@ -16,7 +16,6 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     mainWindow = new GuiMainWindow();
     QObject::connect(&a, SIGNAL(focusChanged(QWidget *, QWidget *)), mainWindow, SLOT(focusChanged(QWidget*,QWidget*)));
-    //mainWindow->newTelnetTerminal();
     mainWindow->show();
     GuiSettingsWindow *ss = new GuiSettingsWindow(mainWindow);
     ss->show();

@@ -9,25 +9,34 @@
 #include <QApplication>
 #include <QPainter>
 #include <QClipboard>
+#include <QScrollBar>
 extern "C" {
 #include "putty.h"
 }
 #include "GuiTerminalWindow.h"
 
 GuiTerminalWindow::GuiTerminalWindow(QWidget *parent) :
-    QWidget(parent)
+    QAbstractScrollArea(parent)
 {
+    setFrameShape(QFrame::NoFrame);
     setWindowState(Qt::WindowMaximized);
     setWindowTitle(tr("QuTTY"));
 
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+
+    verticalScrollBar()->setPageStep(viewport()->size().height());
+    verticalScrollBar()->setRange(0, 100);
+    verticalScrollBar()->setValue(10);
+
     QPalette pal(palette());
-    // set black background
+    // set black background // not working as expected
     pal.setColor(QPalette::Background, Qt::black);
     pal.setColor(QPalette::Foreground, Qt::white);
-    QWidget::setAutoFillBackground(true);
-    QWidget::setPalette(pal);
+    viewport()->setAutoFillBackground(true);
+    viewport()->setPalette(pal);
 
-    QWidget::setFocusPolicy(Qt::StrongFocus);
+    setFocusPolicy(Qt::StrongFocus);
     _any_update = false;
 
     termrgn = QRegion();
@@ -35,6 +44,8 @@ GuiTerminalWindow::GuiTerminalWindow(QWidget *parent) :
 
 void GuiTerminalWindow::keyPressEvent ( QKeyEvent *e )
 {
+    if (!term) return;
+
     qDebug()<<"you pressed "<<e->text()<<" "<<e->count()<<" "<<e->key()<<" "<<e->modifiers();
 
     char buf[16];
@@ -89,8 +100,9 @@ void GuiTerminalWindow::readyRead ()
 void GuiTerminalWindow::paintEvent (QPaintEvent *e)
 {
     qDebug()<<__FUNCTION__;
-    QPainter painter(this);
+    QPainter painter(viewport());
 
+    painter.fillRect(e->rect(), Qt::black);
     if(!term)
         return;
 
@@ -163,7 +175,7 @@ void GuiTerminalWindow::preDrawTerm()
 void GuiTerminalWindow::drawTerm()
 {
     qDebug()<<__FUNCTION__;
-    this->repaint(termrgn);
+    this->viewport()->update(termrgn);
     qDebug()<<__FUNCTION__<<"end";
 }
 
@@ -185,7 +197,7 @@ void GuiTerminalWindow::setTermFont(FontSpec *f)
 
     _font = new QFont(f->name, f->height);
     _font->setStyleHint(QFont::TypeWriter);
-    QWidget::setFont(*_font);
+    setFont(*_font);
     _fontMetrics = new QFontMetrics(*_font);
 
     fontWidth = _fontMetrics->width(QChar('a'));
@@ -267,6 +279,8 @@ void 	GuiTerminalWindow::mouseMoveEvent ( QMouseEvent * e )
 }
 void 	GuiTerminalWindow::mousePressEvent ( QMouseEvent * e )
 {
+    if (!term) return;
+
     if(e->button()==Qt::RightButton &&
             ((e->modifiers() & Qt::ControlModifier) || (cfg.mouse_is_xterm == 2))) {
         // TODO right click menu
@@ -290,6 +304,8 @@ void 	GuiTerminalWindow::mousePressEvent ( QMouseEvent * e )
 }
 void 	GuiTerminalWindow::mouseReleaseEvent ( QMouseEvent * e )
 {
+    if (!term) return;
+
     Mouse_Button button, bcooked;
     button = e->button()==Qt::LeftButton ? MBT_LEFT :
              e->button()==Qt::RightButton ? MBT_RIGHT :
@@ -341,7 +357,8 @@ void GuiTerminalWindow::writeClip(wchar_t * data, int *attr, int len, int must_d
 void 	GuiTerminalWindow::resizeEvent ( QResizeEvent * e )
 {
     if (term)
-        term_size(term, e->size().height()/fontHeight, e->size().width()/fontWidth, cfg.savelines);
+        term_size(term, viewport()->size().height()/fontHeight,
+                  viewport()->size().width()/fontWidth, cfg.savelines);
 }
 
 bool GuiTerminalWindow::event(QEvent *event)
@@ -353,11 +370,12 @@ bool GuiTerminalWindow::event(QEvent *event)
             return true;
         }
     }
-    return QWidget::event(event);
+    return QAbstractScrollArea::event(event);
 }
 
 void GuiTerminalWindow::focusInEvent ( QFocusEvent * e )
 {
+    if (!term) return;
     qDebug()<<__FUNCTION__;
     term_set_focus(term, TRUE);
     term_update(term);
@@ -365,7 +383,9 @@ void GuiTerminalWindow::focusInEvent ( QFocusEvent * e )
 
 void GuiTerminalWindow::focusOutEvent ( QFocusEvent * e )
 {
+    if (!term) return;
     qDebug()<<__FUNCTION__;
     term_set_focus(term, FALSE);
     term_update(term);
 }
+

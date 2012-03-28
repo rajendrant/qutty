@@ -32,6 +32,9 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
     tabArea->setTabsClosable(true);
     tabArea->setMovable(true);
 
+    // this removes the frame border of QTabWidget
+    tabArea->setDocumentMode(true);
+
     connect(tabArea, SIGNAL(tabCloseRequested(int)), SLOT(closeTerminal(int)));
     connect(tabArea, SIGNAL(currentChanged(int)), SLOT(currentChanged(int)));
 
