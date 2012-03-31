@@ -50,7 +50,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
     //setWindowFlags(Qt::CustomizeWindowHint);
     //showMaximized();
     //setStyle(QStyle::);
-    setMinimumSize(960,660);
+    setMinimumSize(960, 660);
 
 }
 
@@ -93,7 +93,7 @@ GuiTerminalWindow *GuiMainWindow::newTelnetTerminal(const char *ip_addr, const c
     cfg->passive_telnet = 0;
     strcpy(cfg->termtype, "xterm");
     strcpy(cfg->termspeed,"38400,38400");
-    strcpy(cfg->username, "user");
+    //strcpy(cfg->username, "user");
     strcpy(cfg->environmt, "");
     //strcpy(cfg->line_codepage, "ISO-8859-1:1998 (Latin-1, West Europe)");
     strcpy(cfg->line_codepage, "UTF-8");
@@ -203,6 +203,19 @@ GuiTerminalWindow *GuiMainWindow::newTelnetTerminal(const char *ip_addr, const c
     cfg->sshbug_ignore2 = 2;
     cfg->ssh_simple = 0;
 
+    static const int cfg_wordness_defaults[] =
+    {
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,1,2,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,
+        1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,2,
+        1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+        1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+        2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,
+        2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2
+    };
+    for(int i=0; i<sizeof(cfg->wordness); i++)
+        cfg->wordness[i] = cfg_wordness_defaults[i];
 
     memset(&termWnd->ucsdata, 0, sizeof(struct unicode_data));
     init_ucs(cfg, &termWnd->ucsdata);

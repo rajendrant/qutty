@@ -25,9 +25,8 @@ GuiTerminalWindow::GuiTerminalWindow(QWidget *parent) :
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
-    verticalScrollBar()->setPageStep(viewport()->size().height());
-    verticalScrollBar()->setRange(0, 100);
-    verticalScrollBar()->setValue(10);
+    connect(verticalScrollBar(), SIGNAL(actionTriggered(int)), this, SLOT(versScrollBarAction(int)));
+    connect(verticalScrollBar(), SIGNAL(sliderMoved(int)), this, SLOT(vertScrollBarMoved(int)));
 
     QPalette pal(palette());
     // set black background // not working as expected
@@ -40,6 +39,8 @@ GuiTerminalWindow::GuiTerminalWindow(QWidget *parent) :
     _any_update = false;
 
     termrgn = QRegion();
+
+    mouseButtonAction = MA_NOTHING;
 }
 
 void GuiTerminalWindow::keyPressEvent ( QKeyEvent *e )
@@ -255,8 +256,30 @@ static Mouse_Button translate_button(Config *cfg, Mouse_Button button)
 
 void 	GuiTerminalWindow::mouseDoubleClickEvent ( QMouseEvent * e )
 {
+    if (!term) return;
+
+    if(e->button()==Qt::RightButton &&
+            ((e->modifiers() & Qt::ControlModifier) || (cfg.mouse_is_xterm == 2))) {
+        // TODO right click menu
+    }
+    Mouse_Button button, bcooked;
+    button = e->button()==Qt::LeftButton ? MBT_LEFT :
+             e->button()==Qt::RightButton ? MBT_RIGHT :
+             e->button()==Qt::MidButton ? MBT_MIDDLE : MBT_NOTHING;
+    assert(button!=MBT_NOTHING);
+    int x = e->x()/fontWidth, y = e->y()/fontHeight, mod=e->modifiers();
+    bcooked = translate_button(&cfg, button);
+
+    // detect single/double/triple click
+    mouseClickTimer.start();
+    mouseButtonAction = MA_2CLK;
+
+    qDebug()<<__FUNCTION__<<x<<y<<mod<<button<<bcooked<<mouseButtonAction;
+    term_mouse(term, button, bcooked, mouseButtonAction,
+               x,y, mod&Qt::ShiftModifier, mod&Qt::ControlModifier, mod&Qt::AltModifier);
     e->accept();
 }
+
 //#define (e) e->button()&Qt::LeftButton
 void 	GuiTerminalWindow::mouseMoveEvent ( QMouseEvent * e )
 {
@@ -269,14 +292,13 @@ void 	GuiTerminalWindow::mouseMoveEvent ( QMouseEvent * e )
     bcooked = translate_button(&cfg, button);
     qDebug()<<__FUNCTION__<<x<<y<<mod<<button<<bcooked;
     term_mouse(term, button, bcooked, MA_DRAG,
-               x,y, mod&Qt::ShiftModifier, mod&Qt::ControlModifier, mod&Qt::AltModifier);/*
-               e->x()/fontWidth, e->y()/fontHeight,
-               e->modifiers()&Qt::ShiftModifier,
-               e->modifiers()&Qt::ControlModifier,
-               e->modifiers()&Qt::AltModifier);*/
-    qDebug()<<__FUNCTION__<<"end";
+               x,y, mod&Qt::ShiftModifier, mod&Qt::ControlModifier, mod&Qt::AltModifier);
     e->accept();
 }
+
+// Qt 5.0 supports qApp->styleHints()->mouseDoubleClickInterval()
+#define CFG_MOUSE_TRIPLE_CLICK_INTERVAL 400
+
 void 	GuiTerminalWindow::mousePressEvent ( QMouseEvent * e )
 {
     if (!term) return;
@@ -292,14 +314,20 @@ void 	GuiTerminalWindow::mousePressEvent ( QMouseEvent * e )
     assert(button!=MBT_NOTHING);
     int x = e->x()/fontWidth, y = e->y()/fontHeight, mod=e->modifiers();
     bcooked = translate_button(&cfg, button);
-    qDebug()<<__FUNCTION__<<x<<y<<mod<<button<<bcooked;
-    term_mouse(term, button, bcooked, MA_CLICK,
-               x,y, mod&Qt::ShiftModifier, mod&Qt::ControlModifier, mod&Qt::AltModifier);/*
-               e->x()/fontWidth, e->y()/fontHeight,
-               e->modifiers()&Qt::ShiftModifier,
-               e->modifiers()&Qt::ControlModifier,
-               e->modifiers()&Qt::AltModifier);*/
-    qDebug()<<__FUNCTION__<<"end";
+
+    // detect single/double/triple click
+    if (!mouseClickTimer.hasExpired(CFG_MOUSE_TRIPLE_CLICK_INTERVAL)) {
+        mouseButtonAction =
+                mouseButtonAction==MA_CLICK ? MA_2CLK :
+                    mouseButtonAction==MA_2CLK ? MA_3CLK :
+                        mouseButtonAction==MA_3CLK ? MA_CLICK : MA_NOTHING;
+        qDebug()<<__FUNCTION__<<"not expired"<<mouseButtonAction;
+    } else
+        mouseButtonAction = MA_CLICK;
+
+    qDebug()<<__FUNCTION__<<x<<y<<mod<<button<<bcooked<<mouseButtonAction;
+    term_mouse(term, button, bcooked, mouseButtonAction,
+               x,y, mod&Qt::ShiftModifier, mod&Qt::ControlModifier, mod&Qt::AltModifier);
     e->accept();
 }
 void 	GuiTerminalWindow::mouseReleaseEvent ( QMouseEvent * e )
@@ -316,7 +344,6 @@ void 	GuiTerminalWindow::mouseReleaseEvent ( QMouseEvent * e )
     qDebug()<<__FUNCTION__<<x<<y<<mod<<button<<bcooked;
     term_mouse(term, button, bcooked, MA_RELEASE,
                x,y, mod&Qt::ShiftModifier, mod&Qt::ControlModifier, mod&Qt::AltModifier);
-    qDebug()<<__FUNCTION__<<"end";
     e->accept();
 }
 
@@ -389,3 +416,33 @@ void GuiTerminalWindow::focusOutEvent ( QFocusEvent * e )
     term_update(term);
 }
 
+void GuiTerminalWindow::setScrollBar(int total, int start, int page)
+{
+    verticalScrollBar()->setPageStep(page);
+    verticalScrollBar()->setRange(0, total-page);
+    if (verticalScrollBar()->value()!=start)
+        verticalScrollBar()->setValue(start);
+}
+
+void GuiTerminalWindow::vertScrollBarAction(int action)
+{
+    switch(action) {
+    case QAbstractSlider::SliderSingleStepAdd:
+        term_scroll(term, 0, +1);
+        break;
+    case QAbstractSlider::SliderSingleStepSub:
+        term_scroll(term, 0, -1);
+        break;
+    case QAbstractSlider::SliderPageStepAdd:
+        term_scroll(term, 0, +term->rows/2);
+        break;
+    case QAbstractSlider::SliderPageStepSub:
+        term_scroll(term, 0, -term->rows/2);
+        break;
+    }
+}
+
+void GuiTerminalWindow::vertScrollBarMoved(int value)
+{
+    term_scroll(term, 1, value);
+}

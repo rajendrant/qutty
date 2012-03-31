@@ -36,7 +36,12 @@ void set_title(void *frontend, char *title)
 
 
 void set_icon(void *frontend, char *str){}
-void set_sbar(void *frontend, int a, int b, int c){qDebug()<<"NOT_IMPL"<<__FUNCTION__;}
+void set_sbar(void *frontend, int total, int start, int page)
+{
+    GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
+    f->setScrollBar(total, start, page);
+    qDebug()<<__FUNCTION__<<total<<start<<page;
+}
 
 Context get_ctx(void *frontend)
 {

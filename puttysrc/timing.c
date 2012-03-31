@@ -112,9 +112,9 @@ long schedule_timer(int ticks, timer_fn_t fn, void *ctx)
     t->now = when;
 
     if (t != add234(timers, t)) {
-	sfree(t);		       /* identical timer already exists */
+    sfree(t);		       /* identical timer already exists */
     } else {
-	add234(timer_contexts, t->ctx);/* don't care if this fails */
+    add234(timer_contexts, t->ctx);/* don't care if this fails */
     }
 
     first = (struct timer *)index234(timers, 0);
@@ -122,7 +122,7 @@ long schedule_timer(int ticks, timer_fn_t fn, void *ctx)
 	/*
 	 * This timer is the very first on the list, so we must
 	 * notify the front end.
-	 */
+     */
 	timer_change_notify(first->now);
     }
 
@@ -169,7 +169,7 @@ int run_timers(long anow, long *next)
 	     * in (its platform-specific adjunct to) putty.h.
 	     * Therefore we can simply reference it here and assume
 	     * that it will exist.
-	     */
+         */
 	    tickcount_offset += anow - tnow;
 #elif defined TIMING_SYNC_TICKCOUNT
 	    /*
@@ -178,7 +178,7 @@ int run_timers(long anow, long *next)
 	     * run no timers in this call (because we got called
 	     * early), or alternatively it may mean we run lots of
 	     * timers in a hurry because we were called late.
-	     */
+         */
 	    anow = tnow;
 #else
 /*
@@ -198,20 +198,20 @@ int run_timers(long anow, long *next)
 	first = (struct timer *)index234(timers, 0);
 
 	if (!first)
-	    return FALSE;	       /* no timers remaining */
+        return FALSE;	       /* no timers remaining */
 
 	if (find234(timer_contexts, first->ctx, NULL) == NULL) {
 	    /*
 	     * This timer belongs to a context that has been
 	     * expired. Delete it without running.
-	     */
+         */
 	    delpos234(timers, 0);
 	    sfree(first);
 	} else if (first->now - now <= 0) {
 	    /*
 	     * This timer is active and has reached its running
 	     * time. Run it.
-	     */
+         */
 	    delpos234(timers, 0);
 	    first->fn(first->ctx, first->now);
 	    sfree(first);
@@ -219,7 +219,7 @@ int run_timers(long anow, long *next)
 	    /*
 	     * This is the first still-active timer that is in the
 	     * future. Return how long it has yet to go.
-	     */
+         */
 	    *next = first->now;
 	    return TRUE;
 	}

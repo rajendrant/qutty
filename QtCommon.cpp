@@ -36,8 +36,14 @@ void timer_change_notify(long next)
 }
 
 int get_remote_username(Config *cfg, char *user, size_t len) {
-    strncpy(user, "user", len);
-    return 1;
+    if (*cfg->username) {
+        strncpy(user, cfg->username, len);
+        user[len-1] = '\0';
+    } else {
+        // TODO
+        *user = '\0';
+    }
+    return (*user != '\0');
 }
 
 int TranslateKey(Config *cfg, Terminal *term, QKeyEvent *keyevent, char *output)
@@ -115,6 +121,28 @@ int TranslateKey(Config *cfg, Terminal *term, QKeyEvent *keyevent, char *output)
         *p++ = 0;
         return -2;
    }
+
+    // page-up page-down with ctrl/shift
+    if (key==Key_PageUp && ctrlshiftstate) {
+        if (ctrlstate && shiftstate) { // ctrl + shift + page-up
+            term_scroll_to_selection(term, 0);
+        } else if (ctrlstate) { // ctrl + page-up
+            term_scroll(term, 0, -1);
+        } else { // shift + page-up
+            term_scroll(term, 0, -term->rows / 2);
+        }
+        return 0;
+    }
+    if (key==Key_PageDown && ctrlshiftstate) {
+        if (ctrlstate && shiftstate) { // ctrl + shift + page-down
+            term_scroll_to_selection(term, 1);
+        } else if (ctrlstate) { // ctrl + page-down
+            term_scroll(term, 0, +1);
+        } else { // shift + page-down
+            term_scroll(term, 0, +term->rows / 2);
+        }
+        return 0;
+    }
 
     // Arrows
     char xkey = 0;

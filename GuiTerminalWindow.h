@@ -15,6 +15,7 @@
 #include <QAbstractScrollArea>
 #include "QtCommon.h"
 #include "GuiMainWindow.h"
+#include <QElapsedTimer>
 extern "C" {
 #include "terminal.h"
 #include "putty.h"
@@ -43,6 +44,10 @@ public:
     QRegion termrgn;
     QColor colours[NALLCOLOURS];
 
+    // to detect mouse double/triple clicks
+    Mouse_Action mouseButtonAction;
+    QElapsedTimer mouseClickTimer;
+
     enum {
         BOLD_COLOURS, BOLD_SHADOW, BOLD_FONT
     } bold_mode;
@@ -63,6 +68,8 @@ public:
     void writeClip(wchar_t * data, int *attr, int len, int must_deselect);
     void paintText(QPainter &painter, int row, int col, QString str, unsigned long attr);
 
+    void setScrollBar(int total, int start, int page);
+
 protected:
     void paintEvent ( QPaintEvent * e );
     void 	mouseDoubleClickEvent ( QMouseEvent * e );
@@ -73,10 +80,13 @@ protected:
     bool event(QEvent *event);
     void focusInEvent ( QFocusEvent * e );
     void focusOutEvent ( QFocusEvent * e );
+
 signals:
     
 public slots:
     void readyRead ();
+    void vertScrollBarAction(int action);
+    void vertScrollBarMoved(int value);
 
 };
 
