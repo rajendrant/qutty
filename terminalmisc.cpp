@@ -173,7 +173,10 @@ void do_text(Context ctx, int col, int row, wchar_t *ch, int len, unsigned long 
     frontend->drawText(row,col,ch,len,attr,lattr);
 }
 
-void do_cursor(Context, int, int, wchar_t *, int, unsigned long, int){qDebug()<<"NOT_IMPL"<<__FUNCTION__;}
+void do_cursor(Context ctx, int x, int y, wchar_t *text, int len,
+               unsigned long attr, int lattr)
+{
+}
 
 Backend *backend_from_proto(int proto)
 {

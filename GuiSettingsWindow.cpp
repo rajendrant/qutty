@@ -12,6 +12,7 @@
 #include <QRadioButton>
 #include <QDebug>
 #include "GuiMainWindow.h"
+#include "GuiTerminalWindow.h"
 #include "QtCommon.h"
 extern "C" {
 #include "putty.h"
@@ -31,7 +32,7 @@ GuiSettingsWindow::GuiSettingsWindow(QWidget *parent) :
     layout = new QGridLayout;
     groupbox->setLayout(layout);
     txtHostName = new QLineEdit;
-    txtPort = new QLineEdit;
+    txtPort = new QLineEdit("23");
     layout->addWidget(new QLabel(tr("Host Name (or IP address)")), 0, 0, 1, 2);
     layout->addWidget(new QLabel(tr("Port")), 0, 2, 1, 1);
     layout->addWidget(txtHostName, 1, 0, 1, 2);
@@ -39,11 +40,13 @@ GuiSettingsWindow::GuiSettingsWindow(QWidget *parent) :
     layout->addWidget(new QLabel(tr("Connection type:")), 2, 0);
     btnConnType = new QButtonGroup;
     QRadioButton *radiobtn = new QRadioButton(tr("Telnet"));
+    radiobtn->setChecked(true);
     layout->addWidget(radiobtn, 3, 0);
     btnConnType->addButton(radiobtn, PROT_TELNET);
     radiobtn = new QRadioButton(tr("SSH"));
     layout->addWidget(radiobtn, 3, 1);
     btnConnType->addButton(radiobtn, PROT_SSH);
+    connect(btnConnType, SIGNAL(buttonClicked(int)), this, SLOT(btnConnTypeClicked(int)));
 
     groupbox = new QGroupBox(tr("Load, save or delete a stored session"));
     mainLayout->addWidget(groupbox);
@@ -71,7 +74,18 @@ GuiSettingsWindow::GuiSettingsWindow(QWidget *parent) :
     setWindowTitle(tr("[New Session]"));
 
     txtHostName->setText("192.168.1.103");
-    txtPort->setText("23");
+}
+
+void GuiSettingsWindow::btnConnTypeClicked(int id)
+{
+    switch(id) {
+    case PROT_TELNET:
+        txtPort->setText("23");
+        break;
+    case PROT_SSH:
+        txtPort->setText("22");
+        break;
+    }
 }
 
 void GuiSettingsWindow::newTerminal()
@@ -79,6 +93,7 @@ void GuiSettingsWindow::newTerminal()
     qDebug()<<"newTerminal"<<txtHostName->text()<<txtPort->text()<<btnConnType->checkedId();
     QByteArray hostname = txtHostName->text().toUtf8();
     QByteArray port = txtPort->text().toUtf8();
-    mainWindow->newTelnetTerminal(hostname.constData(), port.constData(), btnConnType->checkedId());
+    QWidget *newWnd = mainWindow->newTelnetTerminal(hostname.constData(), port.constData(), btnConnType->checkedId());
+    mainWindow->tabArea->setCurrentWidget(newWnd);
     this->close();
 }

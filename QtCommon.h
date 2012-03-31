@@ -87,6 +87,4 @@ typedef struct telnet_tag {
     Pinger pinger;
 } *Telnet;
 
-int TranslateKey(Config *cfg, Terminal *term, QKeyEvent *keyevent, char *output);
-
 #endif // QTCOMMON_H

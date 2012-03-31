@@ -25,7 +25,7 @@ GuiTerminalWindow::GuiTerminalWindow(QWidget *parent) :
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
-    connect(verticalScrollBar(), SIGNAL(actionTriggered(int)), this, SLOT(versScrollBarAction(int)));
+    connect(verticalScrollBar(), SIGNAL(actionTriggered(int)), this, SLOT(vertScrollBarAction(int)));
     connect(verticalScrollBar(), SIGNAL(sliderMoved(int)), this, SLOT(vertScrollBarMoved(int)));
 
     QPalette pal(palette());
@@ -50,7 +50,7 @@ void GuiTerminalWindow::keyPressEvent ( QKeyEvent *e )
     qDebug()<<"you pressed "<<e->text()<<" "<<e->count()<<" "<<e->key()<<" "<<e->modifiers();
 
     char buf[16];
-    int len = TranslateKey(&term->cfg, term, e, buf);
+    int len = TranslateKey(e, buf);
     assert(len<16);
     if (len>0 || len==-2) {
         term_nopaste(term);
@@ -120,13 +120,18 @@ void GuiTerminalWindow::paintEvent (QPaintEvent *e)
                 for(;attr==term->dispstr_attr[row][coldiff]; coldiff++);
                 QString str = QString::fromWCharArray(&term->dispstr[row][col], coldiff-col);
                 paintText(painter, row, col, str, attr);
+
+                // paint cursor
+                if (attr & (TATTR_ACTCURS | TATTR_PASCURS))
+                    paintCursor(painter, row, col, str, attr);
                 col = coldiff;
             }
         }
     }
 }
 
-void GuiTerminalWindow::paintText(QPainter &painter, int row, int col, QString str, unsigned long attr)
+void GuiTerminalWindow::paintText(QPainter &painter, int row, int col,
+                                  const QString &str, unsigned long attr)
 {
     if ((attr & TATTR_ACTCURS) && (cfg.cursor_type == 0 || term->big_cursor)) {
     attr &= ~(ATTR_REVERSE|ATTR_BLINK|ATTR_COLOURS);
@@ -159,6 +164,65 @@ void GuiTerminalWindow::paintText(QPainter &painter, int row, int col, QString s
     painter.drawText(col*fontWidth,
                      row*fontHeight+_fontMetrics->ascent(),
                      str);
+}
+
+void GuiTerminalWindow::paintCursor(QPainter &painter, int row, int col,
+                                  const QString &str, unsigned long attr)
+{
+    int fnt_width;
+    int char_width;
+    int ctype = cfg.cursor_type;
+
+    if ((attr & TATTR_ACTCURS) && (ctype == 0 || term->big_cursor)) {
+        return paintText(painter, row, col, str, attr);
+    }
+
+    fnt_width = char_width = fontWidth;
+    if (attr & ATTR_WIDE)
+    char_width *= 2;
+    int x = col*fnt_width;
+    int y = row*fontHeight;
+
+    if ((attr & TATTR_PASCURS) && (ctype == 0 || term->big_cursor)) {
+        QPoint points[] = {
+            QPoint(x, y),
+            QPoint(x, y+fontHeight-1),
+            QPoint(x+char_width-1, y+fontHeight-1),
+            QPoint(x+char_width-1, y)
+        };
+        painter.setPen(colours[261]);
+        painter.drawPolygon(points, 4);
+    } else if ((attr & (TATTR_ACTCURS | TATTR_PASCURS)) && ctype != 0) {
+        int startx, starty, dx, dy, length, i;
+        if (ctype == 1) {
+            startx = x;
+            starty = y + fontMetrics().descent();
+            dx = 1;
+            dy = 0;
+            length = char_width;
+        } else {
+            int xadjust = 0;
+            if (attr & TATTR_RIGHTCURS)
+            xadjust = char_width - 1;
+            startx = x + xadjust;
+            starty = y;
+            dx = 0;
+            dy = 1;
+            length = fontHeight;
+        }
+        if (attr & TATTR_ACTCURS) {
+            assert(0); // NOT_YET_IMPLEMENTED
+        } else {
+            painter.setPen(colours[261]);
+            for (i = 0; i < length; i++) {
+                if (i % 2 == 0) {
+                    painter.drawPoint(startx, starty);
+                }
+                startx += dx;
+                starty += dy;
+            }
+        }
+    }
 }
 
 int GuiTerminalWindow::from_backend(int is_stderr, const char *data, int len)

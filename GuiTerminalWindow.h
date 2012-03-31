@@ -66,9 +66,13 @@ public:
     void requestPaste();
     void getClip(wchar_t **p, int *len);
     void writeClip(wchar_t * data, int *attr, int len, int must_deselect);
-    void paintText(QPainter &painter, int row, int col, QString str, unsigned long attr);
+    void paintText(QPainter &painter, int row, int col,
+                   const QString &str, unsigned long attr);
+    void paintCursor(QPainter &painter, int row, int col,
+                     const QString &str, unsigned long attr);
 
     void setScrollBar(int total, int start, int page);
+    int TranslateKey(QKeyEvent *keyevent, char *output);
 
 protected:
     void paintEvent ( QPaintEvent * e );

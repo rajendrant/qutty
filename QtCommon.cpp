@@ -46,8 +46,9 @@ int get_remote_username(Config *cfg, char *user, size_t len) {
     return (*user != '\0');
 }
 
-int TranslateKey(Config *cfg, Terminal *term, QKeyEvent *keyevent, char *output)
+int GuiTerminalWindow::TranslateKey(QKeyEvent *keyevent, char *output)
 {
+    Config *cfg = &term->cfg;
     char *p = output;
     int keystate = keyevent->modifiers();
     int ctrlshiftstate = keystate & (Qt::ControlModifier|Qt::ShiftModifier);
@@ -141,6 +142,12 @@ int TranslateKey(Config *cfg, Terminal *term, QKeyEvent *keyevent, char *output)
         } else { // shift + page-down
             term_scroll(term, 0, +term->rows / 2);
         }
+        return 0;
+    }
+
+    // shift-insert -> paste
+    if (key==Key_Insert && ctrlshiftstate==ShiftModifier) {
+        this->requestPaste();
         return 0;
     }
 

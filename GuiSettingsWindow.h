@@ -22,6 +22,7 @@ public:
 
 public slots:
     void newTerminal();
+    void btnConnTypeClicked(int id);
 };
 
 #endif // GUISETTINGSWINDOW_H
