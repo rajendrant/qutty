@@ -26,7 +26,6 @@ SOURCES +=  \
     QtNet.cpp \
     QtUnicode.cpp \
     QtPageant.cpp \
-    QtNoise.cpp \
     QtDlg.cpp \
     QtGss.cpp \
     QtX11.cpp \
