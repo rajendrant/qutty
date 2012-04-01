@@ -848,7 +848,7 @@ void cleanup_exit(int);
 void noise_get_heavy(void (*func) (void *, int));
 void noise_get_light(void (*func) (void *, int));
 void noise_regular(void);
-//void noise_ultralight(unsigned long data);
+void noise_ultralight(unsigned long data);
 void random_save_seed(void);
 void random_destroy_seed(void);
 

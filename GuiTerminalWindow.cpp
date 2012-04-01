@@ -39,12 +39,22 @@ GuiTerminalWindow::GuiTerminalWindow(QWidget *parent) :
     _any_update = false;
 
     termrgn = QRegion();
+    term = NULL;
+    ldisc = NULL;
+    backend = NULL;
+    backhandle = NULL;
+    qtsock = NULL;
+    _font = NULL;
+    _fontMetrics = NULL;
 
     mouseButtonAction = MA_NOTHING;
+    setMouseTracking(true);
 }
 
 void GuiTerminalWindow::keyPressEvent ( QKeyEvent *e )
 {
+    noise_ultralight(e->key());
+
     if (!term) return;
 
     qDebug()<<"you pressed "<<e->text()<<" "<<e->count()<<" "<<e->key()<<" "<<e->modifiers();
@@ -72,7 +82,7 @@ void GuiTerminalWindow::keyPressEvent ( QKeyEvent *e )
 
 void GuiTerminalWindow::keyReleaseEvent ( QKeyEvent * e )
 {
-    qDebug()<<"you released "<<e->text()<<" "<<e->count()<<" "<<e->key()<<" "<<e->modifiers();
+    noise_ultralight(e->key());
 }
 
 void GuiTerminalWindow::closeEvent(QCloseEvent *closeEvent)
@@ -89,10 +99,7 @@ void GuiTerminalWindow::readyRead ()
 {
     char buf[20480];
     int len = qtsock->read(buf, sizeof(buf));
-    char ddd[20480*10];
-    for(int i=0,j=0;i<len;i++)
-        j+=sprintf(ddd+j, "%u ", (unsigned char)buf[i], buf[i]);
-    qDebug()<<"readyRead"<<len<<ddd;
+    noise_ultralight(len);
     (*as->plug)->receive(as->plug, 0, buf, len);
 
     if(qtsock->bytesAvailable()>0) readyRead();
@@ -320,6 +327,7 @@ static Mouse_Button translate_button(Config *cfg, Mouse_Button button)
 
 void 	GuiTerminalWindow::mouseDoubleClickEvent ( QMouseEvent * e )
 {
+    noise_ultralight(e->x()<<16 | e->y());
     if (!term) return;
 
     if(e->button()==Qt::RightButton &&
@@ -347,6 +355,9 @@ void 	GuiTerminalWindow::mouseDoubleClickEvent ( QMouseEvent * e )
 //#define (e) e->button()&Qt::LeftButton
 void 	GuiTerminalWindow::mouseMoveEvent ( QMouseEvent * e )
 {
+    noise_ultralight(e->x()<<16 | e->y());
+    if (!term || e->buttons()==Qt::NoButton) return;
+
     Mouse_Button button, bcooked;
     button = e->buttons()&Qt::LeftButton ? MBT_LEFT :
              e->buttons()&Qt::RightButton ? MBT_RIGHT :
@@ -365,6 +376,7 @@ void 	GuiTerminalWindow::mouseMoveEvent ( QMouseEvent * e )
 
 void 	GuiTerminalWindow::mousePressEvent ( QMouseEvent * e )
 {
+    noise_ultralight(e->x()<<16 | e->y());
     if (!term) return;
 
     if(e->button()==Qt::RightButton &&
@@ -394,8 +406,10 @@ void 	GuiTerminalWindow::mousePressEvent ( QMouseEvent * e )
                x,y, mod&Qt::ShiftModifier, mod&Qt::ControlModifier, mod&Qt::AltModifier);
     e->accept();
 }
+
 void 	GuiTerminalWindow::mouseReleaseEvent ( QMouseEvent * e )
 {
+    noise_ultralight(e->x()<<16 | e->y());
     if (!term) return;
 
     Mouse_Button button, bcooked;
@@ -490,6 +504,7 @@ void GuiTerminalWindow::setScrollBar(int total, int start, int page)
 
 void GuiTerminalWindow::vertScrollBarAction(int action)
 {
+    if (!term) return;
     switch(action) {
     case QAbstractSlider::SliderSingleStepAdd:
         term_scroll(term, 0, +1);
@@ -508,5 +523,6 @@ void GuiTerminalWindow::vertScrollBarAction(int action)
 
 void GuiTerminalWindow::vertScrollBarMoved(int value)
 {
+    if (!term) return;
     term_scroll(term, 1, value);
 }

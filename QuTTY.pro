@@ -30,6 +30,7 @@ SOURCES +=  \
     QtDlg.cpp \
     QtGss.cpp \
     QtX11.cpp \
+    puttysrc/WINDOWS/winnoise.c \
     puttysrc/PGSSAPI.C \
     puttysrc/INT64.C \
     puttysrc/ssh.c \

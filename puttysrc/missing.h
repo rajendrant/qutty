@@ -6,9 +6,6 @@ extern "C" {
 
 #include "PUTTY.H"
 
-//void noise_ultralight(unsigned long data) TODO
-#define noise_ultralight(d)
-
 //void update_specials_menu(void *frontend)
 #define update_specials_menu(a)
 

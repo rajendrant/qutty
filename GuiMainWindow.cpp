@@ -222,6 +222,7 @@ GuiTerminalWindow *GuiMainWindow::newTelnetTerminal(const char *ip_addr, const c
 
     term = term_init(cfg, &termWnd->ucsdata, termWnd);
     term_size(term, cfg->height, cfg->width, cfg->savelines);
+    termWnd->resize(cfg->width*termWnd->fontWidth, cfg->height*termWnd->fontHeight);
 
     termWnd->backend = back = backend_from_proto(cfg->protocol);
     termWnd->backend->init(termWnd, &backhandle, cfg, (char*)ip_addr, cfg->port, &realhost, 1, 0);

@@ -48,6 +48,7 @@ static int sk_tcp_write (Socket sock, const char *data, int len)
             j+= sprintf(pr+j, "%u ", (unsigned char)data[i]);
     qDebug()<<"sk_tcp_write"<<len<<pr;
     int ret = s->qtsock->write(data, len);
+    noise_ultralight(len);
     if(ret<=0)
         qDebug()<<"tcp_write ret "<<ret;
     return ret;
