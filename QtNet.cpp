@@ -144,15 +144,6 @@ Socket sk_new(char *addr, int port, int privport, int oobinline,
     return (Socket) ret;
 }
 
-Socket qt_new_connection(char *host, char *hostname,
-                      int port, int privport,
-                      int oobinline, int nodelay, int keepalive,
-                      Plug plug, const Config *cfg)
-{
-    /* no proxy, so just return the direct socket */
-    return sk_new(host, port, privport, oobinline, nodelay, keepalive, plug);
-}
-
 int sk_addrtype(SockAddr addr)
 {
     const QHostAddress *a = (const QHostAddress*)addr;

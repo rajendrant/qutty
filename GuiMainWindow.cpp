@@ -50,8 +50,6 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
     //setWindowFlags(Qt::CustomizeWindowHint);
     //showMaximized();
     //setStyle(QStyle::);
-    setMinimumSize(960, 660);
-
 }
 
 GuiMainWindow::~GuiMainWindow()
@@ -214,15 +212,22 @@ GuiTerminalWindow *GuiMainWindow::newTelnetTerminal(const char *ip_addr, const c
         2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,
         2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2
     };
-    for(int i=0; i<sizeof(cfg->wordness); i++)
+    for(int i=0; i<sizeof(cfg->wordness)/sizeof(cfg->wordness[0]); i++)
         cfg->wordness[i] = cfg_wordness_defaults[i];
 
     memset(&termWnd->ucsdata, 0, sizeof(struct unicode_data));
     init_ucs(cfg, &termWnd->ucsdata);
 
     term = term_init(cfg, &termWnd->ucsdata, termWnd);
+    termWnd->term = term;
     term_size(term, cfg->height, cfg->width, cfg->savelines);
     termWnd->resize(cfg->width*termWnd->fontWidth, cfg->height*termWnd->fontHeight);
+    // resize according to config if window is smaller
+    if ( !(mainWindow->windowState() & Qt::WindowMaximized) &&
+          ( mainWindow->size().width() < cfg->width*termWnd->fontWidth ||
+            mainWindow->size().height() < cfg->height*termWnd->fontHeight))
+        mainWindow->resize(cfg->width*termWnd->fontWidth,
+                           cfg->height*termWnd->fontHeight);
 
     termWnd->backend = back = backend_from_proto(cfg->protocol);
     termWnd->backend->init(termWnd, &backhandle, cfg, (char*)ip_addr, cfg->port, &realhost, 1, 0);
@@ -250,7 +255,6 @@ GuiTerminalWindow *GuiMainWindow::newTelnetTerminal(const char *ip_addr, const c
     ldisc = ldisc_create(cfg, term, back, backhandle, termWnd);
 
     termWnd->ldisc = ldisc;
-    termWnd->term = term;
     termWnd->backhandle = backhandle;
 
     return termWnd;

@@ -49,15 +49,22 @@ GuiTerminalWindow::GuiTerminalWindow(QWidget *parent) :
 
     mouseButtonAction = MA_NOTHING;
     setMouseTracking(true);
+    setCursor(Qt::IBeamCursor);
 }
 
 void GuiTerminalWindow::keyPressEvent ( QKeyEvent *e )
 {
     noise_ultralight(e->key());
-
     if (!term) return;
 
-    qDebug()<<"you pressed "<<e->text()<<" "<<e->count()<<" "<<e->key()<<" "<<e->modifiers();
+    // skip ALT SHIFT CTRL keypress events
+    switch(e->key()) {
+    case Qt::Key_Alt:
+    case Qt::Key_AltGr:
+    case Qt::Key_Control:
+    case Qt::Key_Shift:
+        return;
+    }
 
     char buf[16];
     int len = TranslateKey(e, buf);
@@ -67,15 +74,18 @@ void GuiTerminalWindow::keyPressEvent ( QKeyEvent *e )
         term_seen_key_event(term);
         ldisc_send(ldisc, buf, len, 1);
         //show_mouseptr(0);
-        qDebug()<<"keypress"<<len<<buf[0]<<buf[1];
     } else if(len==-1) {
         wchar_t bufwchar[16];
-        len = e->text().toWCharArray(bufwchar);
+        len = 0;
+        // Treat Alt by just inserting an Esc before everything else
+        if (e->modifiers() & Qt::AltModifier){
+            bufwchar[len++] = 0x1b;
+        }
+        len += e->text().toWCharArray(bufwchar+len);
         assert(len<16);
         term_nopaste(term);
         term_seen_key_event(term);
         luni_send(ldisc, bufwchar, len, 1);
-        qDebug()<<"keypress wchar"<<bufwchar[0]<<len<<term->cr_lf_return;
         //ldisc_send(ldisc, buf, 1, 1);
     }
 }
@@ -107,7 +117,6 @@ void GuiTerminalWindow::readyRead ()
 
 void GuiTerminalWindow::paintEvent (QPaintEvent *e)
 {
-    qDebug()<<__FUNCTION__;
     QPainter painter(viewport());
 
     painter.fillRect(e->rect(), Qt::black);
@@ -234,21 +243,17 @@ void GuiTerminalWindow::paintCursor(QPainter &painter, int row, int col,
 
 int GuiTerminalWindow::from_backend(int is_stderr, const char *data, int len)
 {
-    qDebug()<<"from_backend"<<data;
     return term_data(term, is_stderr, data, len);
 }
 
 void GuiTerminalWindow::preDrawTerm()
 {
-    qDebug()<<__FUNCTION__;
     termrgn = QRegion();
 }
 
 void GuiTerminalWindow::drawTerm()
 {
-    qDebug()<<__FUNCTION__;
     this->viewport()->update(termrgn);
-    qDebug()<<__FUNCTION__<<"end";
 }
 
 void GuiTerminalWindow::drawText(int row, int col, wchar_t *ch, int len, unsigned long attr, int lattr)
@@ -256,10 +261,7 @@ void GuiTerminalWindow::drawText(int row, int col, wchar_t *ch, int len, unsigne
     if (attr & TATTR_COMBINING) {
         return;
     }
-    ch[len] = '\0';
-    QString str = QString::fromWCharArray(ch);
     termrgn |= QRect(col*fontWidth, row*fontHeight, fontWidth*len, fontHeight);
-    qDebug()<<"drawText"<<row<<col<<attr<<lattr<<QString::fromWCharArray(ch);
 }
 
 void GuiTerminalWindow::setTermFont(FontSpec *f)

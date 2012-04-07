@@ -92,8 +92,4 @@ HEADERS +=  \
     puttysrc/QtStuff.h \
     puttysrc/MISC.H
 
-INCLUDEPATH += tmp/moc/release_shared puttysrc/
-
-#LIBS += -lGdi32 -L C:\\Qt\\4.8.0\\lib
-
-#CONFIG += static
+INCLUDEPATH += puttysrc/
