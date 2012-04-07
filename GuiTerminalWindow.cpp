@@ -49,7 +49,7 @@ GuiTerminalWindow::GuiTerminalWindow(QWidget *parent) :
 
     mouseButtonAction = MA_NOTHING;
     setMouseTracking(true);
-    setCursor(Qt::IBeamCursor);
+    viewport()->setCursor(Qt::IBeamCursor);
 }
 
 void GuiTerminalWindow::keyPressEvent ( QKeyEvent *e )
