@@ -7,7 +7,6 @@
 #ifndef TERMINALWINDOW_H
 #define TERMINALWINDOW_H
 
-#include <QPlainTextEdit>
 #include <QFont>
 #include <QFontInfo>
 #include <QFontMetrics>
@@ -16,6 +15,9 @@
 #include "QtCommon.h"
 #include "GuiMainWindow.h"
 #include <QElapsedTimer>
+#include "tmux/tmux.h"
+#include "tmux/TmuxGateway.h"
+#include "tmux/TmuxWindowPane.h"
 extern "C" {
 #include "terminal.h"
 #include "putty.h"
@@ -28,6 +30,10 @@ extern "C" {
 class GuiTerminalWindow : public QAbstractScrollArea
 {
     Q_OBJECT
+private:
+    enum tmux_mode_t _tmuxMode;
+    TmuxGateway *_tmuxGateway;
+
 public:
     QFont *_font;
     QFontMetrics *_fontMetrics;
@@ -53,9 +59,17 @@ public:
     } bold_mode;
 
     explicit GuiTerminalWindow(QWidget *parent = 0);
+    ~GuiTerminalWindow();
+
+    /*
+     * follow a two phased construction
+     * 1. GuiMainWindow::newTerminal()  -> create
+     * 2. termWnd->initTerminal() -> init the internals with config
+     */
+    int initTerminal();
+
     void keyPressEvent ( QKeyEvent * e );
     void keyReleaseEvent ( QKeyEvent * e );
-    void closeEvent(QCloseEvent *closeEvent);
     int from_backend(int is_stderr, const char *data, int len);
     void preDrawTerm();
     void drawTerm();
@@ -73,6 +87,10 @@ public:
 
     void setScrollBar(int total, int start, int page);
     int TranslateKey(QKeyEvent *keyevent, char *output);
+
+    int initTmuxContollerMode(char *tmux_version);
+    TmuxWindowPane *initTmuxClientTerminal(TmuxGateway *gateway, int id, int width, int height);
+    TmuxGateway *tmuxGateway() { return _tmuxGateway; }
 
 protected:
     void paintEvent ( QPaintEvent * e );

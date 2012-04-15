@@ -179,6 +179,9 @@ struct terminal_tag {
     char osc_string[OSC_STR_MAX + 1];
     int osc_w;
 
+    char esc_buf[10];
+    uint8_t esc_buf_len;
+
     char id_string[1024];
 
     unsigned char *tabs;
@@ -194,7 +197,9 @@ struct terminal_tag {
 
 	SEEN_OSC_P,
 	OSC_STRING, OSC_MAYBE_ST,
-	VT52_ESC,
+    SEEN_APC,
+    ESC_MAYBE_ST,
+    VT52_ESC,
 	VT52_Y1,
 	VT52_Y2,
 	VT52_FG,

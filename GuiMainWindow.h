@@ -19,6 +19,7 @@ class GuiMainWindow : public QMainWindow
 public:
     GuiMainWindow(QWidget *parent = 0);
     ~GuiMainWindow();
+    GuiTerminalWindow *newTerminal();
     bool winEvent ( MSG * msg, long * result );
 
     QTabWidget *tabArea;
@@ -27,8 +28,7 @@ private:
     QList<GuiTerminalWindow *> terminalList;
 
 public slots:
-    GuiTerminalWindow *newTerminal();
-    GuiTerminalWindow *newTelnetTerminal(const char *ip_addr=NULL, const char *port=NULL, int protocol=-1);
+    void openTerminal();
     void closeTerminal(int index);
     void timerHandler();
     void currentChanged(int index);

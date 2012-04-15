@@ -17,6 +17,8 @@ extern "C" {
 #include "ssh.h"
 }
 
+int initConfigDefaults(Config *cfg);
+
 GuiMainWindow::GuiMainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -41,7 +43,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
     QToolButton* closeTabButton = new QToolButton();
     closeTabButton->setText(tr("+"));
     //connect(closeTabButton, SIGNAL(clicked()), this, SLOT(newTelnetTerminal()));
-    connect(closeTabButton, SIGNAL(clicked()), this, SLOT(newTerminal()));
+    connect(closeTabButton, SIGNAL(clicked()), this, SLOT(openTerminal()));
     tabArea->setCornerWidget( closeTabButton, Qt::TopRightCorner );
 
     setWindowTitle(tr("QuTTY"));
@@ -57,34 +59,114 @@ GuiMainWindow::~GuiMainWindow()
     delete tabArea;
 }
 
+
 GuiTerminalWindow *GuiMainWindow::newTerminal()
+{
+    GuiTerminalWindow *termWnd = new GuiTerminalWindow(tabArea);
+    tabArea->addTab(termWnd, tr("Qutty"));
+    terminalList.append(termWnd);
+    termWnd->setWindowState(termWnd->windowState() | Qt::WindowMaximized);
+    return termWnd;
+}
+
+void GuiMainWindow::openTerminal()
 {
     GuiSettingsWindow *ss = new GuiSettingsWindow(mainWindow);
     ss->show();
-    return NULL;
 }
 
 extern "C" Socket get_ssh_socket(void *handle);
 extern "C" Socket get_telnet_socket(void *handle);
 
-GuiTerminalWindow *GuiMainWindow::newTelnetTerminal(const char *ip_addr, const char *port, int protocol)
+void GuiMainWindow::timerHandler()
 {
-    void *ldisc;
-    Terminal *term;
-    Backend *back;
-    void *backhandle;
-    GuiTerminalWindow *termWnd = new GuiTerminalWindow(tabArea);
-    tabArea->addTab(termWnd, tr("Qutty"));
-    //subWindow->setFixedSize(termWnd->size());
-    //qDebug()<<"subWindow"<<subWindow->geometry();
-    terminalList.append(termWnd);
-    termWnd->setWindowState(termWnd->windowState() | Qt::WindowMaximized);
+    long next;
+    qDebug() << "Timer fired";
+    if (run_timers(timing_next_time, &next)) {
+        timer_change_notify(next);
+    }
+}
 
-    char *realhost = NULL;
-    Config *cfg = &termWnd->cfg;
+bool GuiMainWindow::winEvent ( MSG * msg, long * result )
+{
+    int ret;
+    HDC hdc;
+    //RECT r1, r2;
+
+    /*
+    switch(msg->message) {
+    case WM_NCCALCSIZE:
+        qDebug()<<"got WM_NCCALCSIZE "<<hex<<msg->wParam<<" "<<msg->lParam<<endl;
+        if (msg->wParam) {
+                NCCALCSIZE_PARAMS* param = (NCCALCSIZE_PARAMS*)msg->lParam;
+                memcpy(&r1, param->rgrc, sizeof(RECT));
+                qDebug()<<dec<<param->lppos<<" "<<param->rgrc->top<<" "<<param->rgrc->left<<" "<<param->rgrc->bottom<<" "<<param->rgrc->right<<endl;
+        } else {
+                RECT* param = (RECT*)msg->lParam;
+                qDebug()<<dec<<param->top<<" "<<param->left<<" "<<param->bottom<<" "<<param->right<<endl;
+        }
+        ret = DefWindowProc((HWND) this->winId(), msg->message, msg->wParam, msg->lParam);
+        if (msg->wParam) {
+                NCCALCSIZE_PARAMS* param = (NCCALCSIZE_PARAMS*)msg->lParam;
+                qDebug()<<hex<<"ret "<<ret<<dec<<param->lppos<<" "<<param->rgrc->top<<" "<<param->rgrc->left<<" "<<param->rgrc->bottom<<" "<<param->rgrc->right<<endl;
+                memcpy(&r2, param->rgrc, sizeof(RECT));
+                memcpy(param->rgrc, &r1, sizeof(RECT));
+                param->rgrc->top += r1.bottom - r2.bottom + 1;
+                //if(mainWindow->windowState()&Qt::WindowMaximized)
+                //    param->rgrc->top = r1.top + 4;
+        } else {
+                RECT* param = (RECT*)msg->lParam;
+                qDebug()<<hex<<"ret "<<ret<<dec<<param->top<<" "<<param->left<<" "<<param->bottom<<" "<<param->right<<endl;
+                //param->top -= 40;
+        }
+        *result = ret;
+        return true;
+    case WM_NCACTIVATE:
+        qDebug() << "got wm_ncactivate "<<msg->message<<" "<<msg->lParam<<" "<<msg->wParam<<"\n";
+    case WM_NCPAINT:
+        hdc = GetWindowDC((HWND) this->winId());
+        if ((int)hdc != 0)
+        {
+            //ret = DefWindowProc((HWND) this->winId(), msg->message, msg->wParam, msg->lParam);
+            /*TextOut(hdc, 0, 0, L"Hello, Windows!", 15);
+            RECT rect;
+            rect.top = 0; rect.left=0; rect.bottom=10; rect.right=20;
+            DrawEdge(hdc, &rect, EDGE_RAISED, BF_RECT | BF_ADJUST);
+            FillRect(hdc, &rect, GetSysColorBrush(COLOR_BTNFACE));
+            ReleaseDC((HWND) this->winId(), hdc);
+            qDebug()<<"painted WM_NCPAINT\n";* /
+        } else
+            qDebug()<<"failed painting WM_NCPAINT\n";
+        *result = 0;
+        return true;
+    }*/
+
+    return false;
+}
+
+void GuiMainWindow::closeTerminal(int index)
+{
+    tabArea->removeTab(index);
+}
+
+void GuiMainWindow::currentChanged(int index)
+{
+    if (index!=-1 && tabArea->widget(index))
+        tabArea->widget(index)->setFocus();
+    //term_set_focus(tabArea->currentWidget()->term, TRUE);
+    //term_update(tabArea->currentWidget()->term);
+}
+
+void GuiMainWindow::focusChanged ( QWidget * old, QWidget * now )
+{
+    //qDebug()<<__FUNCTION__<<old<<now;
+}
+
+int initConfigDefaults(Config *cfg)
+{
     memset(cfg, 0, sizeof(Config));
-    cfg->protocol = protocol;
-    cfg->port = atoi(port);
+    cfg->protocol = PROT_SSH;
+    cfg->port = 23;
     cfg->width = 80;
     cfg->height = 30;
     //cfg->savelines = 1000;
@@ -104,7 +186,6 @@ GuiTerminalWindow *GuiMainWindow::newTelnetTerminal(const char *ip_addr, const c
     cfg->font.height = 11;
     cfg->font.isbold = 0;
     cfg->font.charset = 0;
-    termWnd->setTermFont(&cfg->font);
 
     // colors
     cfg->ansi_colour = 1;
@@ -119,7 +200,7 @@ GuiTerminalWindow *GuiMainWindow::newTelnetTerminal(const char *ip_addr, const c
         "85,85,255", "187,0,187", "255,85,255", "0,187,187",
         "85,255,255", "187,187,187", "255,255,255"
     };
-    for(int i=0; i<lenof(cfg->colours); i++) {
+    for(uint i=0; i<lenof(cfg->colours); i++) {
         int c0, c1, c2;
         if (sscanf(default_colors[i], "%d,%d,%d", &c0, &c1, &c2) == 3) {
             cfg->colours[i][0] = c0;
@@ -127,7 +208,6 @@ GuiTerminalWindow *GuiMainWindow::newTelnetTerminal(const char *ip_addr, const c
             cfg->colours[i][2] = c2;
         }
     }
-    termWnd->cfgtopalette(cfg);
 
     // blink cursor
     cfg->blink_cur = 0;
@@ -212,133 +292,8 @@ GuiTerminalWindow *GuiMainWindow::newTelnetTerminal(const char *ip_addr, const c
         2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,
         2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2
     };
-    for(int i=0; i<sizeof(cfg->wordness)/sizeof(cfg->wordness[0]); i++)
+    for(uint i=0; i<sizeof(cfg->wordness)/sizeof(cfg->wordness[0]); i++)
         cfg->wordness[i] = cfg_wordness_defaults[i];
 
-    memset(&termWnd->ucsdata, 0, sizeof(struct unicode_data));
-    init_ucs(cfg, &termWnd->ucsdata);
-
-    term = term_init(cfg, &termWnd->ucsdata, termWnd);
-    termWnd->term = term;
-    term_size(term, cfg->height, cfg->width, cfg->savelines);
-    termWnd->resize(cfg->width*termWnd->fontWidth, cfg->height*termWnd->fontHeight);
-    // resize according to config if window is smaller
-    if ( !(mainWindow->windowState() & Qt::WindowMaximized) &&
-          ( mainWindow->size().width() < cfg->width*termWnd->fontWidth ||
-            mainWindow->size().height() < cfg->height*termWnd->fontHeight))
-        mainWindow->resize(cfg->width*termWnd->fontWidth,
-                           cfg->height*termWnd->fontHeight);
-
-    termWnd->backend = back = backend_from_proto(cfg->protocol);
-    termWnd->backend->init(termWnd, &backhandle, cfg, (char*)ip_addr, cfg->port, &realhost, 1, 0);
-    switch(cfg->protocol) {
-    case PROT_TELNET:
-        termWnd->as = (Actual_Socket)get_telnet_socket(backhandle);
-        break;
-    case PROT_SSH:
-        termWnd->as = (Actual_Socket)get_ssh_socket(backhandle);
-        break;
-    default:
-        assert(0);
-    }
-    termWnd->qtsock = termWnd->as->qtsock;
-    QObject::connect(termWnd->as->qtsock, SIGNAL(readyRead()), termWnd, SLOT(readyRead()));
-
-    /*
-     * Connect the terminal to the backend for resize purposes.
-     */
-    term_provide_resize_fn(term, back->size, backhandle);
-
-    /*
-     * Set up a line discipline.
-     */
-    ldisc = ldisc_create(cfg, term, back, backhandle, termWnd);
-
-    termWnd->ldisc = ldisc;
-    termWnd->backhandle = backhandle;
-
-    return termWnd;
-}
-
-void GuiMainWindow::timerHandler()
-{
-    long next;
-    qDebug() << "Timer fired";
-    if (run_timers(timing_next_time, &next)) {
-        timer_change_notify(next);
-    }
-}
-
-bool GuiMainWindow::winEvent ( MSG * msg, long * result )
-{
-    int ret;
-    HDC hdc;
-    //RECT r1, r2;
-
-    /*
-    switch(msg->message) {
-    case WM_NCCALCSIZE:
-        qDebug()<<"got WM_NCCALCSIZE "<<hex<<msg->wParam<<" "<<msg->lParam<<endl;
-        if (msg->wParam) {
-                NCCALCSIZE_PARAMS* param = (NCCALCSIZE_PARAMS*)msg->lParam;
-                memcpy(&r1, param->rgrc, sizeof(RECT));
-                qDebug()<<dec<<param->lppos<<" "<<param->rgrc->top<<" "<<param->rgrc->left<<" "<<param->rgrc->bottom<<" "<<param->rgrc->right<<endl;
-        } else {
-                RECT* param = (RECT*)msg->lParam;
-                qDebug()<<dec<<param->top<<" "<<param->left<<" "<<param->bottom<<" "<<param->right<<endl;
-        }
-        ret = DefWindowProc((HWND) this->winId(), msg->message, msg->wParam, msg->lParam);
-        if (msg->wParam) {
-                NCCALCSIZE_PARAMS* param = (NCCALCSIZE_PARAMS*)msg->lParam;
-                qDebug()<<hex<<"ret "<<ret<<dec<<param->lppos<<" "<<param->rgrc->top<<" "<<param->rgrc->left<<" "<<param->rgrc->bottom<<" "<<param->rgrc->right<<endl;
-                memcpy(&r2, param->rgrc, sizeof(RECT));
-                memcpy(param->rgrc, &r1, sizeof(RECT));
-                param->rgrc->top += r1.bottom - r2.bottom + 1;
-                //if(mainWindow->windowState()&Qt::WindowMaximized)
-                //    param->rgrc->top = r1.top + 4;
-        } else {
-                RECT* param = (RECT*)msg->lParam;
-                qDebug()<<hex<<"ret "<<ret<<dec<<param->top<<" "<<param->left<<" "<<param->bottom<<" "<<param->right<<endl;
-                //param->top -= 40;
-        }
-        *result = ret;
-        return true;
-    case WM_NCACTIVATE:
-        qDebug() << "got wm_ncactivate "<<msg->message<<" "<<msg->lParam<<" "<<msg->wParam<<"\n";
-    case WM_NCPAINT:
-        hdc = GetWindowDC((HWND) this->winId());
-        if ((int)hdc != 0)
-        {
-            //ret = DefWindowProc((HWND) this->winId(), msg->message, msg->wParam, msg->lParam);
-            /*TextOut(hdc, 0, 0, L"Hello, Windows!", 15);
-            RECT rect;
-            rect.top = 0; rect.left=0; rect.bottom=10; rect.right=20;
-            DrawEdge(hdc, &rect, EDGE_RAISED, BF_RECT | BF_ADJUST);
-            FillRect(hdc, &rect, GetSysColorBrush(COLOR_BTNFACE));
-            ReleaseDC((HWND) this->winId(), hdc);
-            qDebug()<<"painted WM_NCPAINT\n";* /
-        } else
-            qDebug()<<"failed painting WM_NCPAINT\n";
-        *result = 0;
-        return true;
-    }*/
-
-    return false;
-}
-
-void GuiMainWindow::closeTerminal(int index)
-{
-    tabArea->removeTab(index);
-}
-
-void GuiMainWindow::currentChanged(int index)
-{
-    tabArea->widget(index)->setFocus();
-    //term_set_focus(tabArea->currentWidget()->term, TRUE);
-    //term_update(tabArea->currentWidget()->term);
-}
-
-void GuiMainWindow::focusChanged ( QWidget * old, QWidget * now )
-{
-    //qDebug()<<__FUNCTION__<<old<<now;
+    return 0;
 }

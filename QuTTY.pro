@@ -67,7 +67,10 @@ SOURCES +=  \
     puttysrc/wcwidth.c \
     puttysrc/sshcrc.c \
     puttysrc/wildcard.c \
-    puttysrc/BE_ALL_S.C
+    puttysrc/BE_ALL_S.C \
+    tmux/TmuxBackend.cpp \
+    tmux/TmuxGateway.cpp \
+    tmux/TmuxWindowPane.cpp
 
 HEADERS +=  \
     GuiMainWindow.h \
@@ -90,6 +93,9 @@ HEADERS +=  \
     puttysrc/LDISC.H \
     puttysrc/INT64.H \
     puttysrc/QtStuff.h \
-    puttysrc/MISC.H
+    puttysrc/MISC.H \
+    tmux/tmux.h \
+    tmux/TmuxGateway.h \
+    tmux/TmuxWindowPane.h
 
-INCLUDEPATH += puttysrc/
+INCLUDEPATH += ./ puttysrc/

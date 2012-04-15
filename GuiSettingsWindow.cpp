@@ -88,12 +88,19 @@ void GuiSettingsWindow::btnConnTypeClicked(int id)
     }
 }
 
+int initConfigDefaults(Config *cfg);
+
 void GuiSettingsWindow::newTerminal()
 {
     qDebug()<<"newTerminal"<<txtHostName->text()<<txtPort->text()<<btnConnType->checkedId();
     QByteArray hostname = txtHostName->text().toUtf8();
     QByteArray port = txtPort->text().toUtf8();
-    QWidget *newWnd = mainWindow->newTelnetTerminal(hostname.constData(), port.constData(), btnConnType->checkedId());
+    GuiTerminalWindow *newWnd = mainWindow->newTerminal();
+    initConfigDefaults(&newWnd->cfg);
+    strcpy(newWnd->cfg.host, hostname.constData());
+    newWnd->cfg.port = atoi(port.constData());
+    newWnd->cfg.protocol = btnConnType->checkedId();
+    newWnd->initTerminal();
     mainWindow->tabArea->setCurrentWidget(newWnd);
     this->close();
 }

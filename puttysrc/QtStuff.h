@@ -51,7 +51,7 @@ void init_ucs(Config *, struct unicode_data *);
 
 #define APPNAME "PuTTY"
 
-void qt_message_box(void * frontend, char *title, char *msg);
+void qt_message_box(void * frontend, const char *title, char *msg);
 
 #define qt_critical_msgbox(frontend, fmt, ...) do { \
     char qt_message_box_msg[1000]; \

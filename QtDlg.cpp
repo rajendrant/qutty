@@ -147,7 +147,7 @@ void old_keyfile_warning(void)
         QMessageBox::Ok);
 }
 
-void qt_message_box(void * frontend, char *title, char *msg)
+void qt_message_box(void * frontend, const char *title, char *msg)
 {
     QWidget *f;
     if (frontend)

@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include "putty.h"
+#include "tmux/tmux.h"
 
 /*
  * This appname is not strictly in the right place, since Plink
@@ -28,5 +29,7 @@ Backend *backends[] = {
 //    &rlogin_backend,
 //    &raw_backend,
 //    &serial_backend,
+    &tmux_client_backend,
+//    &base_wrapper_backend,
     NULL
 };

@@ -50,6 +50,118 @@ GuiTerminalWindow::GuiTerminalWindow(QWidget *parent) :
     mouseButtonAction = MA_NOTHING;
     setMouseTracking(true);
     viewport()->setCursor(Qt::IBeamCursor);
+
+    _tmuxMode = TMUX_MODE_NONE;
+    _tmuxGateway = NULL;
+}
+
+GuiTerminalWindow::~GuiTerminalWindow()
+{
+    if (_tmuxGateway)
+        delete _tmuxGateway;
+}
+
+extern "C" Socket get_ssh_socket(void *handle);
+extern "C" Socket get_telnet_socket(void *handle);
+
+int GuiTerminalWindow::initTerminal()
+{
+    char *realhost = NULL;
+    char *ip_addr = cfg.host;
+
+    memset(&ucsdata, 0, sizeof(struct unicode_data));
+    init_ucs(&cfg, &ucsdata);
+    setTermFont(&cfg.font);
+    cfgtopalette(&cfg);
+
+    term = term_init(&cfg, &ucsdata, this);
+    term_size(term, cfg.height, cfg.width, cfg.savelines);
+    resize(cfg.width*fontWidth, cfg.height*fontHeight);
+    // resize according to config if window is smaller
+    if ( !(mainWindow->windowState() & Qt::WindowMaximized) &&
+          ( mainWindow->size().width() < cfg.width*fontWidth ||
+            mainWindow->size().height() < cfg.height*fontHeight))
+        mainWindow->resize(cfg.width*fontWidth,
+                           cfg.height*fontHeight);
+
+    backend = backend_from_proto(cfg.protocol);
+    backend->init(this, &backhandle, &cfg, (char*)ip_addr, cfg.port, &realhost, 1, 0);
+    if (realhost)
+        sfree(realhost);
+
+    switch(cfg.protocol) {
+    case PROT_TELNET:
+        as = (Actual_Socket)get_telnet_socket(backhandle);
+        break;
+    case PROT_SSH:
+        as = (Actual_Socket)get_ssh_socket(backhandle);
+        break;
+    default:
+        assert(0);
+    }
+    qtsock = as->qtsock;
+    QObject::connect(as->qtsock, SIGNAL(readyRead()), this, SLOT(readyRead()));
+
+    /*
+     * Connect the terminal to the backend for resize purposes.
+     */
+    term_provide_resize_fn(term, backend->size, backhandle);
+
+    /*
+     * Set up a line discipline.
+     */
+    ldisc = ldisc_create(&cfg, term, backend, backhandle, this);
+    return 0;
+}
+
+TmuxWindowPane *GuiTerminalWindow::initTmuxClientTerminal(TmuxGateway *gateway,
+                                        int id, int width, int height)
+{
+    TmuxWindowPane *tmuxPane = NULL;
+
+    memset(&ucsdata, 0, sizeof(struct unicode_data));
+    init_ucs(&cfg, &ucsdata);
+    setTermFont(&cfg.font);
+    cfgtopalette(&cfg);
+
+    term = term_init(&cfg, &ucsdata, this);
+    term_size(term, cfg.height, cfg.width, cfg.savelines);
+    resize(cfg.width*fontWidth, cfg.height*fontHeight);
+    // resize according to config if window is smaller
+    if ( !(mainWindow->windowState() & Qt::WindowMaximized) &&
+          ( mainWindow->size().width() < cfg.width*fontWidth ||
+            mainWindow->size().height() < cfg.height*fontHeight))
+        mainWindow->resize(cfg.width*fontWidth,
+                           cfg.height*fontHeight);
+
+    _tmuxMode = TMUX_MODE_CLIENT;
+    _tmuxGateway = gateway;
+    cfg.protocol = PROT_TMUX_CLIENT;
+    cfg.port = -1;
+    cfg.width = width;
+    cfg.height = height;
+
+    backend = backend_from_proto(cfg.protocol);
+    // HACK - pass paneid in port
+    backend->init(this, &backhandle, &cfg, NULL, id, NULL, 0, 0);
+    tmuxPane = new TmuxWindowPane(gateway, this);
+    tmuxPane->id = id;
+    tmuxPane->width = width;
+    tmuxPane->height = height;
+
+    as = NULL;
+    qtsock = NULL;
+
+    /*
+     * Connect the terminal to the backend for resize purposes.
+     */
+    term_provide_resize_fn(term, backend->size, backhandle);
+
+    /*
+     * Set up a line discipline.
+     */
+    ldisc = ldisc_create(&cfg, term, backend, backhandle, this);
+    return tmuxPane;
 }
 
 void GuiTerminalWindow::keyPressEvent ( QKeyEvent *e )
@@ -95,16 +207,6 @@ void GuiTerminalWindow::keyReleaseEvent ( QKeyEvent * e )
     noise_ultralight(e->key());
 }
 
-void GuiTerminalWindow::closeEvent(QCloseEvent *closeEvent)
-{
-    /* HACK: most likely Ctrl+W is pressed. ignore it */
-    if (QApplication::keyboardModifiers() & Qt::ControlModifier) {
-        qDebug()<< "closing request "<<closeEvent->type()<<" "<<closeEvent->spontaneous();
-        closeEvent->ignore();
-    }
-    closeEvent->accept();
-}
-
 void GuiTerminalWindow::readyRead ()
 {
     char buf[20480];
@@ -131,7 +233,7 @@ void GuiTerminalWindow::paintEvent (QPaintEvent *e)
         int colend = (r.right()+1)/fontWidth;
         for(; row<rowend; row++) {
             for(int col=colstart; col<colend; ) {
-                int attr = term->dispstr_attr[row][col];
+                uint attr = term->dispstr_attr[row][col];
                 int coldiff = col+1;
                 for(;attr==term->dispstr_attr[row][coldiff]; coldiff++);
                 QString str = QString::fromWCharArray(&term->dispstr[row][col], coldiff-col);
@@ -243,6 +345,8 @@ void GuiTerminalWindow::paintCursor(QPainter &painter, int row, int col,
 
 int GuiTerminalWindow::from_backend(int is_stderr, const char *data, int len)
 {
+    if (_tmuxMode==TMUX_MODE_GATEWAY && _tmuxGateway)
+        return _tmuxGateway->fromBackend(is_stderr, data, len);
     return term_data(term, is_stderr, data, len);
 }
 
@@ -259,6 +363,7 @@ void GuiTerminalWindow::drawTerm()
 void GuiTerminalWindow::drawText(int row, int col, wchar_t *ch, int len, unsigned long attr, int lattr)
 {
     if (attr & TATTR_COMBINING) {
+        // TODO NOT_YET_IMPLEMENTED
         return;
     }
     termrgn |= QRect(col*fontWidth, row*fontHeight, fontWidth*len, fontHeight);
@@ -277,7 +382,7 @@ void GuiTerminalWindow::setTermFont(FontSpec *f)
     fontWidth = _fontMetrics->width(QChar('a'));
     fontHeight = _fontMetrics->height();
 
-    qDebug()<<_font->family()<<" "<<_font->styleHint()<<" "<<_font->style();
+    qDebug()<<__FUNCTION__<<_font->family()<<_font->styleHint()<<_font->style();
 }
 
 void GuiTerminalWindow::cfgtopalette(Config *cfg)
@@ -374,7 +479,7 @@ void 	GuiTerminalWindow::mouseMoveEvent ( QMouseEvent * e )
 }
 
 // Qt 5.0 supports qApp->styleHints()->mouseDoubleClickInterval()
-#define CFG_MOUSE_TRIPLE_CLICK_INTERVAL 400
+#define CFG_MOUSE_TRIPLE_CLICK_INTERVAL 300
 
 void 	GuiTerminalWindow::mousePressEvent ( QMouseEvent * e )
 {
@@ -466,6 +571,14 @@ void 	GuiTerminalWindow::resizeEvent ( QResizeEvent * e )
     if (term)
         term_size(term, viewport()->size().height()/fontHeight,
                   viewport()->size().width()/fontWidth, cfg.savelines);
+    if (_tmuxMode==TMUX_MODE_CLIENT) {
+        wchar_t cmd_resize[128];
+        int cmd_resize_len = wsprintf(cmd_resize, L"control set-client-size %d,%d\n",
+                                      viewport()->size().width()/fontWidth,
+                                      viewport()->size().height()/fontHeight);
+        _tmuxGateway->sendCommand(_tmuxGateway, CB_NULL,
+                                  cmd_resize, cmd_resize_len);
+    }
 }
 
 bool GuiTerminalWindow::event(QEvent *event)
@@ -527,4 +640,16 @@ void GuiTerminalWindow::vertScrollBarMoved(int value)
 {
     if (!term) return;
     term_scroll(term, 1, value);
+}
+
+int GuiTerminalWindow::initTmuxContollerMode(char *tmux_version)
+{
+    // TODO version check
+    assert(_tmuxMode == TMUX_MODE_NONE);
+
+    qDebug()<<"TMUX mode entered";
+    _tmuxMode = TMUX_MODE_GATEWAY;
+    _tmuxGateway = new TmuxGateway(this);
+
+    return 0;
 }
