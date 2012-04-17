@@ -46,14 +46,12 @@ void set_sbar(void *frontend, int total, int start, int page)
 Context get_ctx(void *frontend)
 {
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
-    qDebug()<<__FUNCTION__;
     f->preDrawTerm();
     return frontend;
 }
 void free_ctx(Context ctx)
 {
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(ctx);
-    qDebug()<<__FUNCTION__;
     f->drawTerm();
 }
 

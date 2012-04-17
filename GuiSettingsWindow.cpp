@@ -74,6 +74,8 @@ GuiSettingsWindow::GuiSettingsWindow(QWidget *parent) :
     setWindowTitle(tr("[New Session]"));
 
     txtHostName->setText("192.168.1.103");
+
+    setModal(true);
 }
 
 void GuiSettingsWindow::btnConnTypeClicked(int id)

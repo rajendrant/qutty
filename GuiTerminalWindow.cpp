@@ -57,8 +57,10 @@ GuiTerminalWindow::GuiTerminalWindow(QWidget *parent) :
 
 GuiTerminalWindow::~GuiTerminalWindow()
 {
-    if (_tmuxGateway)
+    if (_tmuxMode==TMUX_MODE_GATEWAY && _tmuxGateway) {
+        _tmuxGateway->initiateDetach();
         delete _tmuxGateway;
+    }
 }
 
 extern "C" Socket get_ssh_socket(void *handle);
@@ -463,7 +465,7 @@ void 	GuiTerminalWindow::mouseDoubleClickEvent ( QMouseEvent * e )
 void 	GuiTerminalWindow::mouseMoveEvent ( QMouseEvent * e )
 {
     noise_ultralight(e->x()<<16 | e->y());
-    if (!term || e->buttons()==Qt::NoButton) return;
+    if (e->buttons()==Qt::NoButton || !term) return;
 
     Mouse_Button button, bcooked;
     button = e->buttons()&Qt::LeftButton ? MBT_LEFT :
@@ -479,7 +481,7 @@ void 	GuiTerminalWindow::mouseMoveEvent ( QMouseEvent * e )
 }
 
 // Qt 5.0 supports qApp->styleHints()->mouseDoubleClickInterval()
-#define CFG_MOUSE_TRIPLE_CLICK_INTERVAL 300
+#define CFG_MOUSE_TRIPLE_CLICK_INTERVAL 500
 
 void 	GuiTerminalWindow::mousePressEvent ( QMouseEvent * e )
 {
@@ -499,7 +501,8 @@ void 	GuiTerminalWindow::mousePressEvent ( QMouseEvent * e )
     bcooked = translate_button(&cfg, button);
 
     // detect single/double/triple click
-    if (!mouseClickTimer.hasExpired(CFG_MOUSE_TRIPLE_CLICK_INTERVAL)) {
+    if (button == MBT_LEFT &&
+            !mouseClickTimer.hasExpired(CFG_MOUSE_TRIPLE_CLICK_INTERVAL)) {
         mouseButtonAction =
                 mouseButtonAction==MA_CLICK ? MA_2CLK :
                     mouseButtonAction==MA_2CLK ? MA_3CLK :
@@ -596,7 +599,6 @@ bool GuiTerminalWindow::event(QEvent *event)
 void GuiTerminalWindow::focusInEvent ( QFocusEvent * e )
 {
     if (!term) return;
-    qDebug()<<__FUNCTION__;
     term_set_focus(term, TRUE);
     term_update(term);
 }
@@ -604,7 +606,6 @@ void GuiTerminalWindow::focusInEvent ( QFocusEvent * e )
 void GuiTerminalWindow::focusOutEvent ( QFocusEvent * e )
 {
     if (!term) return;
-    qDebug()<<__FUNCTION__;
     term_set_focus(term, FALSE);
     term_update(term);
 }
@@ -652,4 +653,14 @@ int GuiTerminalWindow::initTmuxContollerMode(char *tmux_version)
     _tmuxGateway = new TmuxGateway(this);
 
     return 0;
+}
+
+void GuiTerminalWindow::detachTmuxContollerMode()
+{
+    assert(_tmuxMode == TMUX_MODE_GATEWAY);
+
+    _tmuxGateway->detach();
+    delete _tmuxGateway;
+    _tmuxGateway= NULL;
+    _tmuxMode = TMUX_MODE_NONE;
 }

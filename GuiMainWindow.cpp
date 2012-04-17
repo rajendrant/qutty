@@ -43,7 +43,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
     QToolButton* closeTabButton = new QToolButton();
     closeTabButton->setText(tr("+"));
     //connect(closeTabButton, SIGNAL(clicked()), this, SLOT(newTelnetTerminal()));
-    connect(closeTabButton, SIGNAL(clicked()), this, SLOT(openTerminal()));
+    connect(closeTabButton, SIGNAL(clicked()), this, SLOT(openSettingsWindow()));
     tabArea->setCornerWidget( closeTabButton, Qt::TopRightCorner );
 
     setWindowTitle(tr("QuTTY"));
@@ -69,7 +69,21 @@ GuiTerminalWindow *GuiMainWindow::newTerminal()
     return termWnd;
 }
 
-void GuiMainWindow::openTerminal()
+void GuiMainWindow::closeTerminal(int index)
+{
+    GuiTerminalWindow *termWnd = (GuiTerminalWindow*)tabArea->widget(index);
+    if (termWnd) {
+        terminalList.removeAll(termWnd);
+    }
+    tabArea->removeTab(index);
+}
+
+void GuiMainWindow::closeTerminal(GuiTerminalWindow *termWnd)
+{
+    tabArea->removeTab(tabArea->indexOf(termWnd));
+    terminalList.removeAll(termWnd);
+}
+void GuiMainWindow::openSettingsWindow()
 {
     GuiSettingsWindow *ss = new GuiSettingsWindow(mainWindow);
     ss->show();
@@ -142,11 +156,6 @@ bool GuiMainWindow::winEvent ( MSG * msg, long * result )
     }*/
 
     return false;
-}
-
-void GuiMainWindow::closeTerminal(int index)
-{
-    tabArea->removeTab(index);
 }
 
 void GuiMainWindow::currentChanged(int index)
@@ -296,4 +305,20 @@ int initConfigDefaults(Config *cfg)
         cfg->wordness[i] = cfg_wordness_defaults[i];
 
     return 0;
+}
+
+void GuiMainWindow::tabNext ()
+{
+    if (tabArea->currentIndex() != tabArea->count()-1)
+        tabArea->setCurrentIndex(tabArea->currentIndex()+1);
+    else
+        tabArea->setCurrentIndex(0);
+}
+
+void GuiMainWindow::tabPrev ()
+{
+    if (tabArea->currentIndex() != 0)
+        tabArea->setCurrentIndex(tabArea->currentIndex()-1);
+    else
+        tabArea->setCurrentIndex(tabArea->count()-1);
 }

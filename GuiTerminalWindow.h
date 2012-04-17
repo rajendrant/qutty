@@ -90,6 +90,7 @@ public:
 
     int initTmuxContollerMode(char *tmux_version);
     TmuxWindowPane *initTmuxClientTerminal(TmuxGateway *gateway, int id, int width, int height);
+    void detachTmuxContollerMode();
     TmuxGateway *tmuxGateway() { return _tmuxGateway; }
 
 protected:

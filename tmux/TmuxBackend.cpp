@@ -128,14 +128,16 @@ extern "C" void tmux_unthrottle(void *handle, int backlog)
 extern "C" int tmux_ldisc(void *handle, int option)
 {
     tmux_window_pane_t *tmuxpane = (tmux_window_pane_t*)handle;
-    qDebug()<<__FUNCTION__;
+    if (option == LD_ECHO)
+        return FALSE;
+    if (option == LD_EDIT)
+        return FALSE;
     return FALSE;
 }
 
 extern "C" void tmux_provide_ldisc(void *handle, void *ldisc)
 {
     tmux_window_pane_t *tmuxpane = (tmux_window_pane_t*)handle;
-    qDebug()<<__FUNCTION__;
     //telnet->ldisc = ldisc;
 }
 

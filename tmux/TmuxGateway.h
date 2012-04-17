@@ -44,7 +44,7 @@ public:
 
 class TmuxGateway : public TmuxCmdRespReceiver
 {
-    GuiTerminalWindow *termWnd;
+    GuiTerminalWindow *termGatewayWnd;
     bufchain buffer;
     queue<TmuxCmdResp> _commandQueue;
     TmuxCmdResp _currentCommand;
@@ -52,6 +52,8 @@ class TmuxGateway : public TmuxCmdRespReceiver
     long _sessionID;
     char *_sessionName;
     map<int, TmuxWindowPane*> _mapPanes;
+
+    void closeAllPanes();
 
     int cmd_hdlr_sessions_changed(const char *command, int len);
     int cmd_hdlr_session_changed(const char *command, int len);
@@ -74,6 +76,9 @@ public:
     int sendCommand(TmuxCmdRespReceiver *recv, tmux_cb_index_t cb,
                     const wchar_t cmd_str[], int cmd_str_len=-1);
     int sendCommand(TmuxCmdResp cmd_list[], wstring cmd_str[], int len=1);
+
+    void initiateDetach();
+    void detach();
 };
 
 #endif // TMUXGATEWAY_H

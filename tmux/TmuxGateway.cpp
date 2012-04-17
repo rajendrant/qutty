@@ -6,7 +6,7 @@
 using namespace std;
 
 TmuxGateway::TmuxGateway(GuiTerminalWindow *termWindow)
-    : termWnd(termWindow),
+    : termGatewayWnd(termWindow),
       _currentCommand(NULL, CB_INDEX_MAX),
       _sessionID(0),
       _sessionName(NULL)
@@ -19,6 +19,8 @@ TmuxGateway::~TmuxGateway()
 {
     if (_sessionName)
         sfree(_sessionName);
+    closeAllPanes();
+    bufchain_clear(&buffer);
 }
 
 int TmuxGateway::performCallback(tmux_cb_index_t index, string &response)
@@ -46,7 +48,7 @@ int TmuxGateway::fromBackend(int is_stderr, const char *data, int len)
     size_t resp_len = 0;
     size_t rem_len;
 
-    term_data(termWnd->term, is_stderr, data, len);
+    term_data(termGatewayWnd->term, is_stderr, data, len);
     qDebug("%s len %d %.*s", __FUNCTION__, len, len, data);
 
     for (i=0; i<(size_t)len; i++) {
@@ -109,7 +111,7 @@ int TmuxGateway::parseCommand(const char *command, size_t len)
         if (_currentCommand.receiver) {
             qFatal("TMUX %%begin command without end");
         } else if (_commandQueue.empty()) {
-            qFatal("TMUX %%begin command without command queue");
+            qDebug("TMUX %%begin command without command queue");
         } else {
             _currentCommand = _commandQueue.front();
             _commandQueue.pop();
@@ -131,6 +133,11 @@ int TmuxGateway::parseCommand(const char *command, size_t len)
         cmd_hdlr_window_add(command, len);
     } else if (strStartsWith("%window-close ", command, len)) {
         cmd_hdlr_window_close(command, len);
+    } else if (strStartsWith("%exit ", command, len) ||
+               strStartsWith("%exit\n", command, len)) {
+        //luni_send(termGatewayWnd->ldisc, (wchar_t*)L"#ack-exit\n", 10, 0);
+        termGatewayWnd->detachTmuxContollerMode();
+        return 0;
     } else {
         qDebug("TMUX unrecognized command %d len %.*s", len, len, command);
     }
@@ -276,7 +283,7 @@ int TmuxGateway::openWindowsInitial()
     wchar_t set_client_size[128];
     wsprintf(set_client_size,
              L"control set-client-size %d,%d\n",
-             termWnd->term->cols, termWnd->term->rows);
+             termGatewayWnd->term->cols, termGatewayWnd->term->rows);
     sendCommand(this, CB_NULL,
                 set_client_size);
     sendCommand(this, CB_NULL,
@@ -292,7 +299,7 @@ int TmuxGateway::sendCommand(TmuxCmdRespReceiver *recv, tmux_cb_index_t cb,
 {
     if (cmd_str_len == -1)
         cmd_str_len = wcslen(cmd_str);
-    luni_send(termWnd->ldisc, (wchar_t*)cmd_str, cmd_str_len, 0);
+    luni_send(termGatewayWnd->ldisc, (wchar_t*)cmd_str, cmd_str_len, 0);
     _commandQueue.push(TmuxCmdResp(recv, cb));
     return 0;
 }
@@ -352,17 +359,37 @@ cu0:
 int TmuxGateway::createNewWindow(int id, const char *name, int width, int height)
 {
     GuiTerminalWindow *newtermwnd = mainWindow->newTerminal();
-    newtermwnd->cfg = termWnd->cfg;
+    newtermwnd->cfg = termGatewayWnd->cfg;
     TmuxWindowPane *tmuxPane = newtermwnd->initTmuxClientTerminal(this, id, width, height);
     tmuxPane->name = name;
     wchar_t cmd_hist[256], cmd_hist_alt[256];
     wsprintf(cmd_hist, L"control -t %%%d -l %d get-history\n",
-             id, termWnd->cfg.savelines);
+             id, termGatewayWnd->cfg.savelines);
     wsprintf(cmd_hist_alt, L"control -a -t %%%d -l %d get-history\n",
-             id, termWnd->cfg.savelines);
+             id, termGatewayWnd->cfg.savelines);
     sendCommand(tmuxPane, CB_DUMP_HISTORY, cmd_hist);
     sendCommand(tmuxPane, CB_DUMP_HISTORY_ALT, cmd_hist_alt);
     sendCommand(this, CB_NULL, L"control set-ready\n");
     _mapPanes[id] = tmuxPane;
     return 0;
+}
+
+void TmuxGateway::initiateDetach()
+{
+    sendCommand(this, CB_NULL, L"detach\n");
+    closeAllPanes();
+}
+
+void TmuxGateway::detach()
+{
+    closeAllPanes();
+}
+
+void TmuxGateway::closeAllPanes()
+{
+    map<int, TmuxWindowPane*>::const_iterator it;
+    for ( it=_mapPanes.begin() ; it != _mapPanes.end(); it++ ) {
+        mainWindow->closeTerminal(it->second->termWnd());
+    }
+    _mapPanes.clear();
 }

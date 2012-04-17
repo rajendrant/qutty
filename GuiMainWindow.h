@@ -28,11 +28,15 @@ private:
     QList<GuiTerminalWindow *> terminalList;
 
 public slots:
-    void openTerminal();
+    void openSettingsWindow();
     void closeTerminal(int index);
+    void closeTerminal(GuiTerminalWindow *termWnd);
     void timerHandler();
     void currentChanged(int index);
     void focusChanged ( QWidget * old, QWidget * now );
+
+    void tabNext();
+    void tabPrev();
 
 };
 
