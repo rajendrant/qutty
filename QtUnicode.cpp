@@ -13,7 +13,7 @@ extern "C" {
 
 void *get_text_codec (const char *line_codepage)
 {
-    if (!*cp_name)
+    if (!line_codepage || !*line_codepage)
         return NULL;
     return QTextCodec::codecForName(line_codepage);
 }
