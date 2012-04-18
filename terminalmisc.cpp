@@ -6,6 +6,7 @@
 
 #include "QtCommon.h"
 #include "GuiTerminalWindow.h"
+#include <QTextCodec>
 
 /* Dummy routine, only required in plink. */
 void ldisc_update(void *frontend, int echo, int edit)
@@ -27,11 +28,9 @@ void set_title(void *frontend, char *title)
 {
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
     f->setWindowTitle(QString::fromAscii(title));
-    for(int i=0; mainWindow->tabArea->widget(i);i++) {
-        if(mainWindow->tabArea->widget(i)==f)
-            mainWindow->tabArea->setTabText(i, QString::fromAscii(title));
-    }
-    //f->setTitle();
+    if (mainWindow->tabArea->indexOf(f) >= 0)
+        mainWindow->tabArea->setTabText(mainWindow->tabArea->indexOf(f),
+                                    QString::fromAscii(title));
 }
 
 
@@ -144,20 +143,25 @@ void palette_reset(void *frontend){qDebug()<<"NOT_IMPL"<<__FUNCTION__;}
 
 int is_dbcs_leadbyte(int codepage, char byte){qDebug()<<"NOT_IMPL"<<__FUNCTION__;return 0;}
 int mb_to_wc(int codepage, int flags, char *mbstr, int mblen,
-         wchar_t *wcstr, int wclen)
+             wchar_t *wcstr, int wclen,
+             struct unicode_data *ucsdata)
 {
-    qDebug()<<"NOT_IMPL"<<__FUNCTION__;
-    wcstr[0] = 'a';
-    wcstr[1] = 'b';
-
-    return 2;
+    if (!ucsdata->encoder)
+        return 0;
+    QTextCodec *codec = (QTextCodec*) ucsdata->encoder;
+    return codec->toUnicode(mbstr, mblen).toWCharArray(wcstr);
 }
 
 int wc_to_mb(int codepage, int flags, wchar_t *wcstr, int wclen,
          char *mbstr, int mblen, char *defchr, int *defused,
          struct unicode_data *ucsdata)
 {
-    qDebug()<<"NOT_IMPL"<<__FUNCTION__;return 0;
+    if (!ucsdata->encoder)
+        return 0;
+    QTextCodec *codec = (QTextCodec*) ucsdata->encoder;
+    QByteArray mbarr = codec->fromUnicode(QString::fromWCharArray(wcstr, wclen));
+    qstrncpy(mbstr, mbarr.constData(), mblen);
+    return mbarr.length();
 }
 
 int char_width(Context ctx, int uc)

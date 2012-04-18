@@ -185,7 +185,7 @@ int initConfigDefaults(Config *cfg)
     //strcpy(cfg->username, "user");
     strcpy(cfg->environmt, "");
     //strcpy(cfg->line_codepage, "ISO-8859-1:1998 (Latin-1, West Europe)");
-    strcpy(cfg->line_codepage, "UTF-8");
+    strcpy(cfg->line_codepage, "ISO 8859-1");
     cfg->vtmode = VT_UNICODE;
     //char *ip_addr = /*"192.168.230.129";*/ "192.168.1.103";
 

@@ -7,6 +7,16 @@
 extern "C" {
 #include "putty.h"
 }
+#include <QTextCodec>
+
+#define CS_QTEXTCODEC   11111111
+
+void *get_text_codec (const char *line_codepage)
+{
+    if (!*cp_name)
+        return NULL;
+    return QTextCodec::codecForName(line_codepage);
+}
 
 void init_ucs(Config *cfg, struct unicode_data *ucsdata)
 {
@@ -20,8 +30,12 @@ void init_ucs(Config *cfg, struct unicode_data *ucsdata)
      */
     ucsdata->font_codepage = -1;
 
-    //ucsdata->line_codepage = decode_codepage(cfg->line_codepage);
-    ucsdata->line_codepage = CP_UTF8;
+    ucsdata->encoder = get_text_codec(cfg->line_codepage);
+    if (!ucsdata->encoder) {
+        assert(0);
+    } else {
+        ucsdata->line_codepage = CS_QTEXTCODEC;
+    }
 
     /*
      * Set up unitab_line, by translating each individual character
@@ -35,12 +49,10 @@ void init_ucs(Config *cfg, struct unicode_data *ucsdata)
     p = c;
     len = 1;
     ucsdata->unitab_line[i] = i;
-    /*if (1 == charset_to_unicode(&p, &len, wc, 1,
-                                    ucsdata->line_codepage,
-                                    NULL, L"", 0))
+    if (mb_to_wc(ucsdata->line_codepage, 0, c, 1, wc, 1, ucsdata) == 1)
         ucsdata->unitab_line[i] = wc[0];
     else
-        ucsdata->unitab_line[i] = 0xFFFD;*/
+        ucsdata->unitab_line[i] = 0xFFFD;
     }
 
     /*

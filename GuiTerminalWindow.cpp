@@ -474,7 +474,6 @@ void 	GuiTerminalWindow::mouseMoveEvent ( QMouseEvent * e )
     assert(button!=MBT_NOTHING);
     int x = e->x()/fontWidth, y = e->y()/fontHeight, mod=e->modifiers();
     bcooked = translate_button(&cfg, button);
-    qDebug()<<__FUNCTION__<<x<<y<<mod<<button<<bcooked;
     term_mouse(term, button, bcooked, MA_DRAG,
                x,y, mod&Qt::ShiftModifier, mod&Qt::ControlModifier, mod&Qt::AltModifier);
     e->accept();
@@ -511,7 +510,6 @@ void 	GuiTerminalWindow::mousePressEvent ( QMouseEvent * e )
     } else
         mouseButtonAction = MA_CLICK;
 
-    qDebug()<<__FUNCTION__<<x<<y<<mod<<button<<bcooked<<mouseButtonAction;
     term_mouse(term, button, bcooked, mouseButtonAction,
                x,y, mod&Qt::ShiftModifier, mod&Qt::ControlModifier, mod&Qt::AltModifier);
     e->accept();
@@ -529,7 +527,6 @@ void 	GuiTerminalWindow::mouseReleaseEvent ( QMouseEvent * e )
     assert(button!=MBT_NOTHING);
     int x = e->x()/fontWidth, y = e->y()/fontHeight, mod=e->modifiers();
     bcooked = translate_button(&cfg, button);
-    qDebug()<<__FUNCTION__<<x<<y<<mod<<button<<bcooked;
     term_mouse(term, button, bcooked, MA_RELEASE,
                x,y, mod&Qt::ShiftModifier, mod&Qt::ControlModifier, mod&Qt::AltModifier);
     e->accept();

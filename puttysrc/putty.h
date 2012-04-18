@@ -156,6 +156,7 @@ struct unicode_data {
     wchar_t unitab_xterm[256];
     wchar_t unitab_oemcp[256];
     unsigned char unitab_ctrl[256];
+    void *encoder;      // any specific encoder/decoder
 };
 
 #define LGXF_OVR  1		       /* existing logfile overwrite */
@@ -1040,7 +1041,8 @@ extern char ver[];
 /* void init_ucs(void); -- this is now in platform-specific headers */
 int is_dbcs_leadbyte(int codepage, char byte);
 int mb_to_wc(int codepage, int flags, char *mbstr, int mblen,
-	     wchar_t *wcstr, int wclen);
+             wchar_t *wcstr, int wclen,
+             struct unicode_data *ucsdata);
 int wc_to_mb(int codepage, int flags, wchar_t *wcstr, int wclen,
 	     char *mbstr, int mblen, char *defchr, int *defused,
 	     struct unicode_data *ucsdata);

@@ -32,7 +32,7 @@ GuiSettingsWindow::GuiSettingsWindow(QWidget *parent) :
     layout = new QGridLayout;
     groupbox->setLayout(layout);
     txtHostName = new QLineEdit;
-    txtPort = new QLineEdit("23");
+    txtPort = new QLineEdit("22");
     layout->addWidget(new QLabel(tr("Host Name (or IP address)")), 0, 0, 1, 2);
     layout->addWidget(new QLabel(tr("Port")), 0, 2, 1, 1);
     layout->addWidget(txtHostName, 1, 0, 1, 2);
@@ -40,10 +40,10 @@ GuiSettingsWindow::GuiSettingsWindow(QWidget *parent) :
     layout->addWidget(new QLabel(tr("Connection type:")), 2, 0);
     btnConnType = new QButtonGroup;
     QRadioButton *radiobtn = new QRadioButton(tr("Telnet"));
-    radiobtn->setChecked(true);
     layout->addWidget(radiobtn, 3, 0);
     btnConnType->addButton(radiobtn, PROT_TELNET);
     radiobtn = new QRadioButton(tr("SSH"));
+    radiobtn->setChecked(true);
     layout->addWidget(radiobtn, 3, 1);
     btnConnType->addButton(radiobtn, PROT_SSH);
     connect(btnConnType, SIGNAL(buttonClicked(int)), this, SLOT(btnConnTypeClicked(int)));
