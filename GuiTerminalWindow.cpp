@@ -539,7 +539,6 @@ void GuiTerminalWindow::getClip(wchar_t **p, int *len)
     if (p && len) {
         if (clipboard_contents) delete clipboard_contents;
         QString s = QApplication::clipboard()->text();
-        qDebug()<<"clipboard"<<s;
         clipboard_length = s.length()+1;
         clipboard_contents = new wchar_t[clipboard_length];
         clipboard_length = s.toWCharArray(clipboard_contents);
@@ -547,7 +546,9 @@ void GuiTerminalWindow::getClip(wchar_t **p, int *len)
         *p = clipboard_contents;
         *len = clipboard_length;
     } else {
-        qDebug()<<"clipboard clear";
+        // synchronous paste operation
+        if (term_paste_pending(term))
+            term_paste(term);
         if (clipboard_contents) delete clipboard_contents;
         clipboard_contents = NULL;
         clipboard_length = 0;

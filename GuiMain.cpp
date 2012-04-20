@@ -31,8 +31,8 @@ int main(int argc, char *argv[])
     mainWindow = new GuiMainWindow();
     QObject::connect(&a, SIGNAL(focusChanged(QWidget *, QWidget *)), mainWindow, SLOT(focusChanged(QWidget*,QWidget*)));
     mainWindow->show();
-    GuiSettingsWindow *ss = new GuiSettingsWindow(mainWindow);
     initKeyboardShortcuts();
+    GuiSettingsWindow *ss = new GuiSettingsWindow(mainWindow);
     ss->show();
     return a.exec();
 }
