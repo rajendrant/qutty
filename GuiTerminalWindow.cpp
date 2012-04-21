@@ -196,11 +196,11 @@ void GuiTerminalWindow::keyPressEvent ( QKeyEvent *e )
             bufwchar[len++] = 0x1b;
         }
         len += e->text().toWCharArray(bufwchar+len);
-        assert(len<16);
-        term_nopaste(term);
-        term_seen_key_event(term);
-        luni_send(ldisc, bufwchar, len, 1);
-        //ldisc_send(ldisc, buf, 1, 1);
+        if (len>0 && len<16) {
+            term_nopaste(term);
+            term_seen_key_event(term);
+            luni_send(ldisc, bufwchar, len, 1);
+        }
     }
 }
 
