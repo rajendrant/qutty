@@ -127,14 +127,18 @@ TmuxWindowPane *GuiTerminalWindow::initTmuxClientTerminal(TmuxGateway *gateway,
     cfgtopalette(&cfg);
 
     term = term_init(&cfg, &ucsdata, this);
-    term_size(term, cfg.height, cfg.width, cfg.savelines);
-    resize(cfg.width*fontWidth, cfg.height*fontHeight);
     // resize according to config if window is smaller
     if ( !(mainWindow->windowState() & Qt::WindowMaximized) &&
           ( mainWindow->size().width() < cfg.width*fontWidth ||
-            mainWindow->size().height() < cfg.height*fontHeight))
+            mainWindow->size().height() < cfg.height*fontHeight)) {
         mainWindow->resize(cfg.width*fontWidth,
                            cfg.height*fontHeight);
+        term_size(term, cfg.height, cfg.width, cfg.savelines);
+    } else {
+        term_size(term,
+                  mainWindow->size().height()/fontHeight,
+                  mainWindow->size().width()/fontWidth, cfg.savelines);
+    }
 
     _tmuxMode = TMUX_MODE_CLIENT;
     _tmuxGateway = gateway;
@@ -347,8 +351,15 @@ void GuiTerminalWindow::paintCursor(QPainter &painter, int row, int col,
 
 int GuiTerminalWindow::from_backend(int is_stderr, const char *data, int len)
 {
-    if (_tmuxMode==TMUX_MODE_GATEWAY && _tmuxGateway)
-        return _tmuxGateway->fromBackend(is_stderr, data, len);
+    if (_tmuxMode==TMUX_MODE_GATEWAY && _tmuxGateway) {
+        int rc = _tmuxGateway->fromBackend(is_stderr, data, len);
+        if (rc) {
+            if (rc >= 0 && rc < len && _tmuxMode == TMUX_MODE_GATEWAY_DETACH_INIT) {
+                detachTmuxControllerMode();
+                return term_data(term, is_stderr, data+rc, len-rc);
+            }
+        }
+    }
     return term_data(term, is_stderr, data, len);
 }
 
@@ -641,7 +652,7 @@ void GuiTerminalWindow::vertScrollBarMoved(int value)
     term_scroll(term, 1, value);
 }
 
-int GuiTerminalWindow::initTmuxContollerMode(char *tmux_version)
+int GuiTerminalWindow::initTmuxControllerMode(char *tmux_version)
 {
     // TODO version check
     assert(_tmuxMode == TMUX_MODE_NONE);
@@ -653,12 +664,17 @@ int GuiTerminalWindow::initTmuxContollerMode(char *tmux_version)
     return 0;
 }
 
-void GuiTerminalWindow::detachTmuxContollerMode()
+void GuiTerminalWindow::startDetachTmuxControllerMode()
 {
-    assert(_tmuxMode == TMUX_MODE_GATEWAY);
+    _tmuxMode = TMUX_MODE_GATEWAY_DETACH_INIT;
+}
+
+void GuiTerminalWindow::detachTmuxControllerMode()
+{
+    assert(_tmuxMode == TMUX_MODE_GATEWAY_DETACH_INIT);
 
     _tmuxGateway->detach();
     delete _tmuxGateway;
-    _tmuxGateway= NULL;
+    _tmuxGateway = NULL;
     _tmuxMode = TMUX_MODE_NONE;
 }

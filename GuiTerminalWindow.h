@@ -88,9 +88,9 @@ public:
     void setScrollBar(int total, int start, int page);
     int TranslateKey(QKeyEvent *keyevent, char *output);
 
-    int initTmuxContollerMode(char *tmux_version);
+    int initTmuxControllerMode(char *tmux_version);
     TmuxWindowPane *initTmuxClientTerminal(TmuxGateway *gateway, int id, int width, int height);
-    void detachTmuxContollerMode();
+    void startDetachTmuxControllerMode();
     TmuxGateway *tmuxGateway() { return _tmuxGateway; }
 
 protected:
@@ -104,12 +104,11 @@ protected:
     void focusInEvent ( QFocusEvent * e );
     void focusOutEvent ( QFocusEvent * e );
 
-signals:
-    
 public slots:
     void readyRead ();
     void vertScrollBarAction(int action);
     void vertScrollBarMoved(int value);
+    void detachTmuxControllerMode();
 
 };
 

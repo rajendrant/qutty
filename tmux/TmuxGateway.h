@@ -14,10 +14,19 @@ extern "C" {
 #include <map>
 using namespace std;
 
+#define is_hex_char(ch) (((ch)>='0' && (ch)<='9') || \
+                         ((ch)>='a' && (ch)<='f') || \
+                         ((ch)>='A' && (ch)<='F'))
+
+#define hex_to_char(ch) (((ch)>='0' && (ch)<='9') ? (ch)-'0' : \
+                         ((ch)>='a' && (ch)<='f') ? 10+(ch)-'a' : \
+                         ((ch)>='A' && (ch)<='F') ? 10+(ch)-'A' : 0)
+
 enum tmux_cb_index_t {
     CB_NULL,
     CB_LIST_WINDOWS,
     CB_OPEN_LISTED_WINDOWS,
+    CB_DUMP_TERM_STATE,
     CB_DUMP_HISTORY,
     CB_DUMP_HISTORY_ALT,
     CB_INDEX_MAX
