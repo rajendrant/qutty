@@ -44,7 +44,7 @@ int TmuxGateway::fromBackend(int is_stderr, const char *data, int len)
 {
     size_t i;
     const char *buf = NULL;
-    int buf_len;
+    int rc = 0;
     size_t resp_len = 0;
     size_t rem_len;
 
@@ -62,25 +62,33 @@ int TmuxGateway::fromBackend(int is_stderr, const char *data, int len)
         bufchain_add(&buffer, data, len);
         return len;
     }
+    rem_len = len - resp_len;
     if (bufchain_size(&buffer) > 0) {
-        buf_len = bufchain_size(&buffer);
+        int buf_len = bufchain_size(&buffer);
         char *buf = snewn(buf_len + resp_len, char);
         bufchain_fetch(&buffer, buf, buf_len);
         memcpy(buf + buf_len, data, resp_len);
         bufchain_consume(&buffer, buf_len);
-        parseCommand(buf, buf_len + resp_len);
+        rc = parseCommand(buf, buf_len + resp_len);
         sfree(buf);
+        if (rc == -1)
+            goto tmux_disconnected;
     } else {
-        parseCommand(data, resp_len);
+        rc = parseCommand(data, resp_len);
+        if (rc == -1)
+            goto tmux_disconnected;
     }
 
     buf = data + resp_len;
-    rem_len = len - resp_len;
     resp_len = 0;
     for (i=0; i<rem_len; i++) {
         if (buf[i] == '\n') {
-            parseCommand(buf+resp_len, i-resp_len+1);
+            rc = parseCommand(buf+resp_len, i-resp_len+1);
             resp_len = i+1;
+            if (rc == -1){
+                rem_len -= i+1;
+                goto tmux_disconnected;
+            }
         }
     }
     if (resp_len < rem_len) {
@@ -88,7 +96,10 @@ int TmuxGateway::fromBackend(int is_stderr, const char *data, int len)
         bufchain_add(&buffer, buf+resp_len, rem_len-resp_len);
     }
 
-    return len;
+    return 0;
+tmux_disconnected:
+    // return the remaining data
+    return rem_len;
 }
 
 int TmuxGateway::parseCommand(const char *command, size_t len)
@@ -136,8 +147,8 @@ int TmuxGateway::parseCommand(const char *command, size_t len)
     } else if (strStartsWith("%exit ", command, len) ||
                strStartsWith("%exit\n", command, len)) {
         //luni_send(termGatewayWnd->ldisc, (wchar_t*)L"#ack-exit\n", 10, 0);
-        termGatewayWnd->detachTmuxContollerMode();
-        return 0;
+        termGatewayWnd->startDetachTmuxControllerMode();
+        return -1;
     } else {
         qDebug("TMUX unrecognized command %d len %.*s", len, len, command);
     }
@@ -179,9 +190,6 @@ cu0:
 
 int TmuxGateway::cmd_hdlr_output(const char *command, int len)
 {
-#define hex_to_char(ch) (((ch)>='0' && (ch)<='9') ? (ch)-'0' : \
-                         ((ch)>='a' && (ch)<='f') ? 10+(ch)-'a' : \
-                         ((ch)>='A' && (ch)<='F') ? 10+(ch)-'A' : 0)
     const char *cmd = command + 8;  // skip command prefix
     const char *fail_reason = NULL;
     int paneid, b64len, datalen, i;
@@ -212,7 +220,6 @@ int TmuxGateway::cmd_hdlr_output(const char *command, int len)
 cu0:
     qDebug("TMUX malformed command %s %.*s", fail_reason, len, command);
     return -1;
-#undef hex_to_char
 }
 
 int TmuxGateway::cmd_hdlr_window_renamed(const char *command, int len)
@@ -362,13 +369,15 @@ int TmuxGateway::createNewWindow(int id, const char *name, int width, int height
     newtermwnd->cfg = termGatewayWnd->cfg;
     TmuxWindowPane *tmuxPane = newtermwnd->initTmuxClientTerminal(this, id, width, height);
     tmuxPane->name = name;
-    wchar_t cmd_hist[256], cmd_hist_alt[256];
+    wchar_t cmd_emu[256], cmd_hist[256], cmd_hist_alt[256];
+    wsprintf(cmd_emu, L"control -t %%%d get-emulator\n", id);
     wsprintf(cmd_hist, L"control -t %%%d -l %d get-history\n",
              id, termGatewayWnd->cfg.savelines);
     wsprintf(cmd_hist_alt, L"control -a -t %%%d -l %d get-history\n",
              id, termGatewayWnd->cfg.savelines);
     sendCommand(tmuxPane, CB_DUMP_HISTORY, cmd_hist);
     sendCommand(tmuxPane, CB_DUMP_HISTORY_ALT, cmd_hist_alt);
+    sendCommand(tmuxPane, CB_DUMP_TERM_STATE, cmd_emu);
     sendCommand(this, CB_NULL, L"control set-ready\n");
     _mapPanes[id] = tmuxPane;
     return 0;

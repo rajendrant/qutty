@@ -11,6 +11,7 @@ extern Backend tmux_client_backend;
 enum tmux_mode_t {
     TMUX_MODE_NONE,
     TMUX_MODE_GATEWAY,
+    TMUX_MODE_GATEWAY_DETACH_INIT,
     TMUX_MODE_CLIENT
 };
 

@@ -429,7 +429,7 @@ char *platform_get_x_display(void) {
  */
 int tmux_init_tmux_mode(void *frontend, char *tmux_version) {
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
-    return f->initTmuxContollerMode(tmux_version);
+    return f->initTmuxControllerMode(tmux_version);
 }
 
 int tmux_from_backend(void *frontend, int is_stderr, const char *data, int len)
