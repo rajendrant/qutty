@@ -299,9 +299,9 @@ int TmuxGateway::cmd_hdlr_layout_change(const char *command, int len)
         goto cu0;
     }
     iresp>>wndid;
-    iresp>>layout;
-    layout.initLayout(layout);
-    createNewWindowPane(wndid, "", &layout);
+    iresp>>strlayout;
+    layout.initLayout(strlayout);
+    createNewWindowPane(wndid, "", layout);
     return 0;
 cu0:
     qDebug("TMUX malformed command %s %.*s", fail_reason, len, command);
