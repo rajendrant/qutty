@@ -133,12 +133,8 @@ TmuxWindowPane *GuiTerminalWindow::initTmuxClientTerminal(TmuxGateway *gateway,
             mainWindow->size().height() < cfg.height*fontHeight)) {
         mainWindow->resize(cfg.width*fontWidth,
                            cfg.height*fontHeight);
-        term_size(term, cfg.height, cfg.width, cfg.savelines);
-    } else {
-        term_size(term,
-                  mainWindow->size().height()/fontHeight,
-                  mainWindow->size().width()/fontWidth, cfg.savelines);
     }
+    term_size(term, height, width, cfg.savelines);
 
     _tmuxMode = TMUX_MODE_CLIENT;
     _tmuxGateway = gateway;
@@ -237,8 +233,8 @@ void GuiTerminalWindow::paintEvent (QPaintEvent *e)
         int colstart = r.left()/fontWidth;
         int rowend = (r.bottom()+1)/fontHeight;
         int colend = (r.right()+1)/fontWidth;
-        for(; row<rowend; row++) {
-            for(int col=colstart; col<colend; ) {
+        for(; row<rowend && row<term->rows; row++) {
+            for(int col=colstart; col<colend && col<term->cols; ) {
                 uint attr = term->dispstr_attr[row][col];
                 int coldiff = col+1;
                 for(;attr==term->dispstr_attr[row][coldiff]; coldiff++);
@@ -580,9 +576,6 @@ void GuiTerminalWindow::writeClip(wchar_t * data, int *attr, int len, int must_d
 
 void 	GuiTerminalWindow::resizeEvent ( QResizeEvent * e )
 {
-    if (term)
-        term_size(term, viewport()->size().height()/fontHeight,
-                  viewport()->size().width()/fontWidth, cfg.savelines);
     if (_tmuxMode==TMUX_MODE_CLIENT) {
         wchar_t cmd_resize[128];
         int cmd_resize_len = wsprintf(cmd_resize, L"control set-client-size %d,%d\n",
@@ -590,7 +583,12 @@ void 	GuiTerminalWindow::resizeEvent ( QResizeEvent * e )
                                       viewport()->size().height()/fontHeight);
         _tmuxGateway->sendCommand(_tmuxGateway, CB_NULL,
                                   cmd_resize, cmd_resize_len);
+        // %layout-change tmux command does the actual resize
+        return;
     }
+    if (term)
+        term_size(term, viewport()->size().height()/fontHeight,
+                  viewport()->size().width()/fontWidth, cfg.savelines);
 }
 
 bool GuiTerminalWindow::event(QEvent *event)

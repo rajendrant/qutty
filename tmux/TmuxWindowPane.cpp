@@ -39,37 +39,53 @@ int TmuxWindowPane::performCallback(tmux_cb_index_t index, string &response)
 int TmuxWindowPane::resp_hdlr_dump_term_state(string &response)
 {
     string key;
+    int n;
     istringstream iresp(response);
 
-    old_state = new tmux_old_state_t;
-    memset(old_state, 0, sizeof(tmux_old_state_t));
+    old_state = new tmux_old_state_t();
     while (std::getline(iresp, key, '=')) {
         if (!key.compare("in_alternate_screen")) {
-            iresp>>old_state->in_alt_screen;
+            iresp>>n;
+            old_state->in_alt_screen = n;
         } else if (!key.compare("base_cursor_x")) {
-            iresp>>old_state->base_cursor_x;
+            iresp>>n;
+            old_state->base_cursor_x = n;
         } else if (!key.compare("base_cursor_y")) {
-            iresp>>old_state->base_cursor_y;
+            iresp>>n;
+            old_state->base_cursor_y = n;
         } else if (!key.compare("cursor_x")) {
-            iresp>>old_state->cursor_x;
+            iresp>>n;
+            old_state->cursor_x = n;
         } else if (!key.compare("cursor_y")) {
-            iresp>>old_state->cursor_y;
+            iresp>>n;
+            old_state->cursor_y = n;
         } else if (!key.compare("scroll_region_upper")) {
-            iresp>>old_state->scroll_region_upper;
+            iresp>>n;
+            old_state->scroll_region_upper = n;
         } else if (!key.compare("scroll_region_lower")) {
-            iresp>>old_state->scroll_region_lower;
+            iresp>>n;
+            old_state->scroll_region_lower = n;
         } else if (!key.compare("decsc_cursor_x")) {
-            iresp>>old_state->decsc_cursor_x;
+            iresp>>n;
+            old_state->decsc_cursor_x = n;
         } else if (!key.compare("decsc_cursor_y")) {
-            iresp>>old_state->decsc_cursor_y;
+            iresp>>n;
+            old_state->decsc_cursor_y = n;
         } else if (!key.compare("tabstops")) {
             iresp>>old_state->tabstops;
+        } else if (!key.compare("insert_mode")) {
+            iresp>>n;
+            _termWnd->term->insert = n;
+        } else if (!key.compare("wrap_mode")) {
+            iresp>>n;
+            _termWnd->term->wrap = n;
         }
+        iresp.ignore(128, '\n');
     }
     if (old_state->in_alt_screen) {
         _termWnd->term->curs.x = old_state->base_cursor_x;
         _termWnd->term->curs.y = old_state->base_cursor_y;
-        swap_screen(_termWnd->term, TRUE, TRUE, TRUE);
+        //swap_screen(_termWnd->term, TRUE, TRUE, TRUE);
     }
     _termWnd->term->curs.x = old_state->cursor_x;
     _termWnd->term->curs.y = old_state->cursor_y;
@@ -77,22 +93,53 @@ int TmuxWindowPane::resp_hdlr_dump_term_state(string &response)
     _termWnd->term->marg_b = old_state->scroll_region_lower;
     return 0;
 cu0:
+    qDebug()<<"Error in dump_term_state";
     delete old_state;
     old_state = NULL;
     return -1;
 }
 
-int TmuxWindowPane::resp_hdlr_dump_history(string &response)
+extern "C" termline *newline(Terminal *term, int cols, int bce);
+extern "C" unsigned char *compressline(termline *ldata);
+
+int TmuxWindowPane::resp_hdlr_dump_history(string &response, bool is_alt)
 {
     ostringstream fail_reason;
     istringstream iresp(response);
     string line, hist;
-    while (std::getline(iresp, line)) {
-        struct termchar tchar;
+    int num_lines;
+    tree234 *tree;
+    termline *tline;
+    struct termchar tchar;
+
+    // make sure we start with clean slate
+    assert(count234(_termWnd->term->scrollback) == 0);
+    assert(count234(_termWnd->term->alt_screen) == _termWnd->term->rows);
+    assert(count234(_termWnd->term->alt_screen) == _termWnd->term->rows);
+
+    num_lines = std::count(response.begin(), response.end(), '\n');
+    memset(&tchar, 0, sizeof(termchar));
+
+    for (int cur_line = 0; std::getline(iresp, line); cur_line++) {
         bool softeol = false;
         char c;
         bool is_utf8 = false;
         string utf8str;
+        int cur_pos = 0;
+
+        if (is_alt) {
+            tree = _termWnd->term->alt_screen;
+            tline = newline(_termWnd->term, _termWnd->term->cols, FALSE);
+            addpos234(tree, tline, cur_line);
+        } else if (num_lines - cur_line <= _termWnd->term->rows) {
+            tree = _termWnd->term->screen;
+            tline = (termline*) index234(tree,
+                                         _termWnd->term->rows-(num_lines-cur_line));
+        } else {
+            tree = _termWnd->term->scrollback;
+            tline = newline(_termWnd->term, _termWnd->term->cols, FALSE);
+        }
+
         if (line.length() > 0 && line.at(line.length()-1) == '+') {
             line.erase(line.length()-1);
             softeol = true;
@@ -113,29 +160,24 @@ int TmuxWindowPane::resp_hdlr_dump_history(string &response)
                         goto cu0;
                     }
                 }
-                term_data(_termWnd->term, 0, hist.c_str(), hist.length());
-                hist.clear();
 
                 int attr, fg, bg;
                 attr = values[0];
                 fg = values[2]==8 ? ATTR_DEFFG : values[2]<<ATTR_FGSHIFT;
                 bg = values[3]==8 ? ATTR_DEFBG : values[3]<<ATTR_BGSHIFT;
-                _termWnd->term->curr_attr = 0;
-                _termWnd->term->curr_attr &= ~ATTR_FGMASK;
-                _termWnd->term->curr_attr |= fg;
-                _termWnd->term->curr_attr &= ~ATTR_BGMASK;
-                _termWnd->term->curr_attr |= bg;
+                tchar.attr = 0;
+                tchar.attr |= fg;
+                tchar.attr |= bg;
 
                 if (attr & GRID_ATTR_BRIGHT)
-                    _termWnd->term->curr_attr |= ATTR_BOLD;
+                    tchar.attr |= ATTR_BOLD;
                 if (attr & GRID_ATTR_UNDERSCORE)
-                    _termWnd->term->curr_attr |= ATTR_UNDER;
+                    tchar.attr |= ATTR_UNDER;
                 if (attr & GRID_ATTR_BLINK)
-                    _termWnd->term->curr_attr |= ATTR_BLINK;
+                    tchar.attr |= ATTR_BLINK;
                 if (attr & GRID_ATTR_REVERSE)
-                    _termWnd->term->curr_attr |= ATTR_REVERSE;
+                    tchar.attr |= ATTR_REVERSE;
 
-                tchar.attr = 0;
                 qDebug()<<"attr, flags, fg, bg"<<values[0]<<values[1]<<values[2]<<values[3];
             } else if (c == '*') {
                 if (is_utf8) {
@@ -156,6 +198,8 @@ int TmuxWindowPane::resp_hdlr_dump_history(string &response)
                 }
                 qDebug("repeats %d %x\n", repeats, tchar.chr);
                 for (int j = 0; j < repeats - 1; j++) {
+                    assert(cur_pos < tline->cols);
+                    tline->chars[cur_pos++] = tchar;
                     hist.push_back((char)tchar.chr);
                 }
             } else if (c == '[') {
@@ -180,19 +224,29 @@ int TmuxWindowPane::resp_hdlr_dump_history(string &response)
                 } else {
                     tchar.chr = c2;
                 }
+                assert(cur_pos < tline->cols);
+                tline->chars[cur_pos++] = tchar;
                 hist.push_back(c2);
             } else {
                 fail_reason << "char not expected "<<c<<" line:"<<line<<" pos:"<<iss.tellg();
                 goto cu0;
             }
         }
+
+        if (tree == _termWnd->term->scrollback) {
+            addpos234(tree, compressline(tline), cur_line);
+            sfree(tline);
+            tline = NULL;
+        }
+
         qDebug()<<"history"<<hist.c_str();
-        term_data(_termWnd->term, 0, hist.c_str(), hist.length());
-        term_data(_termWnd->term, 0, "\r\n", 2);
         hist.clear();
     }
     return 0;
 cu0:
+    if (tree == _termWnd->term->scrollback)
+        sfree(tline);
+
     qDebug("Malformed history dump response reason: %s\n", fail_reason.str().c_str());
     return -1;
 }

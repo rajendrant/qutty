@@ -104,7 +104,6 @@ tmux_disconnected:
 
 int TmuxGateway::parseCommand(const char *command, size_t len)
 {
-    qDebug("parseCommand %d %.*s", len, len, command);
 #define strStartsWith(start, s, l) (strlen(start)<=l && !strncmp(start, s, strlen(start)))
 
     if (strStartsWith("%end", command, len)) {
@@ -149,6 +148,8 @@ int TmuxGateway::parseCommand(const char *command, size_t len)
         //luni_send(termGatewayWnd->ldisc, (wchar_t*)L"#ack-exit\n", 10, 0);
         termGatewayWnd->startDetachTmuxControllerMode();
         return -1;
+    } else if (strStartsWith("%layout-change ", command, len)) {
+        cmd_hdlr_layout_change(command, len);
     } else {
         qDebug("TMUX unrecognized command %d len %.*s", len, len, command);
     }
@@ -284,6 +285,29 @@ cu0:
     return -1;
 }
 
+int TmuxGateway::cmd_hdlr_layout_change(const char *command, int len)
+{
+    //TODO more work in removing deleted panes
+    const char *cmd = command + 15;  // skip command prefix
+    istringstream iresp(cmd);
+    const char *fail_reason;
+    int wndid;
+    string strlayout;
+    TmuxLayout layout;
+    if (iresp.get() != '@') {
+        fail_reason = "No @window found";
+        goto cu0;
+    }
+    iresp>>wndid;
+    iresp>>layout;
+    layout.initLayout(layout);
+    createNewWindowPane(wndid, "", &layout);
+    return 0;
+cu0:
+    qDebug("TMUX malformed command %s %.*s", fail_reason, len, command);
+    return -1;
+}
+
 int TmuxGateway::openWindowsInitial()
 {
     // TODO hiddenwindows, affinities, origins
@@ -304,6 +328,7 @@ int TmuxGateway::openWindowsInitial()
 int TmuxGateway::sendCommand(TmuxCmdRespReceiver *recv, tmux_cb_index_t cb,
                              const wchar_t cmd_str[], int cmd_str_len)
 {
+    qDebug()<<__FUNCTION__<<QString::fromWCharArray(cmd_str, cmd_str_len);
     if (cmd_str_len == -1)
         cmd_str_len = wcslen(cmd_str);
     luni_send(termGatewayWnd->ldisc, (wchar_t*)cmd_str, cmd_str_len, 0);
@@ -330,7 +355,7 @@ int TmuxGateway::resp_hdlr_list_windows(string &response)
         irec>>height;
         irec>>layout;
         irec>>wndactive;
-        createNewWindow(wndid, sessname.c_str(), width, height);
+        createNewWindow(wndid, sessname.c_str(), width, height, layout);
     }
     return 0;
 cu0:
@@ -356,30 +381,57 @@ int TmuxGateway::resp_hdlr_open_listed_windows(string &response)
         irec>>height;
         irec>>layout;
         irec>>wndactive;
-        createNewWindow(wndid, sessname.c_str(), width, height);
+        createNewWindow(wndid, sessname.c_str(), width, height, layout);
     }
     return 0;
 cu0:
     return -1;
 }
 
-int TmuxGateway::createNewWindow(int id, const char *name, int width, int height)
+int TmuxGateway::createNewWindow(int id, const char *name, int width, int height, string layout)
 {
-    GuiTerminalWindow *newtermwnd = mainWindow->newTerminal();
-    newtermwnd->cfg = termGatewayWnd->cfg;
-    TmuxWindowPane *tmuxPane = newtermwnd->initTmuxClientTerminal(this, id, width, height);
-    tmuxPane->name = name;
-    wchar_t cmd_emu[256], cmd_hist[256], cmd_hist_alt[256];
-    wsprintf(cmd_emu, L"control -t %%%d get-emulator\n", id);
-    wsprintf(cmd_hist, L"control -t %%%d -l %d get-history\n",
-             id, termGatewayWnd->cfg.savelines);
-    wsprintf(cmd_hist_alt, L"control -a -t %%%d -l %d get-history\n",
-             id, termGatewayWnd->cfg.savelines);
-    sendCommand(tmuxPane, CB_DUMP_HISTORY, cmd_hist);
-    sendCommand(tmuxPane, CB_DUMP_HISTORY_ALT, cmd_hist_alt);
-    sendCommand(tmuxPane, CB_DUMP_TERM_STATE, cmd_emu);
+    if (!_mapLayout[id].initLayout(layout.substr(5)))
+        goto cu0;
+    createNewWindowPane(id, name, _mapLayout[id]);
     sendCommand(this, CB_NULL, L"control set-ready\n");
-    _mapPanes[id] = tmuxPane;
+    return 0;
+cu0:
+    return -1;
+}
+
+int TmuxGateway::createNewWindowPane(int id, const char *name, TmuxLayout &layout)
+{
+    switch (layout.layoutType) {
+      case TmuxLayout::TMUX_LAYOUT_TYPE_NONE:
+        if (_mapPanes.find(layout.paneid) == _mapPanes.end()) {
+            GuiTerminalWindow *newtermwnd = mainWindow->newTerminal();
+            newtermwnd->cfg = termGatewayWnd->cfg;
+            TmuxWindowPane *tmuxPane = newtermwnd->
+                    initTmuxClientTerminal(this, layout.paneid,
+                                           layout.width, layout.height);
+            tmuxPane->name = name;
+            wchar_t cmd_emu[256], cmd_hist[256], cmd_hist_alt[256];
+            wsprintf(cmd_emu, L"control -t %%%d get-emulator\n", layout.paneid);
+            wsprintf(cmd_hist, L"control -t %%%d -l %d get-history\n",
+                     layout.paneid, termGatewayWnd->cfg.savelines);
+            wsprintf(cmd_hist_alt, L"control -a -t %%%d -l %d get-history\n",
+                     layout.paneid, termGatewayWnd->cfg.savelines);
+            sendCommand(tmuxPane, CB_DUMP_HISTORY, cmd_hist);
+            sendCommand(tmuxPane, CB_DUMP_HISTORY_ALT, cmd_hist_alt);
+            sendCommand(tmuxPane, CB_DUMP_TERM_STATE, cmd_emu);
+            _mapPanes[layout.paneid] = tmuxPane;
+            break;
+        } else {
+            term_size(_mapPanes[layout.paneid]->termWnd()->term,
+                      layout.width, layout.height,
+                      _mapPanes[layout.paneid]->termWnd()->cfg.savelines);
+        }
+      case TmuxLayout::TMUX_LAYOUT_TYPE_HORIZONTAL:
+      case TmuxLayout::TMUX_LAYOUT_TYPE_VERTICAL:
+        for (int i=0; i<layout.child.size(); i++) {
+            createNewWindowPane(id, name, layout.child[i]);
+        }
+    }
     return 0;
 }
 
@@ -399,6 +451,17 @@ void TmuxGateway::closeAllPanes()
     map<int, TmuxWindowPane*>::const_iterator it;
     for ( it=_mapPanes.begin() ; it != _mapPanes.end(); it++ ) {
         mainWindow->closeTerminal(it->second->termWnd());
+        delete it->second;
     }
     _mapPanes.clear();
+}
+
+void TmuxGateway::closePane(int paneid)
+{
+    TmuxWindowPane *pane = _mapPanes[paneid];
+    if (pane) {
+        mainWindow->closeTerminal(pane->termWnd());
+        _mapPanes.erase(paneid);
+        delete pane;
+    }
 }

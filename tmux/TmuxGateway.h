@@ -9,6 +9,7 @@ extern "C" {
 #undef min
 #undef max
 }
+#include "tmux/TmuxLayout.h"
 #include <string>
 #include <queue>
 #include <map>
@@ -60,9 +61,11 @@ class TmuxGateway : public TmuxCmdRespReceiver
     string _currentCommandResponse;
     long _sessionID;
     char *_sessionName;
+    map<int, TmuxLayout> _mapLayout;
     map<int, TmuxWindowPane*> _mapPanes;
 
     void closeAllPanes();
+    void closePane(int paneid);
 
     int cmd_hdlr_sessions_changed(const char *command, int len);
     int cmd_hdlr_session_changed(const char *command, int len);
@@ -70,6 +73,7 @@ class TmuxGateway : public TmuxCmdRespReceiver
     int cmd_hdlr_window_renamed(const char *command, int len);
     int cmd_hdlr_window_add(const char *command, int len);
     int cmd_hdlr_window_close(const char *command, int len);
+    int cmd_hdlr_layout_change(const char *command, int len);
 
     int resp_hdlr_list_windows(string &response);
     int resp_hdlr_open_listed_windows(string &response);
@@ -81,7 +85,8 @@ public:
     int fromBackend(int is_stderr, const char *data, int len);
     int parseCommand(const char *command, size_t len);
     int openWindowsInitial();
-    int createNewWindow(int id, const char *name, int width, int height);
+    int createNewWindow(int id, const char *name, int width, int height, string layout);
+    int createNewWindowPane(int id, const char *name, TmuxLayout &layout);
     int sendCommand(TmuxCmdRespReceiver *recv, tmux_cb_index_t cb,
                     const wchar_t cmd_str[], int cmd_str_len=-1);
     int sendCommand(TmuxCmdResp cmd_list[], wstring cmd_str[], int len=1);

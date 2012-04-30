@@ -70,7 +70,8 @@ SOURCES +=  \
     puttysrc/BE_ALL_S.C \
     tmux/TmuxBackend.cpp \
     tmux/TmuxGateway.cpp \
-    tmux/TmuxWindowPane.cpp
+    tmux/TmuxWindowPane.cpp \
+    tmux/TmuxLayout.cpp
 
 HEADERS +=  \
     GuiMainWindow.h \
@@ -96,6 +97,7 @@ HEADERS +=  \
     puttysrc/MISC.H \
     tmux/tmux.h \
     tmux/TmuxGateway.h \
-    tmux/TmuxWindowPane.h
+    tmux/TmuxWindowPane.h \
+    tmux/TmuxLayout.h
 
 INCLUDEPATH += ./ puttysrc/

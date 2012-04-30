@@ -112,7 +112,7 @@ static void scroll(Terminal *, int, int, int, int);
 static void scroll_display(Terminal *, int, int, int);
 #endif /* OPTIMISE_SCROLL */
 
-static termline *newline(Terminal *term, int cols, int bce)
+termline *newline(Terminal *term, int cols, int bce)
 {
     termline *line;
     int j;
@@ -636,7 +636,7 @@ static void makeliteral_cc(struct buf *b, termchar *c, unsigned long *state)
 
 static termline *decompressline(unsigned char *data, int *bytes_used);
 
-static unsigned char *compressline(termline *ldata)
+unsigned char *compressline(termline *ldata)
 {
     struct buf buffer = { NULL, 0, 0 }, *b = &buffer;
 

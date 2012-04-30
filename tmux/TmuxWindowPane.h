@@ -23,7 +23,7 @@ class TmuxWindowPane : public TmuxCmdRespReceiver
      * To maintain previous state of terminal temporarily.
      * sent by tmux gateway upon attach session.
      */
-    typedef struct {
+    struct tmux_old_state_t {
         int8_t in_alt_screen;
         uint8_t base_cursor_x;
         uint8_t base_cursor_y;
@@ -45,7 +45,15 @@ class TmuxWindowPane : public TmuxCmdRespReceiver
         uint mouse_any_mode;
         uint mouse_utf8_mode;
         */
-    } tmux_old_state_t;
+        tmux_old_state_t()
+        {
+            in_alt_screen = 0;
+            base_cursor_x = base_cursor_y = cursor_x = cursor_y = 0;
+            scroll_region_upper = scroll_region_lower = 0;
+            decsc_cursor_x = decsc_cursor_y = 0;
+            tabstops ="";
+        }
+    };
     tmux_old_state_t *old_state;
 
 public:
@@ -62,7 +70,7 @@ public:
     int performCallback(tmux_cb_index_t index, string &response);
 
     int resp_hdlr_dump_term_state(string &response);
-    int resp_hdlr_dump_history(string &response);
+    int resp_hdlr_dump_history(string &response, bool is_alt=false);
 };
 
 #endif // TMUXWINDOWPANE_H
