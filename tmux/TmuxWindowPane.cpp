@@ -100,7 +100,8 @@ cu0:
 }
 
 extern "C" termline *newline(Terminal *term, int cols, int bce);
-extern "C" unsigned char *compressline(termline *ldata);
+//extern "C" unsigned char *compressline(termline *ldata);
+extern "C" termline *get_next_termline (Terminal *term, termline *tline, int cur_line);
 
 int TmuxWindowPane::resp_hdlr_dump_history(string &response, bool is_alt)
 {
@@ -108,14 +109,14 @@ int TmuxWindowPane::resp_hdlr_dump_history(string &response, bool is_alt)
     istringstream iresp(response);
     string line, hist;
     int num_lines;
-    tree234 *tree;
-    termline *tline;
+    Terminal *term = _termWnd->term;
+    termline *tline = NULL;
     struct termchar tchar;
 
     // make sure we start with clean slate
-    assert(count234(_termWnd->term->scrollback) == 0);
-    assert(count234(_termWnd->term->alt_screen) == _termWnd->term->rows);
-    assert(count234(_termWnd->term->alt_screen) == _termWnd->term->rows);
+    assert(count234(term->scrollback) == 0);
+    assert(count234(term->alt_screen) == term->rows);
+    assert(count234(term->alt_screen) == term->rows);
 
     num_lines = std::count(response.begin(), response.end(), '\n');
     memset(&tchar, 0, sizeof(termchar));
@@ -128,16 +129,10 @@ int TmuxWindowPane::resp_hdlr_dump_history(string &response, bool is_alt)
         int cur_pos = 0;
 
         if (is_alt) {
-            tree = _termWnd->term->alt_screen;
-            tline = newline(_termWnd->term, _termWnd->term->cols, FALSE);
-            addpos234(tree, tline, cur_line);
-        } else if (num_lines - cur_line <= _termWnd->term->rows) {
-            tree = _termWnd->term->screen;
-            tline = (termline*) index234(tree,
-                                         _termWnd->term->rows-(num_lines-cur_line));
+            tline = newline(term, term->cols, FALSE);
+            addpos234(term->alt_screen, tline, cur_line);
         } else {
-            tree = _termWnd->term->scrollback;
-            tline = newline(_termWnd->term, _termWnd->term->cols, FALSE);
+            tline = get_next_termline(term, tline, cur_line);
         }
 
         if (line.length() > 0 && line.at(line.length()-1) == '+') {
@@ -196,9 +191,11 @@ int TmuxWindowPane::resp_hdlr_dump_history(string &response, bool is_alt)
                     fail_reason << "lacks a number after * line:"<<line<<" pos:"<<iss.tellg();
                     goto cu0;
                 }
-                qDebug("repeats %d %x\n", repeats, tchar.chr);
                 for (int j = 0; j < repeats - 1; j++) {
-                    assert(cur_pos < tline->cols);
+                    if (cur_pos >= tline->cols) {
+                        tline = get_next_termline(term, tline, cur_line);
+                        cur_pos = 0;
+                    }
                     tline->chars[cur_pos++] = tchar;
                     hist.push_back((char)tchar.chr);
                 }
@@ -224,7 +221,10 @@ int TmuxWindowPane::resp_hdlr_dump_history(string &response, bool is_alt)
                 } else {
                     tchar.chr = c2;
                 }
-                assert(cur_pos < tline->cols);
+                if (cur_pos >= tline->cols) {
+                    tline = get_next_termline(term, tline, cur_line);
+                    cur_pos = 0;
+                }
                 tline->chars[cur_pos++] = tchar;
                 hist.push_back(c2);
             } else {
@@ -233,20 +233,12 @@ int TmuxWindowPane::resp_hdlr_dump_history(string &response, bool is_alt)
             }
         }
 
-        if (tree == _termWnd->term->scrollback) {
-            addpos234(tree, compressline(tline), cur_line);
-            sfree(tline);
-            tline = NULL;
-        }
-
         qDebug()<<"history"<<hist.c_str();
         hist.clear();
     }
     return 0;
-cu0:
-    if (tree == _termWnd->term->scrollback)
-        sfree(tline);
 
+cu0:
     qDebug("Malformed history dump response reason: %s\n", fail_reason.str().c_str());
     return -1;
 }

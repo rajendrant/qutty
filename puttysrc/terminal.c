@@ -97,7 +97,7 @@ const wchar_t sel_nl[] = SEL_NL;
 /*
  * Internal prototypes.
  */
-static void resizeline(Terminal *, termline *, int);
+void resizeline(Terminal *, termline *, int);
 static termline *lineptr(Terminal *, int, int, int);
 static void unlineptr(termline *);
 static void do_paint(Terminal *, Context, int);
@@ -307,7 +307,7 @@ static int termchars_equal(termchar *a, termchar *b)
  * Copy a character cell. (Requires a pointer to the destination
  * termline, so as to access its free list.)
  */
-static void copy_termchar(termline *destline, int x, termchar *src)
+void copy_termchar(termline *destline, int x, termchar *src)
 {
     clear_cc(destline, x);
 
@@ -636,7 +636,7 @@ static void makeliteral_cc(struct buf *b, termchar *c, unsigned long *state)
 
 static termline *decompressline(unsigned char *data, int *bytes_used);
 
-unsigned char *compressline(termline *ldata)
+static unsigned char *compressline(termline *ldata)
 {
     struct buf buffer = { NULL, 0, 0 }, *b = &buffer;
 
@@ -911,7 +911,7 @@ static termline *decompressline(unsigned char *data, int *bytes_used)
 /*
  * Resize a line to make it `cols' columns wide.
  */
-static void resizeline(Terminal *term, termline *line, int cols)
+void resizeline(Terminal *term, termline *line, int cols)
 {
     int i, oldcols;
 
@@ -6652,4 +6652,23 @@ int term_get_userpass_input(Terminal *term, prompts_t *p,
 	p->data = NULL;
 	return +1; /* all done */
     }
+}
+
+termline *get_next_termline (Terminal *term, termline *tline, int cur_line)
+{
+    int i;
+    if (tline) {
+        tline = (termline*) delpos234(term->screen, 0);
+        if (cur_line >= term->rows) {
+            addpos234(term->scrollback, compressline(tline),
+                      count234(term->scrollback));
+            term->tempsblines += 1;
+        }
+        resizeline(term, tline, term->cols);
+        for (i = 0; i < term->cols; i++)
+            copy_termchar(tline, i, &term->erase_char);
+        tline->lattr = LATTR_NORM;
+        addpos234(term->screen, tline, term->rows-1);
+    }
+    return index234(term->screen, term->rows-1);
 }

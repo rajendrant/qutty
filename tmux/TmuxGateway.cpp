@@ -300,7 +300,7 @@ int TmuxGateway::cmd_hdlr_layout_change(const char *command, int len)
     }
     iresp>>wndid;
     iresp>>strlayout;
-    layout.initLayout(strlayout);
+    layout.initLayout(strlayout.substr(5));
     createNewWindowPane(wndid, "", layout);
     return 0;
 cu0:
@@ -402,7 +402,7 @@ cu0:
 int TmuxGateway::createNewWindowPane(int id, const char *name, TmuxLayout &layout)
 {
     switch (layout.layoutType) {
-      case TmuxLayout::TMUX_LAYOUT_TYPE_NONE:
+      case TmuxLayout::TMUX_LAYOUT_TYPE_LEAF:
         if (_mapPanes.find(layout.paneid) == _mapPanes.end()) {
             GuiTerminalWindow *newtermwnd = mainWindow->newTerminal();
             newtermwnd->cfg = termGatewayWnd->cfg;
@@ -423,14 +423,18 @@ int TmuxGateway::createNewWindowPane(int id, const char *name, TmuxLayout &layou
             break;
         } else {
             term_size(_mapPanes[layout.paneid]->termWnd()->term,
-                      layout.width, layout.height,
+                      layout.height, layout.width,
                       _mapPanes[layout.paneid]->termWnd()->cfg.savelines);
         }
+        break;
       case TmuxLayout::TMUX_LAYOUT_TYPE_HORIZONTAL:
       case TmuxLayout::TMUX_LAYOUT_TYPE_VERTICAL:
         for (int i=0; i<layout.child.size(); i++) {
             createNewWindowPane(id, name, layout.child[i]);
         }
+        break;
+      default:
+        assert(0);
     }
     return 0;
 }

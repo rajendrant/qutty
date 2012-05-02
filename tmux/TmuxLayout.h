@@ -18,7 +18,8 @@ public:
     unsigned int y;
     unsigned int paneid;
     enum TmuxLayoutType {
-        TMUX_LAYOUT_TYPE_NONE,
+        TMUX_LAYOUT_TYPE_NONE = -1,
+        TMUX_LAYOUT_TYPE_LEAF,
         TMUX_LAYOUT_TYPE_HORIZONTAL,
         TMUX_LAYOUT_TYPE_VERTICAL
     };
@@ -29,6 +30,10 @@ public:
 public:
     TmuxLayout()
     {
+        paneid = -1;
+        width = height = 0;
+        x = y = 0;
+        parent = NULL;
         layoutType = TMUX_LAYOUT_TYPE_NONE;
     }
 

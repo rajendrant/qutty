@@ -47,9 +47,11 @@ bool TmuxLayout::parseLayout(istringstream &iresp)
         if (iresp.get()!=',')
             goto cu0;
         iresp>>paneid;
+        layoutType = TmuxLayout::TMUX_LAYOUT_TYPE_LEAF;
     }
     return true;
 cu0:
+    layoutType = TmuxLayout::TMUX_LAYOUT_TYPE_NONE;
     return false;
 }
 
@@ -58,7 +60,7 @@ string TmuxLayout::dumpLayout()
     ostringstream ret(ostringstream::out);
     ret<<width<<"x"<<height<<","<<x<<","<<y;
     switch (layoutType) {
-      case TmuxLayout::TMUX_LAYOUT_TYPE_NONE:
+      case TmuxLayout::TMUX_LAYOUT_TYPE_LEAF:
         ret<<","<<paneid;
         break;
       case TmuxLayout::TMUX_LAYOUT_TYPE_HORIZONTAL:
@@ -70,6 +72,10 @@ string TmuxLayout::dumpLayout()
                 ret<<",";
         }
         ret << (layoutType==TmuxLayout::TMUX_LAYOUT_TYPE_VERTICAL ? '}' : ']');
+        break;
+      default:
+        //assert(0);
+        break;
     }
     return ret.str();
 }
