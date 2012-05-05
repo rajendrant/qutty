@@ -15,6 +15,11 @@ extern "C" {
 #include <QHostInfo>
 #include <QNetworkInterface>
 
+struct SockAddr_tag {
+    QHostAddress *qtaddr;
+    const char *error;
+};
+
 static void sk_tcp_flush(Socket s) {}
 
 /*
@@ -83,11 +88,6 @@ static Plug sk_tcp_plug (Socket sock, Plug p)
     return ret;
 }
 
-/*void ldisc_send(void *handle, const char *buf, int len, int interactive)
-{
-    ldisc_send(handle, (char *)buf, len, interactive);
-    qDebug()<<"ldisc_send NOT IMPL "<<buf<<" "<<len<<"\n";
-}*/
 
 Socket sk_new(char *addr, int port, int privport, int oobinline,
               int nodelay, int keepalive, Plug plug)
@@ -146,7 +146,7 @@ Socket sk_new(char *addr, int port, int privport, int oobinline,
 
 int sk_addrtype(SockAddr addr)
 {
-    const QHostAddress *a = (const QHostAddress*)addr;
+    const QHostAddress *a = addr->qtaddr;
     switch(a->protocol()) {
     case QAbstractSocket::IPv4Protocol:
         return ADDRTYPE_IPV4;
@@ -159,7 +159,7 @@ int sk_addrtype(SockAddr addr)
 
 void sk_addrcopy(SockAddr addr, char *buf)
 {
-    QHostAddress *a = (QHostAddress*)addr;
+    QHostAddress *a = addr->qtaddr;
     QString str = a->toString();
     QByteArray bstr = str.toUtf8();
     const char* cstr = bstr.constData();
@@ -169,30 +169,42 @@ void sk_addrcopy(SockAddr addr, char *buf)
 SockAddr sk_addr_dup(SockAddr addr)
 {
     if(!addr) return NULL;
-    QHostAddress *a = (QHostAddress*)addr;
-    return new QHostAddress(*a);
+    SockAddr ret = new SockAddr_tag;
+    ret->qtaddr = new QHostAddress(*addr->qtaddr);
+    ret->error = addr->error;
+    return ret;
 }
 
 void sk_addr_free(SockAddr addr)
 {
-    QHostAddress *a = (QHostAddress*)addr;
-    delete a;
+    if (!addr)
+        return;
+    if (addr->qtaddr)
+        delete addr->qtaddr;
+    addr->qtaddr = NULL;
+    addr->error = NULL;
 }
 
 SockAddr sk_namelookup(const char *host, char **canonicalname,
                int address_family)
 {
+     SockAddr ret = new SockAddr_tag;
+     ret->error = NULL;
      QHostInfo info = QHostInfo::fromName(host);
      if (info.error() == QHostInfo::NoError) {
          foreach(const QHostAddress &address, info.addresses()) {
-             if (sk_addrtype((SockAddr*)&address)==address_family) {
+             int this_addrtype = address.protocol() == QAbstractSocket::IPv4Protocol ? ADDRTYPE_IPV4 :
+                                 address.protocol() == QAbstractSocket::IPv6Protocol ? ADDRTYPE_IPV6 :
+                                 ADDRTYPE_UNSPEC;
+             if (this_addrtype == address_family) {
                  QHostAddress *a = new QHostAddress(address);
                  QString str = info.hostName();
                  QByteArray bstr = str.toUtf8();
                  const char* cstr = bstr.constData();
                  *canonicalname = snewn(1+strlen(cstr), char);
                  strcpy(*canonicalname, cstr);
-                 return a;
+                 ret->qtaddr = a;
+                 return ret;
              }
          }
      }
@@ -203,25 +215,31 @@ SockAddr sk_namelookup(const char *host, char **canonicalname,
          const char* cstr = bstr.constData();
          *canonicalname = snewn(1+strlen(cstr), char);
          strcpy(*canonicalname, cstr);
-         return a;
+         ret->qtaddr = a;
+         return ret;
      }
      *canonicalname = snewn(1, char);
      *canonicalname[0] = '\0';
-     return new QHostAddress();
+     ret->qtaddr = new QHostAddress();
+     ret->error = info.error()==QHostInfo::HostNotFound ? "Host not found" :
+                  info.error()==QHostInfo::UnknownError ? "Unknown error" :
+                  "No IP address found";
+     return ret;
 }
 
 SockAddr sk_nonamelookup(const char *host)
 {
     // TODO not supported for now
-    return new QHostAddress();
+    SockAddr ret = new SockAddr_tag;
+    ret->qtaddr = new QHostAddress();
+    ret->error = "Not supported";
+    return ret;
 }
 
 const char *sk_addr_error(SockAddr addr)
 {
-    if(!addr) return "unix sockets not supported on this platform";
-    QHostAddress *a = (QHostAddress*)addr;
-    if (*a==QHostAddress::Null) return "Rajendran: NULL address\n";
-    return NULL;
+    if (!addr) return NULL;
+    return addr->error;
 }
 
 int sk_hostname_is_local(char *name)
@@ -233,7 +251,7 @@ int sk_hostname_is_local(char *name)
 
 void sk_getaddr(SockAddr addr, char *buf, int buflen)
 {
-    QHostAddress *a = (QHostAddress*)addr;
+    QHostAddress *a = addr->qtaddr;
     QString str = a->toString();
     QByteArray bstr = str.toUtf8();
     const char* cstr = bstr.constData();
@@ -244,7 +262,7 @@ void sk_getaddr(SockAddr addr, char *buf, int buflen)
 
 int sk_address_is_local(SockAddr addr)
 {
-    const QHostAddress *a = (const QHostAddress*)addr;
+    const QHostAddress *a = addr->qtaddr;
     if (*a==QHostAddress::LocalHost || *a==QHostAddress::LocalHostIPv6)
         return 1;
     foreach(const QHostAddress &locaddr, QNetworkInterface::allAddresses()) {
@@ -293,13 +311,20 @@ Socket sk_new(SockAddr addr, int port, int privport, int oobinline,
     ret->privport = privport;
     ret->port = port;
     ret->addr = addr;
+    ret->qtsock = NULL;
+
+    if (!addr || !addr->qtaddr) {
+        ret->error = "Cannot create socket";
+        goto cu0;
+    }
 
     ret->qtsock = new QTcpSocket();
-    ret->qtsock->connectToHost(*(QHostAddress*)addr, port);
+    ret->qtsock->connectToHost(*addr->qtaddr, port);
 
     if(nodelay)
         ret->qtsock->setSocketOption(QAbstractSocket::LowDelayOption, 1);
 
+cu0:
     return (Socket) ret;
 }
 

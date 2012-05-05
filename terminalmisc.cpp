@@ -24,7 +24,7 @@ void frontend_keypress(void *handle)
     return;
 }
 
-void set_title(void *frontend, char *title)
+void set_title(void *frontend, const char *title)
 {
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
     f->setWindowTitle(QString::fromAscii(title));

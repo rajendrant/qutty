@@ -20,8 +20,7 @@ typedef struct backend_tag Backend;
 typedef struct terminal_tag Terminal;
 #endif
 
-//typedef struct SockAddr_tag *SockAddr;
-typedef void *SockAddr;
+typedef struct SockAddr_tag *SockAddr;
 /* pay attention to levels of indirection */
 typedef struct socket_function_table **Socket;
 typedef struct plug_function_table **Plug;

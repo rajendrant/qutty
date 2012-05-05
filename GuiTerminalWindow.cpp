@@ -87,9 +87,17 @@ int GuiTerminalWindow::initTerminal()
                            cfg.height*fontHeight);
 
     backend = backend_from_proto(cfg.protocol);
-    backend->init(this, &backhandle, &cfg, (char*)ip_addr, cfg.port, &realhost, 1, 0);
+    const char * error = backend->init(this, &backhandle, &cfg, (char*)ip_addr, cfg.port, &realhost, 1, 0);
     if (realhost)
         sfree(realhost);
+
+    if (error) {
+        char msg[512];
+        sprintf(msg, "Unable to open connection to\n"
+                    "%.800s\n" "%s", cfg_dest(&cfg), error);
+        qt_message_box(this, APPNAME " Error", msg);
+        goto cu0;
+    }
 
     switch(cfg.protocol) {
     case PROT_TELNET:
@@ -113,7 +121,11 @@ int GuiTerminalWindow::initTerminal()
      * Set up a line discipline.
      */
     ldisc = ldisc_create(&cfg, term, backend, backhandle, this);
+
     return 0;
+
+cu0:
+    return -1;
 }
 
 TmuxWindowPane *GuiTerminalWindow::initTmuxClientTerminal(TmuxGateway *gateway,

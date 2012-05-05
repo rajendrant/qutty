@@ -30,7 +30,8 @@ int TmuxWindowPane::performCallback(tmux_cb_index_t index, string &response)
     case CB_DUMP_HISTORY:
         return resp_hdlr_dump_history(response);
     case CB_DUMP_HISTORY_ALT:
-        return 0;
+        _termWnd->term->alt_which = 1;
+        return resp_hdlr_dump_history(response, true);
     default:
         return -1;
     }
@@ -38,7 +39,7 @@ int TmuxWindowPane::performCallback(tmux_cb_index_t index, string &response)
 
 int TmuxWindowPane::resp_hdlr_dump_term_state(string &response)
 {
-    string key;
+    string key, tstr;
     int n;
     istringstream iresp(response);
 
@@ -79,13 +80,21 @@ int TmuxWindowPane::resp_hdlr_dump_term_state(string &response)
         } else if (!key.compare("wrap_mode")) {
             iresp>>n;
             _termWnd->term->wrap = n;
+        } else if (!key.compare("title")) {
+            iresp>>tstr;
+            set_title(_termWnd, tstr.c_str());
+        } else if (!key.compare("kcursor_mode")) {
+            iresp>>n;
+            _termWnd->term->app_cursor_keys = n;
+        } else if (!key.compare("kkeypad_mode")) {
+            iresp>>n;
+            _termWnd->term->app_keypad_keys = n;
         }
         iresp.ignore(128, '\n');
     }
     if (old_state->in_alt_screen) {
-        _termWnd->term->curs.x = old_state->base_cursor_x;
-        _termWnd->term->curs.y = old_state->base_cursor_y;
-        //swap_screen(_termWnd->term, TRUE, TRUE, TRUE);
+        _termWnd->term->alt_x = old_state->base_cursor_x;
+        _termWnd->term->alt_y = old_state->base_cursor_y;
     }
     _termWnd->term->curs.x = old_state->cursor_x;
     _termWnd->term->curs.y = old_state->cursor_y;
@@ -114,8 +123,9 @@ int TmuxWindowPane::resp_hdlr_dump_history(string &response, bool is_alt)
     struct termchar tchar;
 
     // make sure we start with clean slate
-    assert(count234(term->scrollback) == 0);
-    assert(count234(term->alt_screen) == term->rows);
+    if (!is_alt)
+        assert(count234(term->scrollback) == 0);
+    assert(count234(term->screen) == term->rows);
     assert(count234(term->alt_screen) == term->rows);
 
     num_lines = std::count(response.begin(), response.end(), '\n');

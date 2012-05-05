@@ -94,6 +94,7 @@ int initConfigDefaults(Config *cfg);
 
 void GuiSettingsWindow::newTerminal()
 {
+    int rc;
     qDebug()<<"newTerminal"<<txtHostName->text()<<txtPort->text()<<btnConnType->checkedId();
     QByteArray hostname = txtHostName->text().toUtf8();
     QByteArray port = txtPort->text().toUtf8();
@@ -102,7 +103,10 @@ void GuiSettingsWindow::newTerminal()
     strcpy(newWnd->cfg.host, hostname.constData());
     newWnd->cfg.port = atoi(port.constData());
     newWnd->cfg.protocol = btnConnType->checkedId();
-    newWnd->initTerminal();
-    mainWindow->tabArea->setCurrentWidget(newWnd);
+    if (rc=newWnd->initTerminal()) {
+        delete newWnd;
+    } else {    // success
+        mainWindow->tabArea->setCurrentWidget(newWnd);
+    }
     this->close();
 }
