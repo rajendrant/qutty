@@ -5,108 +5,141 @@
  */
 
 #include "GuiSettingsWindow.h"
-#include <QGridLayout>
-#include <QLabel>
-#include <QGroupBox>
-#include <QDialogButtonBox>
-#include <QRadioButton>
-#include <QDebug>
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
+#include "ui_GuiSettingsWindow.h"
+#include<QDebug>
+#include<QVariant>
+#include <QAbstractButton>
+#include<QRadioButton>
+#include<QString>
 #include "QtCommon.h"
 extern "C" {
 #include "putty.h"
 }
 
 GuiSettingsWindow::GuiSettingsWindow(QWidget *parent) :
-    QDialog(parent)
+    QDialog(parent),
+    ui(new Ui::GuiSettingsWindow)
 {
-    QGroupBox *groupbox;
-    QGridLayout *layout;
-    QVBoxLayout *mainLayout;
-    mainLayout = new QVBoxLayout;
-    setLayout(mainLayout);
+    ui->setupUi(this);
+    ui->stackedWidget->setCurrentIndex(0);
+    ui->treeWidget->topLevelItem(0)->setData(0, Qt::UserRole, SESSION);
+    ui->treeWidget->topLevelItem(0)->child(0)->setData(0, Qt::UserRole, LOGGING);
+    ui->treeWidget->topLevelItem(1)->setData(0, Qt::UserRole, TERMINAL);
+    ui->treeWidget->topLevelItem(1)->child(0)->setData(0, Qt::UserRole, KEYBOARD);
+    ui->treeWidget->topLevelItem(1)->child(1)->setData(0, Qt::UserRole, BELL);
+    ui->treeWidget->topLevelItem(1)->child(2)->setData(0, Qt::UserRole, FEATURES);
+    ui->treeWidget->topLevelItem(2)->setData(0, Qt::UserRole, WINDOW);
+    ui->treeWidget->topLevelItem(2)->child(0)->setData(0, Qt::UserRole, APPEARANCE);
+    ui->treeWidget->topLevelItem(2)->child(1)->setData(0, Qt::UserRole, BEHAVIOUR);
+    ui->treeWidget->topLevelItem(2)->child(2)->setData(0, Qt::UserRole, TRANSLATION);
+    ui->treeWidget->topLevelItem(2)->child(3)->setData(0, Qt::UserRole, SELECTION);
+    ui->treeWidget->topLevelItem(2)->child(4)->setData(0, Qt::UserRole, COLOURS);
+    ui->treeWidget->topLevelItem(3)->setData(0, Qt::UserRole, CONNECTION);
+    ui->treeWidget->topLevelItem(3)->child(0)->setData(0, Qt::UserRole, DATA);
+    ui->treeWidget->topLevelItem(3)->child(1)->setData(0, Qt::UserRole, PROXY);
+    ui->treeWidget->topLevelItem(3)->child(2)->setData(0, Qt::UserRole, TELNET);
+    ui->treeWidget->topLevelItem(3)->child(3)->setData(0, Qt::UserRole, RLOGIN);
+    ui->treeWidget->topLevelItem(3)->child(4)->setData(0, Qt::UserRole, SSH);
+    ui->treeWidget->topLevelItem(3)->child(4)->child(0)->setData(0, Qt::UserRole, KEX);
+    ui->treeWidget->topLevelItem(3)->child(4)->child(1)->setData(0, Qt::UserRole, AUTH);
+    ui->treeWidget->topLevelItem(3)->child(4)->child(1)->child(0)->setData(0, Qt::UserRole, GSSAPI);
+    ui->treeWidget->topLevelItem(3)->child(4)->child(2)->setData(0, Qt::UserRole, TTY);
+    ui->treeWidget->topLevelItem(3)->child(4)->child(3)->setData(0, Qt::UserRole, X11);
+    ui->treeWidget->topLevelItem(3)->child(4)->child(4)->setData(0, Qt::UserRole, TUNNELS);
+    ui->treeWidget->topLevelItem(3)->child(4)->child(5)->setData(0, Qt::UserRole, BUGS);
+    ui->treeWidget->topLevelItem(3)->child(5)->setData(0, Qt::UserRole, SERIAL);
 
-    groupbox = new QGroupBox(tr("Specify the destination you want to connect to"));
-    mainLayout->addWidget(groupbox);
-    layout = new QGridLayout;
-    groupbox->setLayout(layout);
-    txtHostName = new QLineEdit;
-    txtPort = new QLineEdit("22");
-    layout->addWidget(new QLabel(tr("Host Name (or IP address)")), 0, 0, 1, 2);
-    layout->addWidget(new QLabel(tr("Port")), 0, 2, 1, 1);
-    layout->addWidget(txtHostName, 1, 0, 1, 2);
-    layout->addWidget(txtPort, 1, 2, 1, 1);
-    layout->addWidget(new QLabel(tr("Connection type:")), 2, 0);
-    btnConnType = new QButtonGroup;
-    QRadioButton *radiobtn = new QRadioButton(tr("Telnet"));
-    layout->addWidget(radiobtn, 3, 0);
-    btnConnType->addButton(radiobtn, PROT_TELNET);
-    radiobtn = new QRadioButton(tr("SSH"));
-    radiobtn->setChecked(true);
-    layout->addWidget(radiobtn, 3, 1);
-    btnConnType->addButton(radiobtn, PROT_SSH);
-    connect(btnConnType, SIGNAL(buttonClicked(int)), this, SLOT(btnConnTypeClicked(int)));
-
-    groupbox = new QGroupBox(tr("Load, save or delete a stored session"));
-    mainLayout->addWidget(groupbox);
-    layout = new QGridLayout;
-    groupbox->setLayout(layout);
-    layout->addWidget(new QLabel(tr("Saved Sessions")), 0, 0);
-
-    groupbox = new QGroupBox();
-    mainLayout->addWidget(groupbox);
-    layout = new QGridLayout;
-    groupbox->setLayout(layout);
-    layout->addWidget(new QLabel(tr("Close window on exit:")), 0, 0, 1, -1);
-    layout->addWidget(new QRadioButton(tr("Always")), 1, 0);
-    layout->addWidget(new QRadioButton(tr("Never")), 1, 1);
-    layout->addWidget(new QRadioButton(tr("Only on clean exit")), 1, 2);
-
-    QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Open
-                                          | QDialogButtonBox::Cancel);
-    mainLayout->addWidget(buttonBox);
-    connect(buttonBox, SIGNAL(accepted()), this, SLOT(newTerminal()));
-    connect(buttonBox, SIGNAL(rejected()), this, SLOT(close()));
-
-    //groupbox->setLayout(mainLayout);
-
-    setWindowTitle(tr("[New Session]"));
-
-    txtHostName->setText("192.168.1.103");
-
-    setModal(true);
+    ui->le_hostname->setText("192.168.1.103");
 }
 
-void GuiSettingsWindow::btnConnTypeClicked(int id)
+GuiSettingsWindow::~GuiSettingsWindow()
 {
-    switch(id) {
-    case PROT_TELNET:
-        txtPort->setText("23");
-        break;
-    case PROT_SSH:
-        txtPort->setText("22");
-        break;
-    }
+    delete ui;
+}
+
+void GuiSettingsWindow::on_rb_contype_telnet_clicked()
+{
+    ui->le_port->setText("23");
+}
+
+void GuiSettingsWindow::on_rb_contype_ssh_clicked()
+{
+   ui->le_port->setText("22");
+}
+
+void GuiSettingsWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
+{
+    ui->stackedWidget->setCurrentIndex(item->data(column,  Qt::UserRole).toInt());
+}
+
+void qstring_to_char(char *dst, QString src, int dstlen)
+{
+    QByteArray name = src.toUtf8();
+    strncpy(dst, name.constData(), dstlen);
 }
 
 int initConfigDefaults(Config *cfg);
-
-void GuiSettingsWindow::newTerminal()
+void GuiSettingsWindow::on_buttonBox_accepted()
 {
     int rc;
-    qDebug()<<"newTerminal"<<txtHostName->text()<<txtPort->text()<<btnConnType->checkedId();
-    QByteArray hostname = txtHostName->text().toUtf8();
-    QByteArray port = txtPort->text().toUtf8();
     GuiTerminalWindow *newWnd = mainWindow->newTerminal();
-    initConfigDefaults(&newWnd->cfg);
-    strcpy(newWnd->cfg.host, hostname.constData());
-    newWnd->cfg.port = atoi(port.constData());
-    newWnd->cfg.protocol = btnConnType->checkedId();
+    Config *c=&newWnd->cfg;
+    initConfigDefaults(c);
+
+    qstring_to_char(c->host, ui->le_hostname->text(), sizeof(c->host));
+    c->port = ui->le_port->text().toInt();
+    c->protocol = ui->gp_contype->checkedButton()==ui->rb_contype_ssh ? PROT_SSH :
+                                                                        PROT_TELNET ;
+
+    /* Options controlling session logging */
+
+    c->logtype = ui->gp_seslog->checkedButton()==ui->rb_sessionlog_none? LGTYP_NONE :
+                          ui->gp_seslog->checkedButton()==ui->rb_sessionlog_printout? LGTYP_ASCII :
+                          ui->gp_seslog->checkedButton()==ui->rb_sessionlog_alloutput? LGTYP_DEBUG :
+                          ui->gp_seslog->checkedButton()==ui->rb_sessionlog_sshpacket? LGTYP_PACKETS :
+                                                                                       LGTYP_SSHRAW ;
+
+    qstring_to_char(c->logfilename.path, ui->le_sessionlog_filename->text(), sizeof(c->logfilename.path));
+
+
+    c->logxfovr = ui->gp_logfile->checkedButton()==ui->rb_sessionlog_overwrite? LGXF_OVR :
+                  ui->gp_logfile->checkedButton()==ui->rb_sessionlog_append? LGXF_APN :
+                                                                             LGXF_ASK ;
+
+    c->logflush = ui->chb_sessionlog_flush->isChecked() ? 1 : 0 ;
+    c->logomitpass = ui->chb_sessionlog_omitpasswd->isChecked() ? 1 : 0 ;
+    c->logomitdata = ui->chb_sessionlog_omitdata->isChecked() ? 1 : 0 ;
+
+    /* Options controlling the terminal emulation */
+
+    c->wrap_mode = ui->chb_terminaloption_autowrap->isChecked() ? 1 : 0;
+    c->dec_om = ui->chb_terminaloption_decorigin->isChecked() ? 1 : 0;
+    c->lfhascr = ui->chb_terminaloption_lf->isChecked() ? 1 : 0;
+    c->bce = ui->chb_terminaloption_bgcolor->isChecked() ? 1 : 0;
+    c->blinktext = ui->chb_terminaloption_blinktext->isChecked() ? 1 : 0;
+
+    qstring_to_char(c->answerback, ui->le_termopt_ansback->text(), sizeof(c->answerback));
+
+    c->localecho = ui->gp_termopt_echo->checkedButton()==ui->rb_termopt_echoauto ? AUTO :
+                   ui->gp_termopt_echo->checkedButton()==ui->rb_termopt_echoon ? FORCE_ON :
+                                                                                 FORCE_OFF ;
+
+    c->localedit = ui->gp_termopt_edit->checkedButton()==ui->rb_termopt_editauto ? AUTO :
+                   ui->gp_termopt_edit->checkedButton()==ui->rb_termopt_editon ? FORCE_ON :
+                                                                                 FORCE_OFF ;
+
     if (rc=newWnd->initTerminal()) {
         delete newWnd;
     } else {    // success
         mainWindow->tabArea->setCurrentWidget(newWnd);
     }
+
+    this->close();
+}
+
+void GuiSettingsWindow::on_buttonBox_rejected()
+{
     this->close();
 }

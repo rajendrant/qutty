@@ -101,3 +101,6 @@ HEADERS +=  \
     tmux/TmuxLayout.h
 
 INCLUDEPATH += ./ puttysrc/
+
+FORMS += \
+    GuiSettingsWindow.ui
