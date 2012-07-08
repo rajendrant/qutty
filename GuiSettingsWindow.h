@@ -11,6 +11,7 @@
 #include <QTreeWidgetItem>
 #include <QButtonGroup>
 #include "QtConfig.h"
+#include <QFileDialog>
 
 namespace Ui {
 class GuiSettingsWindow;
@@ -62,6 +63,10 @@ private slots:
     void on_b_save_sess_clicked();
 
     void on_b_delete_sess_clicked();
+
+    void on_l_saved_sess_doubleClicked(const QModelIndex &index);
+
+    void on_btn_ssh_auth_browse_keyfile_clicked();
 
 private:
     Ui::GuiSettingsWindow *ui;

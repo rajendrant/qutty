@@ -86,6 +86,7 @@ void GuiMainWindow::closeTerminal(GuiTerminalWindow *termWnd)
 void GuiMainWindow::openSettingsWindow()
 {
     GuiSettingsWindow *ss = new GuiSettingsWindow(mainWindow);
+    ss->loadDefaultSettings();
     ss->show();
 }
 

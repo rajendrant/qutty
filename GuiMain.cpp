@@ -32,10 +32,9 @@ int main(int argc, char *argv[])
     QObject::connect(&a, SIGNAL(focusChanged(QWidget *, QWidget *)), mainWindow, SLOT(focusChanged(QWidget*,QWidget*)));
     mainWindow->show();
     initKeyboardShortcuts();
-    GuiSettingsWindow *ss = new GuiSettingsWindow(mainWindow);
 
     qutty_config.restoreConfig();
-    ss->loadSessionNames();
+    GuiSettingsWindow *ss = new GuiSettingsWindow(mainWindow);
     ss->loadDefaultSettings();
 
     ss->show();

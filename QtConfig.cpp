@@ -89,7 +89,7 @@ int QtConfig::readFromXML(QIODevice *device)
 int QtConfig::writeToXML(QIODevice *device)
 {
     QXmlStreamWriter xml;
-    char tmpbuf[2000];
+    char tmpbuf[10240];
     int tmplen;
     xml.setDevice(device);
     xml.setAutoFormatting(true);

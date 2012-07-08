@@ -76,7 +76,29 @@ GuiSettingsWindow::GuiSettingsWindow(QWidget *parent) :
     ui->gp_termopt_edit->setId(ui->rb_termopt_editon, FORCE_ON);
     ui->gp_termopt_edit->setId(ui->rb_termopt_editoff, FORCE_OFF);
 
+    ui->gp_fnkeys->setId(ui->rb_fnkeys_esc, FUNKY_TILDE);
+    ui->gp_fnkeys->setId(ui->rb_fnkeys_linux, FUNKY_LINUX);
+    ui->gp_fnkeys->setId(ui->rb_fnkeys_xtermr6, FUNKY_XTERM);
+    ui->gp_fnkeys->setId(ui->rb_fnkeys_vt400, FUNKY_VT400);
+    ui->gp_fnkeys->setId(ui->rb_fnkeys_vt100, FUNKY_VT100P);
+    ui->gp_fnkeys->setId(ui->rb_fnkeys_sco, FUNKY_SCO);
+
+    ui->gp_remote_qtitle_action->setId(ui->rb_featqtitle_none, TITLE_NONE);
+    ui->gp_remote_qtitle_action->setId(ui->rb_featqtitle_empstring, TITLE_EMPTY);
+    ui->gp_remote_qtitle_action->setId(ui->rb_featqtitle_wndtitle, TITLE_REAL);
+
+    ui->gp_resize_action->setId(ui->rb_wndresz_rowcolno, RESIZE_TERM);
+    ui->gp_resize_action->setId(ui->rb_wndresz_fontsize, RESIZE_FONT);
+    ui->gp_resize_action->setId(ui->rb_wndresz_onlywhenmax, RESIZE_EITHER);
+    ui->gp_resize_action->setId(ui->rb_wndresz_forbid, RESIZE_DISABLED);
+
+    ui->gp_addressfamily->setId(ui->rb_connectprotocol_auto, ADDRTYPE_UNSPEC);
+    ui->gp_addressfamily->setId(ui->rb_connectprotocol_ipv4, ADDRTYPE_IPV4);
+    ui->gp_addressfamily->setId(ui->rb_connectprotocol_ipv6, ADDRTYPE_IPV6);
+
     this->getConfig();
+
+    this->loadSessionNames();
 }
 
 GuiSettingsWindow::~GuiSettingsWindow()
@@ -156,6 +178,69 @@ void GuiSettingsWindow::setConfig(Config *_cfg)
     ui->le_termopt_ansback->setText(cfg.answerback);
     ui->gp_termopt_echo->button(cfg.localecho)->click();
     ui->gp_termopt_edit->button(cfg.localedit)->click();
+
+    /* keyboard options */
+    (cfg.bksp_is_delete ? ui->rb_backspacekey_ctrlh : ui->rb_backspace_ctrl127)
+            ->setChecked(true);
+    (cfg.rxvt_homeend ? ui->rb_homeendkeys_rxvt : ui->rb_homeendkeys_std)
+            ->setChecked(true);
+    ui->gp_fnkeys->button(cfg.funky_type)->click();
+    (cfg.app_cursor ? ui->rb_inicursorkeys_app : ui->rb_inicursorkeys_normal)
+            ->setChecked(true);
+    (cfg.nethack_keypad ? ui->rb_ininumerickeys_nethack :
+        cfg.app_keypad ? ui->rb_ininumkeys_app :
+                         ui->rb_ininumkeys_normal)
+            ->setChecked(true);
+    ui->chb_altgrkey->setChecked(cfg.compose_key);
+    ui->chb_ctrl_alt->setChecked(cfg.ctrlaltkeys);
+
+    /* terminal features */
+    ui->chb_no_applic_c->setChecked(cfg.no_applic_c);
+    ui->chb_no_applic_k->setChecked(cfg.no_applic_k);
+    ui->chb_no_mouse_rep->setChecked(cfg.no_mouse_rep);
+    ui->chb_no_remote_resize->setChecked(cfg.no_remote_resize);
+    ui->chb_no_alt_screen->setChecked(cfg.no_alt_screen);
+    ui->chb_no_remote_wintitle->setChecked(cfg.no_remote_wintitle);
+    ui->chb_no_dbackspace->setChecked(cfg.no_dbackspace);
+    ui->chb_no_remote_charset->setChecked(cfg.no_remote_charset);
+    ui->chb_no_arabic->setChecked(cfg.arabicshaping);
+    ui->chb_no_bidi->setChecked(cfg.bidi);
+    ui->gp_remote_qtitle_action->button(cfg.remote_qtitle_action)->click();
+
+    /* window options */
+    ui->le_window_column->setText(QString::number(cfg.width));
+    ui->le_window_row->setText(QString::number(cfg.height));
+    ui->le_wndscroll_lines->setText(QString::number(cfg.savelines));
+    ui->chb_wndscroll_display->setChecked(cfg.scrollbar);
+    ui->chb_wndscroll_fullscreen->setChecked(cfg.scrollbar_in_fullscreen);
+    ui->chb_wndscroll_resetdisply->setChecked(cfg.scroll_on_disp);
+    ui->chb_wndscroll_resetkeypress->setChecked(cfg.scroll_on_key);
+    ui->chb_wndscroll_pusherasedtext->setChecked(cfg.erase_to_scrollback);
+    ui->gp_resize_action->button(cfg.resize_action)->click();
+
+    /* connection options */
+    ui->le_ping_interval->setText(QString::number(cfg.ping_interval));
+    ui->chb_tcp_keepalive->setChecked(cfg.tcp_keepalives);
+    ui->chb_tcp_nodelay->setChecked(cfg.tcp_nodelay);
+    ui->gp_addressfamily->button(cfg.addressfamily)->click();
+    ui->le_loghost->setText(cfg.loghost);
+
+    /* connection data options */
+    ui->le_datausername->setText(cfg.username);
+    (cfg.username_from_env ? ui->rb_datausername_systemsuse : ui->rb_datausername_prompt)
+            ->setChecked(true);
+    ui->le_termtype->setText(cfg.termtype);
+    ui->le_termspeed->setText(cfg.termspeed);
+
+    /* ssh auth options */
+    ui->chb_ssh_no_userauth->setChecked(cfg.ssh_no_userauth);
+    ui->chb_ssh_show_banner->setChecked(cfg.ssh_show_banner);
+    ui->chb_ssh_tryagent->setChecked(cfg.tryagent);
+    ui->chb_ssh_try_tis_auth->setChecked(cfg.try_tis_auth);
+    ui->chb_ssh_try_ki_auth->setChecked(cfg.try_ki_auth);
+    ui->chb_ssh_agentfwd->setChecked(cfg.agentfwd);
+    ui->chb_ssh_change_username->setChecked(cfg.change_username);
+    ui->le_ssh_auth_keyfile->setText(cfg.keyfile.path);
 }
 
 Config *GuiSettingsWindow::getConfig()
@@ -189,6 +274,64 @@ Config *GuiSettingsWindow::getConfig()
     qstring_to_char(cfg->answerback, ui->le_termopt_ansback->text(), sizeof(cfg->answerback));
     cfg->localecho = ui->gp_termopt_echo->checkedId();
     cfg->localedit = ui->gp_termopt_edit->checkedId();
+
+    /* keyboard options */
+    cfg->bksp_is_delete = ui->rb_backspacekey_ctrlh->isChecked() ? 1 : 0;
+    cfg->rxvt_homeend = ui->rb_homeendkeys_rxvt->isChecked() ? 1 : 0;
+    cfg->funky_type = ui->gp_fnkeys->checkedId();
+    cfg->app_cursor = ui->rb_inicursorkeys_app->isChecked();
+    cfg->nethack_keypad = ui->rb_ininumerickeys_nethack->isChecked();
+    cfg->app_keypad = ui->rb_ininumkeys_app->isChecked();
+    cfg->compose_key = ui->chb_altgrkey->isChecked();
+    cfg->ctrlaltkeys = ui->chb_ctrl_alt->isChecked();
+
+    /* terminal features */
+    cfg->no_applic_c = ui->chb_no_applic_c->isChecked();
+    cfg->no_applic_k = ui->chb_no_applic_k->isChecked();
+    cfg->no_mouse_rep = ui->chb_no_mouse_rep->isChecked();
+    cfg->no_remote_resize = ui->chb_no_remote_resize->isChecked();
+    cfg->no_alt_screen = ui->chb_no_alt_screen->isChecked();
+    cfg->no_remote_wintitle = ui->chb_no_remote_wintitle->isChecked();
+    cfg->no_dbackspace = ui->chb_no_dbackspace->isChecked();
+    cfg->no_remote_charset = ui->chb_no_remote_charset->isChecked();
+    cfg->arabicshaping = ui->chb_no_arabic->isChecked();
+    cfg->bidi = ui->chb_no_bidi->isChecked();
+    cfg->remote_qtitle_action = ui->gp_remote_qtitle_action->checkedId();
+
+    /* window options */
+    cfg->width = ui->le_window_column->text().toInt();
+    cfg->height = ui->le_window_row->text().toInt();
+    cfg->savelines = ui->le_wndscroll_lines->text().toInt();
+    cfg->scrollbar = ui->chb_wndscroll_display->isChecked();
+    cfg->scrollbar_in_fullscreen = ui->chb_wndscroll_fullscreen->isChecked();
+    cfg->scroll_on_disp = ui->chb_wndscroll_resetdisply->isChecked();
+    cfg->scroll_on_key = ui->chb_wndscroll_resetkeypress->isChecked();
+    cfg->erase_to_scrollback = ui->chb_wndscroll_pusherasedtext->isChecked();
+    cfg->resize_action = ui->gp_resize_action->checkedId();
+
+    /* connection options */
+    cfg->ping_interval = ui->le_ping_interval->text().toInt();
+    cfg->tcp_keepalives = ui->chb_tcp_keepalive->isChecked();
+    cfg->tcp_nodelay = ui->chb_tcp_nodelay->isChecked();
+    cfg->addressfamily = ui->gp_addressfamily->checkedId();
+    qstring_to_char(cfg->loghost, ui->le_loghost->text(), sizeof(cfg->loghost));
+
+    /* connection data options */
+    qstring_to_char(cfg->username, ui->le_datausername->text(), sizeof(cfg->username));
+    cfg->username_from_env = ui->rb_datausername_systemsuse->isChecked();
+    qstring_to_char(cfg->termtype, ui->le_termtype->text(), sizeof(cfg->termtype));
+    qstring_to_char(cfg->termspeed, ui->le_termspeed->text(), sizeof(cfg->termspeed));
+
+    /* ssh auth options */
+    cfg->ssh_no_userauth = ui->chb_ssh_no_userauth->isChecked();
+    cfg->ssh_show_banner = ui->chb_ssh_show_banner->isChecked();
+    cfg->tryagent = ui->chb_ssh_tryagent->isChecked();
+    cfg->try_tis_auth = ui->chb_ssh_try_tis_auth->isChecked();
+    cfg->try_ki_auth = ui->chb_ssh_try_ki_auth->isChecked();
+    cfg->agentfwd = ui->chb_ssh_agentfwd->isChecked();
+    cfg->change_username = ui->chb_ssh_change_username->isChecked();
+    qstring_to_char(cfg->keyfile.path, ui->le_ssh_auth_keyfile->text(),
+                    sizeof(cfg->keyfile.path));
 
     return cfg;
 }
@@ -245,4 +388,17 @@ void GuiSettingsWindow::on_b_delete_sess_clicked()
     qutty_config.saveConfig();
     qutty_config.restoreConfig();
     loadSessionNames();
+}
+
+void GuiSettingsWindow::on_l_saved_sess_doubleClicked(const QModelIndex &index)
+{
+    on_b_load_sess_clicked();
+    on_buttonBox_accepted();
+}
+
+void GuiSettingsWindow::on_btn_ssh_auth_browse_keyfile_clicked()
+{
+    ui->le_ssh_auth_keyfile->setText(QFileDialog::getOpenFileName(
+                                         this, tr("Select private key file"),
+                                         ui->le_ssh_auth_keyfile->text(), tr("*.ppk")));
 }

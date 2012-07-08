@@ -51,7 +51,7 @@
     <enum>QFrame::NoFrame</enum>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>19</number>
    </property>
    <widget class="QWidget" name="page_1">
     <widget class="QGroupBox" name="groupBox_2">
@@ -1059,6 +1059,9 @@
          <property name="checked">
           <bool>true</bool>
          </property>
+         <attribute name="buttonGroup">
+          <string>gp_fnkeys</string>
+         </attribute>
         </widget>
        </item>
        <item row="0" column="1">
@@ -1066,6 +1069,9 @@
          <property name="text">
           <string>Linux</string>
          </property>
+         <attribute name="buttonGroup">
+          <string>gp_fnkeys</string>
+         </attribute>
         </widget>
        </item>
        <item row="0" column="2">
@@ -1073,6 +1079,9 @@
          <property name="text">
           <string>Xterm R6</string>
          </property>
+         <attribute name="buttonGroup">
+          <string>gp_fnkeys</string>
+         </attribute>
         </widget>
        </item>
        <item row="1" column="0">
@@ -1080,6 +1089,9 @@
          <property name="text">
           <string>VT400</string>
          </property>
+         <attribute name="buttonGroup">
+          <string>gp_fnkeys</string>
+         </attribute>
         </widget>
        </item>
        <item row="1" column="1">
@@ -1087,6 +1099,9 @@
          <property name="text">
           <string>VT100+</string>
          </property>
+         <attribute name="buttonGroup">
+          <string>gp_fnkeys</string>
+         </attribute>
         </widget>
        </item>
        <item row="1" column="2">
@@ -1094,6 +1109,9 @@
          <property name="text">
           <string>SCO</string>
          </property>
+         <attribute name="buttonGroup">
+          <string>gp_fnkeys</string>
+         </attribute>
         </widget>
        </item>
       </layout>
@@ -1621,42 +1639,42 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
-        <widget class="QCheckBox" name="checkBox_13">
+        <widget class="QCheckBox" name="chb_no_applic_c">
          <property name="text">
           <string>Disable application cursor keys mode</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_14">
+        <widget class="QCheckBox" name="chb_no_applic_k">
          <property name="text">
           <string>Disable application keypad mode</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_15">
+        <widget class="QCheckBox" name="chb_no_mouse_rep">
          <property name="text">
           <string>Disable xterm-style mouse reporting</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_16">
+        <widget class="QCheckBox" name="chb_no_remote_resize">
          <property name="text">
           <string>Disable remote-controlled terminal resizing</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_17">
+        <widget class="QCheckBox" name="chb_no_alt_screen">
          <property name="text">
           <string>Disable switching to alternate terminal session</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_18">
+        <widget class="QCheckBox" name="chb_no_remote_wintitle">
          <property name="text">
           <string>Disable remote-controlled window title changing</string>
          </property>
@@ -1676,6 +1694,9 @@
            <property name="text">
             <string>None</string>
            </property>
+           <attribute name="buttonGroup">
+            <string>gp_remote_qtitle_action</string>
+           </attribute>
           </widget>
          </item>
          <item>
@@ -1686,6 +1707,9 @@
            <property name="checked">
             <bool>true</bool>
            </property>
+           <attribute name="buttonGroup">
+            <string>gp_remote_qtitle_action</string>
+           </attribute>
           </widget>
          </item>
          <item>
@@ -1693,33 +1717,36 @@
            <property name="text">
             <string>Window title</string>
            </property>
+           <attribute name="buttonGroup">
+            <string>gp_remote_qtitle_action</string>
+           </attribute>
           </widget>
          </item>
         </layout>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_19">
+        <widget class="QCheckBox" name="chb_no_dbackspace">
          <property name="text">
           <string>Disable destructive backspace on server sending ^?</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_20">
+        <widget class="QCheckBox" name="chb_no_remote_charset">
          <property name="text">
           <string>Disable remote-controlled character set configuration</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_21">
+        <widget class="QCheckBox" name="chb_no_arabic">
          <property name="text">
           <string>Disable Arabic text shaping</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_22">
+        <widget class="QCheckBox" name="chb_no_bidi">
          <property name="text">
           <string>Disable bidirectional text display</string>
          </property>
@@ -1844,6 +1871,9 @@
          <property name="checked">
           <bool>true</bool>
          </property>
+         <attribute name="buttonGroup">
+          <string>gp_resize_action</string>
+         </attribute>
         </widget>
        </item>
        <item>
@@ -1851,6 +1881,9 @@
          <property name="text">
           <string>Change the size of the font</string>
          </property>
+         <attribute name="buttonGroup">
+          <string>gp_resize_action</string>
+         </attribute>
         </widget>
        </item>
        <item>
@@ -1858,6 +1891,9 @@
          <property name="text">
           <string>Change font size only when maximised</string>
          </property>
+         <attribute name="buttonGroup">
+          <string>gp_resize_action</string>
+         </attribute>
         </widget>
        </item>
        <item>
@@ -1865,6 +1901,9 @@
          <property name="text">
           <string>Forbid resizing completely</string>
          </property>
+         <attribute name="buttonGroup">
+          <string>gp_resize_action</string>
+         </attribute>
         </widget>
        </item>
       </layout>
@@ -1919,7 +1958,7 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>
-        <widget class="QCheckBox" name="chb_wndsroll_display">
+        <widget class="QCheckBox" name="chb_wndscroll_display">
          <property name="text">
           <string>Display scrollbar</string>
          </property>
@@ -3269,7 +3308,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="le_connectsession_secs">
+        <widget class="QLineEdit" name="le_ping_interval">
          <property name="text">
           <string>0</string>
          </property>
@@ -3301,7 +3340,7 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_13">
        <item>
-        <widget class="QCheckBox" name="chb_tcpconnection_disable">
+        <widget class="QCheckBox" name="chb_tcp_nodelay">
          <property name="text">
           <string>Disable Nagle's algorithm (TCP_NODELAY option)</string>
          </property>
@@ -3311,7 +3350,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="chb_tcpconnection_enable">
+        <widget class="QCheckBox" name="chb_tcp_keepalive">
          <property name="text">
           <string>Enable TCP keepalives (SO_KEEPALIVE option)</string>
          </property>
@@ -3350,6 +3389,9 @@
          <property name="checked">
           <bool>true</bool>
          </property>
+         <attribute name="buttonGroup">
+          <string>gp_addressfamily</string>
+         </attribute>
         </widget>
        </item>
        <item>
@@ -3357,6 +3399,9 @@
          <property name="text">
           <string>IPv4</string>
          </property>
+         <attribute name="buttonGroup">
+          <string>gp_addressfamily</string>
+         </attribute>
         </widget>
        </item>
        <item>
@@ -3364,6 +3409,9 @@
          <property name="text">
           <string>IPv6</string>
          </property>
+         <attribute name="buttonGroup">
+          <string>gp_addressfamily</string>
+         </attribute>
         </widget>
        </item>
       </layout>
@@ -3394,7 +3442,7 @@
        <string>Logical name of remote host (e.g. for SSH key lookup):</string>
       </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit_20">
+     <widget class="QLineEdit" name="le_loghost">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -3449,7 +3497,7 @@
       </property>
       <layout class="QGridLayout" name="gridLayout_3">
        <item row="0" column="1">
-        <widget class="QLineEdit" name="lineEdit_21"/>
+        <widget class="QLineEdit" name="le_datausername"/>
        </item>
        <item row="2" column="0" colspan="2">
         <widget class="QLabel" name="label_70">
@@ -3515,9 +3563,9 @@
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QLineEdit" name="lineEdit_22">
+        <widget class="QLineEdit" name="le_termtype">
          <property name="text">
-          <string>xterm</string>
+          <string/>
          </property>
         </widget>
        </item>
@@ -3529,9 +3577,9 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QLineEdit" name="lineEdit_23">
+        <widget class="QLineEdit" name="le_termspeed">
          <property name="text">
-          <string>38400.38400</string>
+          <string/>
          </property>
         </widget>
        </item>
@@ -4605,7 +4653,7 @@
      <property name="title">
       <string/>
      </property>
-     <widget class="QCheckBox" name="chb_sshauthen_bypass">
+     <widget class="QCheckBox" name="chb_ssh_no_userauth">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -4618,7 +4666,7 @@
        <string>Bypass authentication entirely (SSH-2 only)</string>
       </property>
      </widget>
-     <widget class="QCheckBox" name="chb_sshauthen_display">
+     <widget class="QCheckBox" name="chb_ssh_show_banner">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -4647,7 +4695,7 @@
      <property name="title">
       <string>Authentication methods</string>
      </property>
-     <widget class="QCheckBox" name="chb_sshauthen_methodpageant">
+     <widget class="QCheckBox" name="chb_ssh_tryagent">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -4663,7 +4711,7 @@
        <bool>true</bool>
       </property>
      </widget>
-     <widget class="QCheckBox" name="chb_sshauthen_methodtis">
+     <widget class="QCheckBox" name="chb_ssh_try_tis_auth">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -4676,7 +4724,7 @@
        <string>Attempt TIS or CryptoCard auth (SSH-1)</string>
       </property>
      </widget>
-     <widget class="QCheckBox" name="chb_sshauthen_methodkeybd">
+     <widget class="QCheckBox" name="chb_ssh_try_ki_auth">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -4705,7 +4753,7 @@
      <property name="title">
       <string>Authentication parameters</string>
      </property>
-     <widget class="QCheckBox" name="checkBox_62">
+     <widget class="QCheckBox" name="chb_ssh_agentfwd">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -4718,7 +4766,7 @@
        <string>Allow agent forwarding</string>
       </property>
      </widget>
-     <widget class="QCheckBox" name="checkBox_63">
+     <widget class="QCheckBox" name="chb_ssh_change_username">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -4744,7 +4792,7 @@
        <string>Private key file for authentication:</string>
       </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit_36">
+     <widget class="QLineEdit" name="le_ssh_auth_keyfile">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -4754,7 +4802,7 @@
        </rect>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_13">
+     <widget class="QPushButton" name="btn_ssh_auth_browse_keyfile">
       <property name="geometry">
        <rect>
         <x>240</x>
@@ -6665,5 +6713,9 @@
   <buttongroup name="buttonGroup_9"/>
   <buttongroup name="buttonGroup_10"/>
   <buttongroup name="gp_seslog"/>
+  <buttongroup name="gp_fnkeys"/>
+  <buttongroup name="gp_remote_qtitle_action"/>
+  <buttongroup name="gp_resize_action"/>
+  <buttongroup name="gp_addressfamily"/>
  </buttongroups>
 </ui>
