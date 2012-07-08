@@ -473,7 +473,8 @@ extern const char *const appname;
  * and we can't run the risk of porting to some system on which the
  * enum comes out as a different size from int.
  */
-struct config_tag {
+#include "QtConfigTag.h"
+struct config_tag_not_used {
     /* Basic options */
     char host[512];
     int port;
@@ -498,9 +499,9 @@ struct config_tag {
     /* SSH options */
     char remote_cmd[512];
     char *remote_cmd_ptr;	       /* might point to a larger command
-				        * but never for loading/saving */
+                        * but never for loading/saving */
     char *remote_cmd_ptr2;	       /* might point to a larger command
-				        * but never for loading/saving */
+                        * but never for loading/saving */
     int nopty;
     int compression;
     int ssh_kexlist[KEX_MAX];

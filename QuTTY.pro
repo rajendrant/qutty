@@ -29,6 +29,7 @@ SOURCES +=  \
     QtDlg.cpp \
     QtGss.cpp \
     QtX11.cpp \
+    QtConfig.cpp \
     puttysrc/WINDOWS/winnoise.c \
     puttysrc/PGSSAPI.C \
     puttysrc/INT64.C \
@@ -79,6 +80,8 @@ HEADERS +=  \
     GuiSettingsWindow.h \
     QtCommon.h \
     QtLogDbg.h \
+    QtConfig.h \
+    QtConfigTag.h \
     puttysrc/TREE234.H \
     puttysrc/TERMINAL.H \
     puttysrc/SSHGSSC.H \

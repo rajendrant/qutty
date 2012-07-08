@@ -8,8 +8,9 @@
 #define GUISETTINGSWINDOW_H
 
 #include <QDialog>
-#include<QTreeWidgetItem>
-#include<QButtonGroup>
+#include <QTreeWidgetItem>
+#include <QButtonGroup>
+#include "QtConfig.h"
 
 namespace Ui {
 class GuiSettingsWindow;
@@ -31,9 +32,19 @@ class GuiSettingsWindow : public QDialog
         GUI_LOGLVL_NONE, GUI_LOGLVL_PRINT_OUT, GUI_LOGLVL_ALL_SES_OUT, GUI_LOGLVL_SSH_PACKET, GUI_LOGLVL_SSH_RAWDATA
     } gui_loglevel_t;
 
+    // config that is loaded onto the settings window
+    Config cfg;
+
 public:
     explicit GuiSettingsWindow(QWidget *parent = 0);
     ~GuiSettingsWindow();
+
+    // getter/setter to config in the settings window
+    void setConfig(Config *cfg);
+    Config *getConfig();
+
+    void loadSessionNames();
+    void loadDefaultSettings();
 
 private slots:
     void on_treeWidget_itemClicked(QTreeWidgetItem *item, int column);
@@ -45,6 +56,12 @@ private slots:
     void on_rb_contype_telnet_clicked();
 
     void on_rb_contype_ssh_clicked();
+
+    void on_b_load_sess_clicked();
+
+    void on_b_save_sess_clicked();
+
+    void on_b_delete_sess_clicked();
 
 private:
     Ui::GuiSettingsWindow *ui;

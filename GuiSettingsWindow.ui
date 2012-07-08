@@ -51,7 +51,7 @@
     <enum>QFrame::NoFrame</enum>
    </property>
    <property name="currentIndex">
-    <number>3</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="page_1">
     <widget class="QGroupBox" name="groupBox_2">
@@ -79,7 +79,7 @@
        <string>Saved Session</string>
       </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit_13">
+     <widget class="QLineEdit" name="le_saved_sess">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -89,7 +89,7 @@
        </rect>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_14">
+     <widget class="QPushButton" name="b_load_sess">
       <property name="geometry">
        <rect>
         <x>260</x>
@@ -102,7 +102,7 @@
        <string>Load</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_15">
+     <widget class="QPushButton" name="b_save_sess">
       <property name="geometry">
        <rect>
         <x>260</x>
@@ -115,7 +115,7 @@
        <string>Save</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_16">
+     <widget class="QPushButton" name="b_delete_sess">
       <property name="geometry">
        <rect>
         <x>260</x>
@@ -128,7 +128,7 @@
        <string>Delete</string>
       </property>
      </widget>
-     <widget class="QListWidget" name="listWidget_5">
+     <widget class="QListWidget" name="l_saved_sess">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -137,11 +137,6 @@
         <height>81</height>
        </rect>
       </property>
-      <item>
-       <property name="text">
-        <string>Default Settings</string>
-       </property>
-      </item>
      </widget>
     </widget>
     <widget class="QLabel" name="label">
@@ -6479,7 +6474,7 @@
     <bool>false</bool>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string/>
    </property>
    <property name="inputMethodHints">
     <set>Qt::ImhNone</set>

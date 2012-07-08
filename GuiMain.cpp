@@ -33,6 +33,11 @@ int main(int argc, char *argv[])
     mainWindow->show();
     initKeyboardShortcuts();
     GuiSettingsWindow *ss = new GuiSettingsWindow(mainWindow);
+
+    qutty_config.restoreConfig();
+    ss->loadSessionNames();
+    ss->loadDefaultSettings();
+
     ss->show();
     return a.exec();
 }
