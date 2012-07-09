@@ -10,6 +10,7 @@ extern "C" {
 }
 #include "GuiTerminalWindow.h"
 #include <QMessageBox>
+#include <QtConfig.h>
 
 #define APPNAME "PuTTY"
 
@@ -69,6 +70,33 @@ int get_userpass_input_v2(void *frontend, prompts_t *p, unsigned char *in, int i
     return ret;
 }
 
+static void hostkey_regname(char *buffer, int buffer_sz, const char *hostname,
+                int port, const char *keytype)
+{
+    snprintf(buffer, buffer_sz, "%s@%d:%s", keytype, port, hostname);
+}
+
+void store_host_key(const char *hostname, int port,
+            const char *keytype, const char *key)
+{
+    char buf[200];
+    hostkey_regname(buf, sizeof(buf), hostname, port, keytype);
+    qutty_config.ssh_host_keys[buf] = key;
+    qutty_config.saveConfig();
+}
+
+int verify_host_key(const char *hostname, int port,
+            const char *keytype, const char *key)
+{
+    char buf[200];
+    hostkey_regname(buf, sizeof(buf), hostname, port, keytype);
+    if (qutty_config.ssh_host_keys.find(buf) == qutty_config.ssh_host_keys.end())
+        return 1;
+    if (strcmp(key, qutty_config.ssh_host_keys[buf].c_str()))
+        return 2;
+    return 0;
+}
+
 int verify_ssh_host_key(void *frontend, char *host, int port, char *keytype,
                         char *keystr, char *fingerprint,
                         void (*callback)(void *ctx, int result), void *ctx)
@@ -107,7 +135,7 @@ int verify_ssh_host_key(void *frontend, char *host, int port, char *keytype,
     /*
      * Verify the key against the registry.
      */
-    //ret = verify_host_key(host, port, keytype, keystr);
+    ret = verify_host_key(host, port, keytype, keystr);
     if (ret == 0)		       /* success - key matched OK */
         return 1;
     else if (ret == 2) {	       /* key was different */
@@ -115,7 +143,9 @@ int verify_ssh_host_key(void *frontend, char *host, int port, char *keytype,
                              wrongmsg,
                              QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
                              QMessageBox::Cancel)) {
-        case QMessageBox::Yes:      return 2;
+        case QMessageBox::Yes:
+            store_host_key(host, port, keytype, keystr);
+            return 2;
         case QMessageBox::No:       return 1;
         default:                    return 0;
         }
@@ -124,7 +154,9 @@ int verify_ssh_host_key(void *frontend, char *host, int port, char *keytype,
                              absentmsg,
                              QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
                              QMessageBox::Cancel)) {
-        case QMessageBox::Yes:      return 2;
+        case QMessageBox::Yes:
+            store_host_key(host, port, keytype, keystr);
+            return 2;
         case QMessageBox::No:       return 1;
         default:                    return 0;
         }

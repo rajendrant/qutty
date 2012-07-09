@@ -78,7 +78,20 @@ int QtConfig::readFromXML(QIODevice *device)
                     xml.skipCurrentElement();
                 }
             }
-            qutty_config.config_list[cfg.config_name] = cfg;
+            config_list[cfg.config_name] = cfg;
+        } else if (xml.name() == "sshhostkeys" && xml.attributes().value("version") == "1.0") {
+            while (xml.readNextStartElement()) {
+                if (xml.name() == "entry") {
+                    QStringRef key = xml.attributes().value("datakey");
+                    QStringRef val = xml.attributes().value("datavalue");
+                    QByteArray key_barr = key.toLocal8Bit();
+                    QByteArray val_barr = val.toLocal8Bit();
+                    ssh_host_keys[key_barr.constData()] = val_barr.constData();
+                    xml.skipCurrentElement();
+                } else {
+                    xml.skipCurrentElement();
+                }
+            }
         } else {
             xml.skipCurrentElement();
         }
@@ -93,13 +106,13 @@ int QtConfig::writeToXML(QIODevice *device)
     int tmplen;
     xml.setDevice(device);
     xml.setAutoFormatting(true);
-    map<string, Config>::iterator it;
 
     xml.writeStartDocument();
     xml.writeDTD("<!DOCTYPE qutty>");
     xml.writeStartElement("qutty");
     xml.writeAttribute("version", "1.0");
-    for(it=config_list.begin(); it != config_list.end(); it++) {
+    for(map<string, Config>::iterator  it=config_list.begin();
+        it != config_list.end(); it++) {
         int i, j;
         Config *cfg = &(it->second);
 
@@ -148,6 +161,17 @@ int QtConfig::writeToXML(QIODevice *device)
 #undef FontSpec
         xml.writeEndElement();
     }
+
+    xml.writeStartElement("sshhostkeys");
+    xml.writeAttribute("version", "1.0");
+    for(map<string, string>::iterator  it=ssh_host_keys.begin();
+        it != ssh_host_keys.end(); it++) {
+        xml.writeStartElement("entry");
+        xml.writeAttribute("datakey", it->first.c_str()); \
+        xml.writeAttribute("datavalue", it->second.c_str()); \
+        xml.writeEndElement();
+    }
+    xml.writeEndElement();
 
     xml.writeEndDocument();
     return 0;

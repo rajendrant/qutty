@@ -10,6 +10,7 @@ using namespace std;
 
 class QtConfig {
 public:
+    map<string, string> ssh_host_keys;
     map<string, Config> config_list;
 
     QtConfig();
