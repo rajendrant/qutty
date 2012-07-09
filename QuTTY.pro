@@ -107,3 +107,9 @@ INCLUDEPATH += ./ puttysrc/
 
 FORMS += \
     GuiSettingsWindow.ui
+
+OTHER_FILES += \
+    qutty.rc \
+    qutty.ico
+
+RC_FILE = qutty.rc

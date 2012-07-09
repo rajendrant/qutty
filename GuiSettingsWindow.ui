@@ -51,7 +51,7 @@
     <enum>QFrame::NoFrame</enum>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>19</number>
    </property>
    <widget class="QWidget" name="page_1">
     <widget class="QGroupBox" name="groupBox_2">
@@ -66,7 +66,7 @@
      <property name="title">
       <string>Load, save or delete a stored session</string>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -153,7 +153,7 @@
      <property name="title">
       <string>Close window on exit</string>
      </property>
-     <widget class="QWidget" name="layoutWidget">
+     <widget class="QWidget" name="layoutWidget1">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -537,7 +537,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget41">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -831,7 +831,7 @@
      <property name="title">
       <string>Remote-controlled printing</string>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget71">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -1103,7 +1103,7 @@
      <property name="title">
       <string>Application keypad settings</string>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget11">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -1189,7 +1189,7 @@
      <property name="title">
       <string>Enable extra keyboard features:</string>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget12">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -1578,7 +1578,7 @@
      <property name="title">
       <string/>
      </property>
-     <widget class="QWidget" name="layoutWidget12">
+     <widget class="QWidget" name="layoutWidget13">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -1741,45 +1741,13 @@
      <widget class="QWidget" name="">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>20</y>
+        <x>11</x>
+        <y>68</y>
         <width>320</width>
-        <height>160</height>
+        <height>107</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_5">
-       <item>
-        <layout class="QFormLayout" name="formLayout_3">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_34">
-           <property name="text">
-            <string>Columns</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLabel" name="label_35">
-           <property name="text">
-            <string>Rows</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLineEdit" name="le_window_column">
-           <property name="text">
-            <string>80</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="le_window_row">
-           <property name="text">
-            <string>24</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
        <item>
         <widget class="QLabel" name="label_36">
          <property name="text">
@@ -1828,6 +1796,46 @@
          <attribute name="buttonGroup">
           <string>gp_resize_action</string>
          </attribute>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="">
+      <property name="geometry">
+       <rect>
+        <x>12</x>
+        <y>22</y>
+        <width>320</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_8">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_34">
+         <property name="text">
+          <string>Columns</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label_35">
+         <property name="text">
+          <string>Rows</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLineEdit" name="le_window_column">
+         <property name="text">
+          <string>80</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="le_window_row">
+         <property name="text">
+          <string>24</string>
+         </property>
         </widget>
        </item>
       </layout>
@@ -3062,7 +3070,7 @@
        <bool>true</bool>
       </property>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget231">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -4525,7 +4533,7 @@
      <property name="title">
       <string/>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget30">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -4567,7 +4575,7 @@
      <property name="title">
       <string>Authentication methods</string>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget31">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -4613,19 +4621,19 @@
        <x>0</x>
        <y>220</y>
        <width>340</width>
-       <height>120</height>
+       <height>130</height>
       </rect>
      </property>
      <property name="title">
       <string>Authentication parameters</string>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget32">
       <property name="geometry">
        <rect>
         <x>10</x>
         <y>20</y>
         <width>320</width>
-        <height>92</height>
+        <height>100</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_16">
@@ -4791,7 +4799,7 @@
        <string>User-supplied GSSAPI library path:</string>
       </property>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget33">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -5725,7 +5733,7 @@
      <property name="title">
       <string>Detection of known bugs in SSH servers</string>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget34">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -6445,19 +6453,19 @@
  <buttongroups>
   <buttongroup name="gp_termopt_edit"/>
   <buttongroup name="gp_termopt_echo"/>
+  <buttongroup name="gp_addressfamily"/>
   <buttongroup name="buttonGroup_3"/>
+  <buttongroup name="gp_resize_action"/>
   <buttongroup name="buttonGroup_4"/>
   <buttongroup name="gp_contype"/>
   <buttongroup name="gp_logfile"/>
   <buttongroup name="buttonGroup_7"/>
+  <buttongroup name="gp_remote_qtitle_action"/>
   <buttongroup name="buttonGroup_8"/>
+  <buttongroup name="gp_fnkeys"/>
   <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_9"/>
   <buttongroup name="buttonGroup_10"/>
   <buttongroup name="gp_seslog"/>
-  <buttongroup name="gp_fnkeys"/>
-  <buttongroup name="gp_remote_qtitle_action"/>
-  <buttongroup name="gp_resize_action"/>
-  <buttongroup name="gp_addressfamily"/>
  </buttongroups>
 </ui>
