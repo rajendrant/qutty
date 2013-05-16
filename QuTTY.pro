@@ -31,6 +31,9 @@ SOURCES +=  \
     QtX11.cpp \
     QtConfig.cpp \
     puttysrc/WINDOWS/winnoise.c \
+    puttysrc/WINDOWS/winstore.c \
+    puttysrc/WINDOWS/windefs.c \
+    puttysrc/WINDOWS/settings.c \
     puttysrc/PGSSAPI.C \
     puttysrc/INT64.C \
     puttysrc/ssh.c \
@@ -82,6 +85,7 @@ HEADERS +=  \
     QtLogDbg.h \
     QtConfig.h \
     QtConfigTag.h \
+    puttysrc/WINDOWS/STORAGE.H \
     puttysrc/TREE234.H \
     puttysrc/TERMINAL.H \
     puttysrc/SSHGSSC.H \

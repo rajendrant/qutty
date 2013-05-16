@@ -27,6 +27,7 @@ GuiTerminalWindow::GuiTerminalWindow(QWidget *parent) :
 
     connect(verticalScrollBar(), SIGNAL(actionTriggered(int)), this, SLOT(vertScrollBarAction(int)));
     connect(verticalScrollBar(), SIGNAL(sliderMoved(int)), this, SLOT(vertScrollBarMoved(int)));
+    connect(verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(vertScrollBarMoved(int)));
 
     QPalette pal(palette());
     // set black background // not working as expected
@@ -70,21 +71,12 @@ int GuiTerminalWindow::initTerminal()
 {
     char *realhost = NULL;
     char *ip_addr = cfg.host;
+    void *logctx;
 
     memset(&ucsdata, 0, sizeof(struct unicode_data));
     init_ucs(&cfg, &ucsdata);
     setTermFont(&cfg.font);
     cfgtopalette(&cfg);
-
-    term = term_init(&cfg, &ucsdata, this);
-    term_size(term, cfg.height, cfg.width, cfg.savelines);
-    resize(cfg.width*fontWidth, cfg.height*fontHeight);
-    // resize according to config if window is smaller
-    if ( !(mainWindow->windowState() & Qt::WindowMaximized) &&
-          ( mainWindow->size().width() < cfg.width*fontWidth ||
-            mainWindow->size().height() < cfg.height*fontHeight))
-        mainWindow->resize(cfg.width*fontWidth,
-                           cfg.height*fontHeight);
 
     backend = backend_from_proto(cfg.protocol);
     const char * error = backend->init(this, &backhandle, &cfg, (char*)ip_addr, cfg.port, &realhost, 1, 0);
@@ -99,6 +91,18 @@ int GuiTerminalWindow::initTerminal()
         goto cu0;
     }
 
+    term = term_init(&cfg, &ucsdata, this);
+    logctx = log_init(NULL, &cfg);
+    term_provide_logctx(term, logctx);
+    term_size(term, cfg.height, cfg.width, cfg.savelines);
+    resize(cfg.width*fontWidth, cfg.height*fontHeight);
+    // resize according to config if window is smaller
+    if ( !(mainWindow->windowState() & Qt::WindowMaximized) &&
+          ( mainWindow->size().width() < cfg.width*fontWidth ||
+            mainWindow->size().height() < cfg.height*fontHeight))
+        mainWindow->resize(cfg.width*fontWidth,
+                           cfg.height*fontHeight);
+
     switch(cfg.protocol) {
     case PROT_TELNET:
         as = (Actual_Socket)get_telnet_socket(backhandle);
@@ -111,6 +115,10 @@ int GuiTerminalWindow::initTerminal()
     }
     qtsock = as->qtsock;
     QObject::connect(as->qtsock, SIGNAL(readyRead()), this, SLOT(readyRead()));
+    QObject::connect(as->qtsock, SIGNAL(error(QAbstractSocket::SocketError)),
+                     this, SLOT(sockError()));
+    QObject::connect(as->qtsock, SIGNAL(disconnected()),
+                     this, SLOT(sockDisconnected()));
 
     /*
      * Connect the terminal to the backend for resize purposes.
@@ -139,6 +147,8 @@ TmuxWindowPane *GuiTerminalWindow::initTmuxClientTerminal(TmuxGateway *gateway,
     cfgtopalette(&cfg);
 
     term = term_init(&cfg, &ucsdata, this);
+    void *logctx = log_init(NULL, &cfg);
+    term_provide_logctx(term, logctx);
     // resize according to config if window is smaller
     if ( !(mainWindow->windowState() & Qt::WindowMaximized) &&
           ( mainWindow->size().width() < cfg.width*fontWidth ||
@@ -687,4 +697,21 @@ void GuiTerminalWindow::detachTmuxControllerMode()
     delete _tmuxGateway;
     _tmuxGateway = NULL;
     _tmuxMode = TMUX_MODE_NONE;
+}
+
+void GuiTerminalWindow::sockError (QAbstractSocket::SocketError socketError)
+{
+    char errStr[256];
+    qstring_to_char(errStr, as->qtsock->errorString(), sizeof(errStr));
+    (*as->plug)->closing(as->plug, errStr, socketError, 0);
+}
+
+void GuiTerminalWindow::sockDisconnected()
+{
+    char errStr[256], winTitle[256];
+    qstring_to_char(errStr, as->qtsock->errorString(), sizeof(errStr));
+    (*as->plug)->closing(as->plug, errStr, as->qtsock->error(), 0);
+    qstring_to_char(winTitle, this->windowTitle(), sizeof(winTitle));
+    strncat(winTitle, " (inactive)", sizeof(winTitle));
+    set_title(this, winTitle);
 }

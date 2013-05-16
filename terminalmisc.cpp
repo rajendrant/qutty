@@ -180,15 +180,6 @@ void do_cursor(Context ctx, int x, int y, wchar_t *text, int len,
 {
 }
 
-Backend *backend_from_proto(int proto)
-{
-    Backend **p;
-    for (p = backends; *p != NULL; p++)
-    if ((*p)->protocol == proto)
-        return *p;
-    return NULL;
-}
-
 /*void logevent(const char *s) {
     return logevent(NULL, s);
 //    return logevent(ssh->frontend, s);

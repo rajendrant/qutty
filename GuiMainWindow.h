@@ -21,6 +21,7 @@ public:
     ~GuiMainWindow();
     GuiTerminalWindow *newTerminal();
     bool winEvent ( MSG * msg, long * result );
+    void closeEvent ( QCloseEvent * event );
 
     QTabWidget *tabArea;
 private:

@@ -68,6 +68,8 @@ private slots:
 
     void on_btn_ssh_auth_browse_keyfile_clicked();
 
+    void chkUnsupportedConfigs(Config &cfg);
+
 private:
     Ui::GuiSettingsWindow *ui;
 };

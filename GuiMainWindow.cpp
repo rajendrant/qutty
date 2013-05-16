@@ -8,6 +8,7 @@
 #include <QKeyEvent>
 #include <QToolButton>
 #include <QTabWidget>
+#include <QMessageBox>
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include "GuiSettingsWindow.h"
@@ -73,6 +74,12 @@ void GuiMainWindow::closeTerminal(int index)
 {
     GuiTerminalWindow *termWnd = (GuiTerminalWindow*)tabArea->widget(index);
     if (termWnd) {
+        if (termWnd->cfg.warn_on_close &&
+            termWnd->as->qtsock->state() == QAbstractSocket::ConnectedState &&
+            QMessageBox::No == QMessageBox::question(this, "Exit Confirmation?",
+                                      "Are you sure you want to close this session?",
+                                      QMessageBox::Yes|QMessageBox::No))
+            return;
         terminalList.removeAll(termWnd);
     }
     tabArea->removeTab(index);
@@ -80,9 +87,27 @@ void GuiMainWindow::closeTerminal(int index)
 
 void GuiMainWindow::closeTerminal(GuiTerminalWindow *termWnd)
 {
+    if (termWnd->cfg.warn_on_close &&
+        termWnd->as->qtsock->state() == QAbstractSocket::ConnectedState &&
+        QMessageBox::No == QMessageBox::question(this, "Exit Confirmation?",
+                                  "Are you sure you want to close this session?",
+                                  QMessageBox::Yes|QMessageBox::No))
+        return;
     tabArea->removeTab(tabArea->indexOf(termWnd));
     terminalList.removeAll(termWnd);
 }
+
+void GuiMainWindow::closeEvent ( QCloseEvent * event )
+{
+    event->ignore();
+    if (QMessageBox::Yes == QMessageBox::question(this, "Exit Confirmation?",
+                                  "Are you sure you want to close all the sessions?",
+                                  QMessageBox::Yes|QMessageBox::No))
+    {
+        event->accept();
+    }
+}
+
 void GuiMainWindow::openSettingsWindow()
 {
     GuiSettingsWindow *ss = new GuiSettingsWindow(mainWindow);

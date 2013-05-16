@@ -4511,7 +4511,7 @@ static void term_out(Terminal *term)
 
     term_print_flush(term);
     if (term->cfg.logflush)
-	logflush(term->logctx);
+    logflush(term->logctx);
 }
 
 /*

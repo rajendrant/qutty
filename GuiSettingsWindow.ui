@@ -4146,7 +4146,7 @@
        <string>Remote command:</string>
       </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit_33">
+     <widget class="QLineEdit" name="le_remote_cmd">
       <property name="geometry">
        <rect>
         <x>10</x>

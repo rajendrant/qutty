@@ -13,6 +13,7 @@
 #include <QAbstractButton>
 #include<QRadioButton>
 #include<QString>
+#include <QMessageBox>
 #include "QtCommon.h"
 #include "QtConfig.h"
 extern "C" {
@@ -66,7 +67,7 @@ GuiSettingsWindow::GuiSettingsWindow(QWidget *parent) :
 
     ui->gp_logfile->setId(ui->rb_sessionlog_overwrite, LGXF_OVR);
     ui->gp_logfile->setId(ui->rb_sessionlog_append, LGXF_APN);
-    ui->gp_logfile->setId(ui->rb_sessionlog_askuser, LGXF_ASK);
+    ui->gp_logfile->setId(ui->rb_sessionlog_askuser, LGXF_ASK__);
 
     ui->gp_termopt_echo->setId(ui->rb_termopt_echoauto, AUTO);
     ui->gp_termopt_echo->setId(ui->rb_termopt_echoon, FORCE_ON);
@@ -121,17 +122,27 @@ void GuiSettingsWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int col
     ui->stackedWidget->setCurrentIndex(item->data(column,  Qt::UserRole).toInt());
 }
 
-void qstring_to_char(char *dst, QString src, int dstlen)
-{
-    QByteArray name = src.toUtf8();
-    strncpy(dst, name.constData(), dstlen);
-}
-
 void GuiSettingsWindow::on_buttonBox_accepted()
 {
     int rc;
-    GuiTerminalWindow *newWnd = mainWindow->newTerminal();
+    GuiTerminalWindow *newWnd;
+
+    if (ui->le_hostname->text() == "" &&
+        ui->l_saved_sess->currentItem()->text() == QUTTY_DEFAULT_CONFIG_SETTINGS) {
+        return;
+    } else if (ui->le_hostname->text() == "") {
+        char config_name[100];
+        qstring_to_char(config_name, ui->l_saved_sess->currentItem()->text(), sizeof(config_name));
+        if (qutty_config.config_list.find(config_name) == qutty_config.config_list.end())
+            return;
+        setConfig(&qutty_config.config_list[config_name]);
+    }
+
+    newWnd = mainWindow->newTerminal();
     newWnd->cfg = *this->getConfig();
+
+    // check for NOT_YET_SUPPORTED configs
+    chkUnsupportedConfigs(newWnd->cfg);
 
     if ((rc=newWnd->initTerminal())) {
         delete newWnd;
@@ -154,8 +165,8 @@ void GuiSettingsWindow::setConfig(Config *_cfg)
 
     // update the ui with the given settings
     ui->le_hostname->setText(cfg.host);
-    ui->le_port->setText(QString::number(cfg.port));
     (cfg.protocol==PROT_SSH ? ui->rb_contype_ssh : ui->rb_contype_telnet)->click();
+    ui->le_port->setText(QString::number(cfg.port));
     ui->le_saved_sess->setText(cfg.config_name);
     QList<QListWidgetItem*> sel_saved_sess = ui->l_saved_sess->findItems(cfg.config_name, Qt::MatchExactly);
     if (sel_saved_sess.size() > 0)
@@ -164,7 +175,10 @@ void GuiSettingsWindow::setConfig(Config *_cfg)
     /* Options controlling session logging */
     ui->gp_seslog->button(cfg.logtype)->click();
     ui->le_sessionlog_filename->setText(cfg.logfilename.path);
-    ui->gp_logfile->button(cfg.logxfovr)->click();
+    if (cfg.logxfovr == LGXF_ASK)   // handle -ve value
+        ui->gp_logfile->button(LGXF_ASK__)->click();
+    else
+        ui->gp_logfile->button(cfg.logxfovr)->click();
     ui->chb_sessionlog_flush->setChecked(cfg.logflush);
     ui->chb_sessionlog_omitpasswd->setChecked(cfg.logomitpass);
     ui->chb_sessionlog_omitdata->setChecked(cfg.logomitdata);
@@ -231,6 +245,9 @@ void GuiSettingsWindow::setConfig(Config *_cfg)
             ->setChecked(true);
     ui->le_termtype->setText(cfg.termtype);
     ui->le_termspeed->setText(cfg.termspeed);
+
+    /* ssh options */
+    ui->le_remote_cmd->setText(cfg.remote_cmd);
 
     /* ssh auth options */
     ui->chb_ssh_no_userauth->setChecked(cfg.ssh_no_userauth);
@@ -322,6 +339,9 @@ Config *GuiSettingsWindow::getConfig()
     qstring_to_char(cfg->termtype, ui->le_termtype->text(), sizeof(cfg->termtype));
     qstring_to_char(cfg->termspeed, ui->le_termspeed->text(), sizeof(cfg->termspeed));
 
+    /* ssh options */
+    qstring_to_char(cfg->remote_cmd, ui->le_remote_cmd->text(), sizeof(cfg->remote_cmd));
+
     /* ssh auth options */
     cfg->ssh_no_userauth = ui->chb_ssh_no_userauth->isChecked();
     cfg->ssh_show_banner = ui->chb_ssh_show_banner->isChecked();
@@ -401,4 +421,21 @@ void GuiSettingsWindow::on_btn_ssh_auth_browse_keyfile_clicked()
     ui->le_ssh_auth_keyfile->setText(QFileDialog::getOpenFileName(
                                          this, tr("Select private key file"),
                                          ui->le_ssh_auth_keyfile->text(), tr("*.ppk")));
+}
+
+void GuiSettingsWindow::chkUnsupportedConfigs(Config &cfg)
+{
+    QString opt_unsupp = "";
+
+    if (cfg.try_gssapi_auth) {
+        cfg.try_gssapi_auth = 0;
+    }
+    if (cfg.portfwd[0] != '\0') {
+        cfg.portfwd[0] = '\0';
+        opt_unsupp += " * SSH Tunnels/port forwarding\n";
+    }
+    if (opt_unsupp.length() > 0)
+        QMessageBox::warning(NULL, QObject::tr("Qutty Configuration"),
+                         QObject::tr("Following options are not yet supported in QuTTY.\n\n%1")
+                         .arg(opt_unsupp));
 }

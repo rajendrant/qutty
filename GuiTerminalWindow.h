@@ -109,6 +109,8 @@ public slots:
     void vertScrollBarAction(int action);
     void vertScrollBarMoved(int value);
     void detachTmuxControllerMode();
+    void sockError(QAbstractSocket::SocketError socketError);
+    void sockDisconnected();
 
 };
 

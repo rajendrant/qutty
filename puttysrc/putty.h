@@ -162,6 +162,7 @@ struct unicode_data {
 #define LGXF_OVR  1		       /* existing logfile overwrite */
 #define LGXF_APN  0		       /* existing logfile append */
 #define LGXF_ASK -1		       /* existing logfile ask */
+#define LGXF_ASK__ 2		   /* existing logfile ask +ve val */
 #define LGTYP_NONE  0		       /* logmode: no logging */
 #define LGTYP_ASCII 1		       /* logmode: pure ascii */
 #define LGTYP_DEBUG 2		       /* logmode: all chars of traffic */

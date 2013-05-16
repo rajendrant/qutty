@@ -1,7 +1,9 @@
 #ifndef QTCONFIG_H
 #define QTCONFIG_H
 
+extern "C" {
 #include "putty.h"
+}
 #include <QIODevice>
 #include <map>
 #include <string>
@@ -20,6 +22,9 @@ public:
 
     bool restoreConfig();
     bool saveConfig();
+
+private:
+    bool restoreFromPuttyWinRegistry();
 };
 
 // all global config is here

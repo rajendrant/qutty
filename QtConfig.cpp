@@ -8,6 +8,9 @@
 #include <QObject>
 #include <QMessageBox>
 #include <QDebug>
+extern "C" {
+#include "WINDOWS\STORAGE.H"
+}
 
 QtConfig::QtConfig()
 {
@@ -181,6 +184,11 @@ bool QtConfig::restoreConfig()
 {
     config_list.clear();
     QFile file(QDir::home().filePath("qutty.xml"));
+
+    if (!file.exists()) {
+        restoreFromPuttyWinRegistry();
+    }
+
     if (!file.exists()) {
         Config cfg;
         initConfigDefaults(&cfg);
@@ -197,6 +205,61 @@ bool QtConfig::restoreConfig()
     }
     readFromXML(&file);
     return true;
+}
+
+/*
+ * Windows only: Try loading the sessions stored in registry by PUTTY
+ */
+bool QtConfig::restoreFromPuttyWinRegistry()
+{
+    bool rc = true;
+    struct sesslist savedSess;
+    void *sesskey;
+    Config cfg;
+
+    get_sesslist(&savedSess, TRUE);
+    qDebug() << "putty nsessions " << savedSess.nsessions;
+    for (int i=0; i<savedSess.nsessions; i++) {
+        memset(&cfg, 0, sizeof(cfg));
+
+        sesskey = open_settings_r(savedSess.sessions[i]);
+        load_open_settings(sesskey, &cfg);
+        close_settings_r(sesskey);
+
+        strncpy(cfg.config_name, savedSess.sessions[i], sizeof(cfg.config_name));
+        this->config_list[cfg.config_name] = cfg;
+
+        qDebug() << "putty session " << i << " name " << savedSess.sessions[i]
+                 << " host " << cfg.host << " port " << cfg.port;
+    }
+
+    // load ssh hostkey list from registry
+    void *handle = enum_sshhostkey_start();
+    uchar hostkey[512], hostkey_val[2048];
+    if (handle) {
+        while (enum_sshhostkey_next(handle, hostkey, sizeof(hostkey),
+                                    hostkey_val, sizeof(hostkey_val))) {
+            qutty_config.ssh_host_keys[string((char*)hostkey)] = string((char*)hostkey_val);
+        }
+        enum_sshhostkey_finish(handle);
+    }
+
+    if (savedSess.nsessions > 0) {
+        rc = this->saveConfig();
+        if (rc) {
+            QMessageBox::information(NULL, QObject::tr("Qutty first-time Configuration"),
+                         QObject::tr("Automatically loaded %1 saved sessions from PuTTY")
+                             .arg(savedSess.nsessions-1));
+        } else {
+            QMessageBox::warning(NULL, QObject::tr("Qutty first-time Configuration"),
+                         QObject::tr("Failed to save %1 saved sessions from PuTTY")
+                             .arg(savedSess.nsessions-1));
+        }
+    }
+
+    get_sesslist(&savedSess, FALSE);    /* free */
+
+    return rc;
 }
 
 bool QtConfig::saveConfig()

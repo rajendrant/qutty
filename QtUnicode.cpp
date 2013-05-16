@@ -8,14 +8,30 @@ extern "C" {
 #include "putty.h"
 }
 #include <QTextCodec>
+#include <QDebug>
 
 #define CS_QTEXTCODEC   11111111
 
 void *get_text_codec (const char *line_codepage)
 {
-    if (!line_codepage || !*line_codepage)
-        return NULL;
-    return QTextCodec::codecForName(line_codepage);
+    QTextCodec *codec = NULL;
+    if (line_codepage && *line_codepage) {
+        qDebug() << __FUNCTION__ << " using line_codepage " << line_codepage;
+        codec = QTextCodec::codecForName(line_codepage);
+        if (!codec) {
+            char codepage[100];
+            strncpy(codepage, line_codepage, sizeof(codepage));
+            if(strtok(codepage, ":("))
+                codec = QTextCodec::codecForName(codepage);
+        }
+    }
+    if (!codec)
+        codec = QTextCodec::codecForLocale();
+    if (!codec)
+        codec = QTextCodec::codecForCStrings();
+    qDebug() << __FUNCTION__ << " using codec "
+             << (codec ? codec->name().constData() : "NULL");
+    return codec;
 }
 
 void init_ucs(Config *cfg, struct unicode_data *ucsdata)
