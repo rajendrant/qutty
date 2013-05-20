@@ -75,7 +75,7 @@ public:
     void drawTerm();
     void drawText(int row, int col, wchar_t *ch, int len, unsigned long attr, int lattr);
 
-    void setTermFont(FontSpec *f);
+    void setTermFont(Config *cfg);
     void cfgtopalette(Config *cfg);
     void requestPaste();
     void getClip(wchar_t **p, int *len);

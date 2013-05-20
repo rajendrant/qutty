@@ -19,9 +19,8 @@ QtConfig::QtConfig()
 int QtConfig::readFromXML(QIODevice *device)
 {
     QXmlStreamReader xml;
-    int i, j;
+    int i;
     char *tmpbuf;
-    int tmplen;
 
     xml.setDevice(device);
     if (!xml.readNextStartElement() || xml.name() != "qutty" ||
@@ -44,9 +43,17 @@ int QtConfig::readFromXML(QIODevice *device)
 #define int(a) if (tmptype=="int"  && tmpname==#a) sscanf(tmpbuf, "%d", &cfg.a);
 #define Filename(a) if (tmptype=="Filename"  && tmpname==#a) \
             sscanf(tmpbuf, "%s", cfg.a.path);
-#define FontSpec(a) if (tmptype=="FontSpec"  && tmpname==#a) \
-            sscanf(tmpbuf, "%d %d %d %s", \
-                &cfg.a.isbold, &cfg.a.height, &cfg.a.charset, cfg.a.name);
+#define FontSpec(a) if (tmptype=="FontSpec"  && tmpname==#a) { \
+            i = sscanf(tmpbuf, "%d %d %d ", \
+                    &cfg.a.isbold, &cfg.a.height, &cfg.a.charset); \
+            if (i==3) { \
+                char *tmp_fontspec = tmpbuf; \
+                /* skip the three spaces to get to fontname */ \
+                if (tmp_fontspec) tmp_fontspec = strchr(tmp_fontspec, ' '); \
+                if (tmp_fontspec) tmp_fontspec = strchr(tmp_fontspec+1, ' '); \
+                if (tmp_fontspec) tmp_fontspec = strchr(tmp_fontspec+1, ' '); \
+                if (tmp_fontspec) strncpy(cfg.a.name, tmp_fontspec+1, sizeof(cfg.a.name)); \
+            }}
 #define QUTTY_SERIALIZE_ELEMENT_ARRAY_int(name, arr) \
             if (tmpname==#name) \
                 for(i=0; i<arr; i++) \
@@ -116,7 +123,7 @@ int QtConfig::writeToXML(QIODevice *device)
     xml.writeAttribute("version", "1.0");
     for(map<string, Config>::iterator  it=config_list.begin();
         it != config_list.end(); it++) {
-        int i, j;
+        int i;
         Config *cfg = &(it->second);
 
         xml.writeStartElement("config");

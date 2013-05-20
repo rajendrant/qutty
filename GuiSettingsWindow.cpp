@@ -8,12 +8,13 @@
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include "ui_GuiSettingsWindow.h"
-#include<QDebug>
-#include<QVariant>
+#include <QDebug>
+#include <QVariant>
 #include <QAbstractButton>
-#include<QRadioButton>
-#include<QString>
+#include <QRadioButton>
+#include <QString>
 #include <QMessageBox>
+#include <QFontDialog>
 #include "QtCommon.h"
 #include "QtConfig.h"
 extern "C" {
@@ -97,6 +98,15 @@ GuiSettingsWindow::GuiSettingsWindow(QWidget *parent) :
     ui->gp_addressfamily->setId(ui->rb_connectprotocol_ipv4, ADDRTYPE_IPV4);
     ui->gp_addressfamily->setId(ui->rb_connectprotocol_ipv6, ADDRTYPE_IPV6);
 
+    ui->gp_curappear->setId(ui->rb_curappear_block, 0);
+    ui->gp_curappear->setId(ui->rb_curappear_underline, 1);
+    ui->gp_curappear->setId(ui->rb_curappear_vertline, 2);
+
+    ui->gp_fontquality->setId(ui->rb_fontappear_antialiase, FQ_ANTIALIASED);
+    ui->gp_fontquality->setId(ui->rb_fontappear_nonantialiase, FQ_NONANTIALIASED);
+    ui->gp_fontquality->setId(ui->rb_fontappear_default, FQ_DEFAULT);
+    ui->gp_fontquality->setId(ui->rb_fontappear_clear, FQ_CLEARTYPE);
+
     this->getConfig();
 
     this->loadSessionNames();
@@ -115,11 +125,6 @@ void GuiSettingsWindow::on_rb_contype_telnet_clicked()
 void GuiSettingsWindow::on_rb_contype_ssh_clicked()
 {
    ui->le_port->setText("22");
-}
-
-void GuiSettingsWindow::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
-{
-    ui->stackedWidget->setCurrentIndex(item->data(column,  Qt::UserRole).toInt());
 }
 
 void GuiSettingsWindow::on_buttonBox_accepted()
@@ -231,6 +236,13 @@ void GuiSettingsWindow::setConfig(Config *_cfg)
     ui->chb_wndscroll_resetkeypress->setChecked(cfg.scroll_on_key);
     ui->chb_wndscroll_pusherasedtext->setChecked(cfg.erase_to_scrollback);
     ui->gp_resize_action->button(cfg.resize_action)->click();
+    ui->gp_curappear->button(cfg.cursor_type)->click();
+    ui->chb_curblink->setChecked(cfg.blink_cur);
+    ui->gp_fontquality->button(cfg.font_quality)->click();
+    ui->lbl_fontsel->setText(QString("%1, %2%3-point")
+                             .arg(cfg.font.name,
+                                  cfg.font.isbold ? "Bold, " : "",
+                                  QString::number(cfg.font.height)));
 
     /* connection options */
     ui->le_ping_interval->setText(QString::number(cfg.ping_interval));
@@ -325,6 +337,9 @@ Config *GuiSettingsWindow::getConfig()
     cfg->scroll_on_key = ui->chb_wndscroll_resetkeypress->isChecked();
     cfg->erase_to_scrollback = ui->chb_wndscroll_pusherasedtext->isChecked();
     cfg->resize_action = ui->gp_resize_action->checkedId();
+    cfg->cursor_type = ui->gp_curappear->checkedId();
+    cfg->blink_cur = ui->chb_curblink->isChecked();
+    cfg->font_quality = ui->gp_fontquality->checkedId();
 
     /* connection options */
     cfg->ping_interval = ui->le_ping_interval->text().toInt();
@@ -438,4 +453,27 @@ void GuiSettingsWindow::chkUnsupportedConfigs(Config &cfg)
         QMessageBox::warning(NULL, QObject::tr("Qutty Configuration"),
                          QObject::tr("Following options are not yet supported in QuTTY.\n\n%1")
                          .arg(opt_unsupp));
+}
+
+void GuiSettingsWindow::on_btn_fontsel_clicked()
+{
+    QFont oldfont = QFont(cfg.font.name, cfg.font.height);
+    oldfont.setBold(cfg.font.isbold);
+    QFont selfont = QFontDialog::getFont(NULL, oldfont);
+
+    qstring_to_char(cfg.font.name, selfont.family(), sizeof(cfg.font.name));
+    cfg.font.height = selfont.pointSize();
+    cfg.font.isbold = selfont.bold();
+    ui->lbl_fontsel->setText(QString("%1, %2%3-point")
+                             .arg(cfg.font.name,
+                                  cfg.font.isbold ? "Bold, " : "",
+                                  QString::number(cfg.font.height)));
+    ui->lbl_fontsel_varpitch->setText(
+                selfont.fixedPitch() ?
+                    "The selected font has variable-pitch. Doesn't have fixed-pitch" : "");
+}
+
+void GuiSettingsWindow::on_treeWidget_itemSelectionChanged()
+{
+    ui->stackedWidget->setCurrentIndex(ui->treeWidget->selectedItems()[0]->data(0,  Qt::UserRole).toInt());
 }

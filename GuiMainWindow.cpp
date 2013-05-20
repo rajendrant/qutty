@@ -217,7 +217,6 @@ int initConfigDefaults(Config *cfg)
 
     // font
     strcpy(cfg->font.name, "Courier New");
-    strcpy(cfg->font.name, "Monospace");
     cfg->font.height = 11;
     cfg->font.isbold = 0;
     cfg->font.charset = 0;

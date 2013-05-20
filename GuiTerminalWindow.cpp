@@ -75,7 +75,7 @@ int GuiTerminalWindow::initTerminal()
 
     memset(&ucsdata, 0, sizeof(struct unicode_data));
     init_ucs(&cfg, &ucsdata);
-    setTermFont(&cfg.font);
+    setTermFont(&cfg);
     cfgtopalette(&cfg);
 
     backend = backend_from_proto(cfg.protocol);
@@ -94,14 +94,19 @@ int GuiTerminalWindow::initTerminal()
     term = term_init(&cfg, &ucsdata, this);
     logctx = log_init(NULL, &cfg);
     term_provide_logctx(term, logctx);
-    term_size(term, cfg.height, cfg.width, cfg.savelines);
-    resize(cfg.width*fontWidth, cfg.height*fontHeight);
     // resize according to config if window is smaller
     if ( !(mainWindow->windowState() & Qt::WindowMaximized) &&
-          ( mainWindow->size().width() < cfg.width*fontWidth ||
-            mainWindow->size().height() < cfg.height*fontHeight))
-        mainWindow->resize(cfg.width*fontWidth,
-                           cfg.height*fontHeight);
+          (mainWindow->tabArea->count()==1) /* only for 1st window */ &&
+          ( viewport()->width() < cfg.width*fontWidth ||
+            viewport()->height() < cfg.height*fontHeight)) {
+        mainWindow->resize(cfg.width*fontWidth + (mainWindow->width() - viewport()->width()),
+                           cfg.height*fontHeight + (mainWindow->height() - viewport()->height()));
+        term_size(term, cfg.height, cfg.width, cfg.savelines);
+    } else {
+        term_size(term,
+                  this->viewport()->height()/fontHeight,
+                  this->viewport()->width()/fontWidth, cfg.savelines);
+    }
 
     switch(cfg.protocol) {
     case PROT_TELNET:
@@ -143,7 +148,7 @@ TmuxWindowPane *GuiTerminalWindow::initTmuxClientTerminal(TmuxGateway *gateway,
 
     memset(&ucsdata, 0, sizeof(struct unicode_data));
     init_ucs(&cfg, &ucsdata);
-    setTermFont(&cfg.font);
+    setTermFont(&cfg);
     cfgtopalette(&cfg);
 
     term = term_init(&cfg, &ucsdata, this);
@@ -400,20 +405,23 @@ void GuiTerminalWindow::drawText(int row, int col, wchar_t *ch, int len, unsigne
     termrgn |= QRect(col*fontWidth, row*fontHeight, fontWidth*len, fontHeight);
 }
 
-void GuiTerminalWindow::setTermFont(FontSpec *f)
+void GuiTerminalWindow::setTermFont(Config *cfg)
 {
     if (_font) delete _font;
     if (_fontMetrics) delete _fontMetrics;
 
-    _font = new QFont(f->name, f->height);
-    _font->setStyleHint(QFont::TypeWriter);
+    _font = new QFont(cfg->font.name, cfg->font.height);
+    //_font->setStyleHint(QFont::TypeWriter);
+
+    if (cfg->font_quality == FQ_NONANTIALIASED)
+        _font->setStyleStrategy(QFont::NoAntialias);
+    else if (cfg->font_quality == FQ_ANTIALIASED)
+        _font->setStyleStrategy(QFont::PreferAntialias);
     setFont(*_font);
     _fontMetrics = new QFontMetrics(*_font);
 
     fontWidth = _fontMetrics->width(QChar('a'));
     fontHeight = _fontMetrics->height();
-
-    qDebug()<<__FUNCTION__<<_font->family()<<_font->styleHint()<<_font->style();
 }
 
 void GuiTerminalWindow::cfgtopalette(Config *cfg)

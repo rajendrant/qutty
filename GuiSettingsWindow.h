@@ -48,8 +48,6 @@ public:
     void loadDefaultSettings();
 
 private slots:
-    void on_treeWidget_itemClicked(QTreeWidgetItem *item, int column);
-
     void on_buttonBox_accepted();
 
     void on_buttonBox_rejected();
@@ -69,6 +67,10 @@ private slots:
     void on_btn_ssh_auth_browse_keyfile_clicked();
 
     void chkUnsupportedConfigs(Config &cfg);
+
+    void on_btn_fontsel_clicked();
+
+    void on_treeWidget_itemSelectionChanged();
 
 private:
     Ui::GuiSettingsWindow *ui;
