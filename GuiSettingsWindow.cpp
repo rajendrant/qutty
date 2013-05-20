@@ -58,6 +58,9 @@ GuiSettingsWindow::GuiSettingsWindow(QWidget *parent) :
     ui->treeWidget->topLevelItem(3)->child(4)->child(5)->setData(0, Qt::UserRole, GUI_PAGE_BUGS);
     ui->treeWidget->topLevelItem(3)->child(5)->setData(0, Qt::UserRole, GUI_PAGE_SERIAL);
 
+    // expand all 1st level items
+    ui->treeWidget->expandToDepth(0);
+
     /* Options controlling session logging */
 
     ui->gp_seslog->setId(ui->rb_sessionlog_none, LGTYP_NONE);
