@@ -100,7 +100,8 @@ void GuiMainWindow::closeTerminal(GuiTerminalWindow *termWnd)
 void GuiMainWindow::closeEvent ( QCloseEvent * event )
 {
     event->ignore();
-    if (QMessageBox::Yes == QMessageBox::question(this, "Exit Confirmation?",
+    if (tabArea->count() == 0 ||
+        QMessageBox::Yes == QMessageBox::question(this, "Exit Confirmation?",
                                   "Are you sure you want to close all the sessions?",
                                   QMessageBox::Yes|QMessageBox::No))
     {
