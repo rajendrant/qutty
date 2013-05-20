@@ -49,7 +49,8 @@ void init_ucs(Config *, struct unicode_data *);
 #define sk_getxdmdata(socket, lenp) (NULL)
 
 
-#define APPNAME "PuTTY"
+#define APPNAME "QuTTY"
+#define QUTTY_RELEASE_VERSION "0.3-beta"
 
 void qt_message_box(void * frontend, const char *title, char *msg);
 

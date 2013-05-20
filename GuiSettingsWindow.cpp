@@ -477,3 +477,11 @@ void GuiSettingsWindow::on_treeWidget_itemSelectionChanged()
 {
     ui->stackedWidget->setCurrentIndex(ui->treeWidget->selectedItems()[0]->data(0,  Qt::UserRole).toInt());
 }
+
+void GuiSettingsWindow::on_btn_about_clicked()
+{
+    QMessageBox::about(this,
+                       "About " APPNAME,
+                       APPNAME "\nRelease " QUTTY_RELEASE_VERSION "\n\nhttp://code.google.com/p/qutty/"
+                       );
+}

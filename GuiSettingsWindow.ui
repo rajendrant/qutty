@@ -23,7 +23,7 @@
    <item row="1" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout_15">
      <item>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="btn_about">
        <property name="text">
         <string>About</string>
        </property>
@@ -5127,23 +5127,23 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="gp_termopt_edit"/>
-  <buttongroup name="gp_termopt_echo"/>
-  <buttongroup name="gp_addressfamily"/>
-  <buttongroup name="buttonGroup_3"/>
   <buttongroup name="gp_resize_action"/>
-  <buttongroup name="buttonGroup_4"/>
-  <buttongroup name="gp_fontquality"/>
-  <buttongroup name="gp_contype"/>
-  <buttongroup name="gp_logfile"/>
-  <buttongroup name="buttonGroup_7"/>
-  <buttongroup name="gp_remote_qtitle_action"/>
-  <buttongroup name="buttonGroup_8"/>
-  <buttongroup name="gp_fnkeys"/>
-  <buttongroup name="buttonGroup"/>
-  <buttongroup name="buttonGroup_9"/>
+  <buttongroup name="gp_termopt_echo"/>
   <buttongroup name="buttonGroup_10"/>
+  <buttongroup name="gp_logfile"/>
+  <buttongroup name="buttonGroup_3"/>
+  <buttongroup name="buttonGroup_4"/>
+  <buttongroup name="buttonGroup_7"/>
+  <buttongroup name="buttonGroup_8"/>
+  <buttongroup name="buttonGroup_9"/>
   <buttongroup name="gp_seslog"/>
+  <buttongroup name="buttonGroup"/>
+  <buttongroup name="gp_addressfamily"/>
   <buttongroup name="gp_curappear"/>
+  <buttongroup name="gp_fontquality"/>
+  <buttongroup name="gp_remote_qtitle_action"/>
+  <buttongroup name="gp_fnkeys"/>
+  <buttongroup name="gp_termopt_edit"/>
+  <buttongroup name="gp_contype"/>
  </buttongroups>
 </ui>

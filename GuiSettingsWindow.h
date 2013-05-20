@@ -72,6 +72,8 @@ private slots:
 
     void on_treeWidget_itemSelectionChanged();
 
+    void on_btn_about_clicked();
+
 private:
     Ui::GuiSettingsWindow *ui;
 };
