@@ -395,6 +395,41 @@ int from_backend(void *frontend, int is_stderr, const char *data, int len)
 }
 
 
+void qutty_connection_fatal(void *frontend, char *msg)
+{
+    GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
+    if (f->userClosingTab)
+        return;
+
+    qt_critical_msgbox(frontend, msg, NULL);
+
+    if (f->cfg.close_on_exit == FORCE_ON)
+        mainWindow->closeTerminal(f);
+}
+
+void notify_remote_exit(void *frontend)
+{
+    GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
+    int exitcode = f->backend->exitcode(f->backhandle);
+
+    if (f->userClosingTab)
+        return;
+
+    if (exitcode >=0) {
+        if (f->cfg.close_on_exit == FORCE_ON ||
+            (f->cfg.close_on_exit == AUTO && exitcode != INT_MAX)) {
+            mainWindow->closeTerminal(f);
+        } else {
+            /* exitcode == INT_MAX indicates that the connection was closed
+             * by a fatal error, so an error box will be coming our way and
+             * we should not generate this informational one. */
+            if (exitcode != INT_MAX)
+                qt_message_box(frontend, APPNAME " Fatal Error",
+                               "Connection closed by remote host");
+        }
+    }
+}
+
 char *get_ttymode(void *frontend, const char *mode)
 {
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);

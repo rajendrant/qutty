@@ -38,7 +38,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
     // this removes the frame border of QTabWidget
     tabArea->setDocumentMode(true);
 
-    connect(tabArea, SIGNAL(tabCloseRequested(int)), SLOT(closeTerminal(int)));
+    connect(tabArea, SIGNAL(tabCloseRequested(int)), SLOT(tabCloseRequested(int)));
     connect(tabArea, SIGNAL(currentChanged(int)), SLOT(currentChanged(int)));
 
     QToolButton* closeTabButton = new QToolButton();
@@ -73,28 +73,15 @@ GuiTerminalWindow *GuiMainWindow::newTerminal()
 void GuiMainWindow::closeTerminal(int index)
 {
     GuiTerminalWindow *termWnd = (GuiTerminalWindow*)tabArea->widget(index);
-    if (termWnd) {
-        if (termWnd->cfg.warn_on_close &&
-            termWnd->as->qtsock->state() == QAbstractSocket::ConnectedState &&
-            QMessageBox::No == QMessageBox::question(this, "Exit Confirmation?",
-                                      "Are you sure you want to close this session?",
-                                      QMessageBox::Yes|QMessageBox::No))
-            return;
-        terminalList.removeAll(termWnd);
-    }
-    tabArea->removeTab(index);
+    closeTerminal(termWnd);
 }
 
 void GuiMainWindow::closeTerminal(GuiTerminalWindow *termWnd)
 {
-    if (termWnd->cfg.warn_on_close &&
-        termWnd->as->qtsock->state() == QAbstractSocket::ConnectedState &&
-        QMessageBox::No == QMessageBox::question(this, "Exit Confirmation?",
-                                  "Are you sure you want to close this session?",
-                                  QMessageBox::Yes|QMessageBox::No))
-        return;
+    assert(termWnd);
     tabArea->removeTab(tabArea->indexOf(termWnd));
     terminalList.removeAll(termWnd);
+    termWnd->deleteLater();
 }
 
 void GuiMainWindow::closeEvent ( QCloseEvent * event )
@@ -107,6 +94,21 @@ void GuiMainWindow::closeEvent ( QCloseEvent * event )
     {
         event->accept();
     }
+}
+
+void GuiMainWindow::tabCloseRequested (int index)
+{
+    // user cloing the tab
+    GuiTerminalWindow *termWnd = (GuiTerminalWindow*)tabArea->widget(index);
+    assert(termWnd);
+    termWnd->userClosingTab = true;
+    if (termWnd->cfg.warn_on_close &&
+        termWnd->as->qtsock->state() == QAbstractSocket::ConnectedState &&
+        QMessageBox::No == QMessageBox::question(this, "Exit Confirmation?",
+                                  "Are you sure you want to close this session?",
+                                  QMessageBox::Yes|QMessageBox::No))
+        return;
+    closeTerminal(index);
 }
 
 void GuiMainWindow::openSettingsWindow()

@@ -54,6 +54,8 @@ public:
     Mouse_Action mouseButtonAction;
     QElapsedTimer mouseClickTimer;
 
+    bool userClosingTab;
+
     enum {
         BOLD_COLOURS, BOLD_SHADOW, BOLD_FONT
     } bold_mode;

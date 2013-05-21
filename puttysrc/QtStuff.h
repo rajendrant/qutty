@@ -62,7 +62,13 @@ void qt_message_box(void * frontend, const char *title, char *msg);
 
 #define modalfatalbox(fmt, ...) qt_message_box(NULL, APPNAME " Fatal Error", fmt)
 
-#define connection_fatal(frontend, fmt, ...) qt_critical_msgbox(frontend, fmt, __VA_ARGS__)
+void qutty_connection_fatal(void *frontend, char *msg);
+
+#define connection_fatal(frontend, fmt, ...) do { \
+    char buf[1000]; \
+    snprintf(buf, sizeof(buf), fmt, __VA_ARGS__); \
+    qutty_connection_fatal(frontend, buf); \
+} while(0);
 
 #define fatalbox(fmt, ...) qt_critical_msgbox(NULL, fmt, __VA_ARGS__)
 
@@ -70,8 +76,7 @@ void qt_message_box(void * frontend, const char *title, char *msg);
     if(!(cond)) fatalbox("fatal assert %s(%d)"#cond, __FUNCTION__, __LINE__); \
 } while(0)
 
-//void notify_remote_exit(void *fe)
-#define notify_remote_exit(frontend)
+void notify_remote_exit(void *frontend);
 
 #ifdef __cplusplus
 }

@@ -248,7 +248,7 @@
         <enum>QFrame::NoFrame</enum>
        </property>
        <property name="currentIndex">
-        <number>7</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="page_1">
         <layout class="QVBoxLayout" name="verticalLayout_25" stretch="0,1,1,0,0">
@@ -457,6 +457,9 @@
               <property name="text">
                <string>Always</string>
               </property>
+              <attribute name="buttonGroup">
+               <string notr="true">gp_exit_close</string>
+              </attribute>
              </widget>
             </item>
             <item>
@@ -464,6 +467,9 @@
               <property name="text">
                <string>Never</string>
               </property>
+              <attribute name="buttonGroup">
+               <string notr="true">gp_exit_close</string>
+              </attribute>
              </widget>
             </item>
             <item>
@@ -474,6 +480,9 @@
               <property name="checked">
                <bool>true</bool>
               </property>
+              <attribute name="buttonGroup">
+               <string notr="true">gp_exit_close</string>
+              </attribute>
              </widget>
             </item>
            </layout>
@@ -5145,5 +5154,6 @@
   <buttongroup name="gp_fnkeys"/>
   <buttongroup name="gp_termopt_edit"/>
   <buttongroup name="gp_contype"/>
+  <buttongroup name="gp_exit_close"/>
  </buttongroups>
 </ui>

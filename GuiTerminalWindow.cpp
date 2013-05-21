@@ -47,6 +47,7 @@ GuiTerminalWindow::GuiTerminalWindow(QWidget *parent) :
     qtsock = NULL;
     _font = NULL;
     _fontMetrics = NULL;
+    userClosingTab = false;
 
     mouseButtonAction = MA_NOTHING;
     setMouseTracking(true);
@@ -62,6 +63,19 @@ GuiTerminalWindow::~GuiTerminalWindow()
         _tmuxGateway->initiateDetach();
         delete _tmuxGateway;
     }
+
+    if (ldisc) {
+        ldisc_free(ldisc);
+        ldisc = NULL;
+    }
+    if (backend) {
+        backend->free(backhandle);
+        backhandle = NULL;
+        backend = NULL;
+        term_provide_resize_fn(term, NULL, NULL);
+        term_free(term);
+    }
+    qtsock->close();
 }
 
 extern "C" Socket get_ssh_socket(void *handle);

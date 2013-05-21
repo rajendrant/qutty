@@ -61,6 +61,10 @@ GuiSettingsWindow::GuiSettingsWindow(QWidget *parent) :
     // expand all 1st level items
     ui->treeWidget->expandToDepth(0);
 
+    ui->gp_exit_close->setId(ui->rb_exit_always, FORCE_ON);
+    ui->gp_exit_close->setId(ui->rb_exit_never, FORCE_OFF);
+    ui->gp_exit_close->setId(ui->rb_exit_clean, AUTO);
+
     /* Options controlling session logging */
 
     ui->gp_seslog->setId(ui->rb_sessionlog_none, LGTYP_NONE);
@@ -180,6 +184,8 @@ void GuiSettingsWindow::setConfig(Config *_cfg)
     if (sel_saved_sess.size() > 0)
         ui->l_saved_sess->setCurrentItem(sel_saved_sess[0]);
 
+    ui->gp_exit_close->button(cfg.close_on_exit)->click();
+
     /* Options controlling session logging */
     ui->gp_seslog->button(cfg.logtype)->click();
     ui->le_sessionlog_filename->setText(cfg.logfilename.path);
@@ -288,6 +294,8 @@ Config *GuiSettingsWindow::getConfig()
         qstring_to_char(cfg->config_name, ui->le_saved_sess->text(), sizeof(cfg->config_name));
     else if (ui->l_saved_sess->currentItem())
         qstring_to_char(cfg->config_name, ui->l_saved_sess->currentItem()->text(), sizeof(cfg->config_name));
+
+    cfg->close_on_exit = ui->gp_exit_close->checkedId();
 
     /* Options controlling session logging */
     cfg->logtype = ui->gp_seslog->checkedId();

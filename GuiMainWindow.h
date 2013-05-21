@@ -32,6 +32,7 @@ public slots:
     void openSettingsWindow();
     void closeTerminal(int index);
     void closeTerminal(GuiTerminalWindow *termWnd);
+    void tabCloseRequested (int index);
     void timerHandler();
     void currentChanged(int index);
     void focusChanged ( QWidget * old, QWidget * now );
