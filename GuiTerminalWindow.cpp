@@ -74,8 +74,8 @@ GuiTerminalWindow::~GuiTerminalWindow()
         backend = NULL;
         term_provide_resize_fn(term, NULL, NULL);
         term_free(term);
+        qtsock->close();
     }
-    qtsock->close();
 }
 
 extern "C" Socket get_ssh_socket(void *handle);
@@ -102,6 +102,9 @@ int GuiTerminalWindow::initTerminal()
         sprintf(msg, "Unable to open connection to\n"
                     "%.800s\n" "%s", cfg_dest(&cfg), error);
         qt_message_box(this, APPNAME " Error", msg);
+        backend = NULL;
+        term = NULL;
+        ldisc = NULL;
         goto cu0;
     }
 
