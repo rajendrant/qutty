@@ -66,7 +66,7 @@ void qutty_connection_fatal(void *frontend, char *msg);
 
 #define connection_fatal(frontend, fmt, ...) do { \
     char buf[1000]; \
-    snprintf(buf, sizeof(buf), fmt, __VA_ARGS__); \
+    _snprintf(buf, sizeof(buf), fmt, __VA_ARGS__); \
     qutty_connection_fatal(frontend, buf); \
 } while(0);
 
