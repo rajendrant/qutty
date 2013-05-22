@@ -15,6 +15,7 @@
 #include <QString>
 #include <QMessageBox>
 #include <QFontDialog>
+#include <QColorDialog>
 #include "QtCommon.h"
 #include "QtConfig.h"
 extern "C" {
@@ -252,6 +253,7 @@ void GuiSettingsWindow::setConfig(Config *_cfg)
                              .arg(cfg.font.name,
                                   cfg.font.isbold ? "Bold, " : "",
                                   QString::number(cfg.font.height)));
+    ui->chb_behaviour_warn->setChecked(cfg.warn_on_close);
 
     /* connection options */
     ui->le_ping_interval->setText(QString::number(cfg.ping_interval));
@@ -351,6 +353,7 @@ Config *GuiSettingsWindow::getConfig()
     cfg->cursor_type = ui->gp_curappear->checkedId();
     cfg->blink_cur = ui->chb_curblink->isChecked();
     cfg->font_quality = ui->gp_fontquality->checkedId();
+    cfg->warn_on_close = ui->chb_behaviour_warn->isChecked();
 
     /* connection options */
     cfg->ping_interval = ui->le_ping_interval->text().toInt();
@@ -495,4 +498,45 @@ void GuiSettingsWindow::on_btn_about_clicked()
                        "About " APPNAME,
                        APPNAME "\nRelease " QUTTY_RELEASE_VERSION "\n\nhttp://code.google.com/p/qutty/"
                        );
+}
+
+void GuiSettingsWindow::on_btn_colour_modify_clicked()
+{
+    QColor oldcol = QColor(ui->le_colour_r->text().toInt(),
+                           ui->le_colour_g->text().toInt(),
+                           ui->le_colour_b->text().toInt());
+    QColor newcol = QColorDialog::getColor(oldcol);
+    if (newcol.isValid()) {
+        ui->le_colour_r->setText(QString::number(newcol.red()));
+        ui->le_colour_g->setText(QString::number(newcol.green()));
+        ui->le_colour_b->setText(QString::number(newcol.blue()));
+        int currind = ui->l_colour->currentIndex().row();
+        if (currind >= 0 && currind < NCFGCOLOURS) {
+            cfg.colours[currind][0] = newcol.red();
+            cfg.colours[currind][1] = newcol.green();
+            cfg.colours[currind][2] = newcol.blue();
+        }
+    }
+}
+
+void GuiSettingsWindow::on_l_colour_currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous)
+{
+    int prev = -1, curr = -1;
+    if (previous) {
+        prev = ui->l_colour->row(previous);
+    }
+    if (current) {
+        curr = ui->l_colour->row(current);
+    }
+    qDebug() << prev << curr;
+    if (prev >= 0 && prev < NCFGCOLOURS) {
+        cfg.colours[prev][0] = ui->le_colour_r->text().toInt();
+        cfg.colours[prev][1] = ui->le_colour_g->text().toInt();
+        cfg.colours[prev][2] = ui->le_colour_b->text().toInt();
+    }
+    if (curr >= 0 && curr < NCFGCOLOURS) {
+        ui->le_colour_r->setText(QString::number(cfg.colours[curr][0]));
+        ui->le_colour_g->setText(QString::number(cfg.colours[curr][1]));
+        ui->le_colour_b->setText(QString::number(cfg.colours[curr][2]));
+    }
 }

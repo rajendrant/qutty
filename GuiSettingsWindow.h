@@ -12,6 +12,7 @@
 #include <QButtonGroup>
 #include "QtConfig.h"
 #include <QFileDialog>
+#include <QListWidgetItem>
 
 namespace Ui {
 class GuiSettingsWindow;
@@ -73,6 +74,10 @@ private slots:
     void on_treeWidget_itemSelectionChanged();
 
     void on_btn_about_clicked();
+
+    void on_btn_colour_modify_clicked();
+
+    void on_l_colour_currentItemChanged(QListWidgetItem *current, QListWidgetItem *previous);
 
 private:
     Ui::GuiSettingsWindow *ui;

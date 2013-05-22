@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>0</width>
-    <height>0</height>
+    <width>679</width>
+    <height>561</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -248,7 +248,7 @@
         <enum>QFrame::NoFrame</enum>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>11</number>
        </property>
        <widget class="QWidget" name="page_1">
         <layout class="QVBoxLayout" name="verticalLayout_25" stretch="0,1,1,0,0">
@@ -2757,7 +2757,118 @@
                </widget>
               </item>
               <item row="1" column="0" rowspan="4">
-               <widget class="QListWidget" name="listWidget_6"/>
+               <widget class="QListWidget" name="l_colour">
+                <item>
+                 <property name="text">
+                  <string>Default Foreground</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Default Bold Foreground</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Default Background</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Default Bold Background</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Cursor Text</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Cursor Colour</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ANSI Black</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ANSI Black Bold</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ANSI Red</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ANSI Red Bold</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ANSI Green</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ANSI Green Bold</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ANSI Yellow</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ANSI Yellow Bold</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ANSI Blue</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ANSI Blue Bold</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ANSI Magenta</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ANSI Magenta Bold</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ANSI Cyan</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ANSI Cyan Bold</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ANSI White</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>ANSI White Bold</string>
+                 </property>
+                </item>
+               </widget>
               </item>
               <item row="1" column="1">
                <widget class="QLabel" name="label_62">
@@ -2767,7 +2878,7 @@
                </widget>
               </item>
               <item row="1" column="2">
-               <widget class="QLineEdit" name="lineEdit_16"/>
+               <widget class="QLineEdit" name="le_colour_r"/>
               </item>
               <item row="2" column="1">
                <widget class="QLabel" name="label_63">
@@ -2777,7 +2888,7 @@
                </widget>
               </item>
               <item row="2" column="2">
-               <widget class="QLineEdit" name="lineEdit_17"/>
+               <widget class="QLineEdit" name="le_colour_g"/>
               </item>
               <item row="3" column="1">
                <widget class="QLabel" name="label_64">
@@ -2787,10 +2898,10 @@
                </widget>
               </item>
               <item row="3" column="2">
-               <widget class="QLineEdit" name="lineEdit_18"/>
+               <widget class="QLineEdit" name="le_colour_b"/>
               </item>
               <item row="4" column="1" colspan="2">
-               <widget class="QPushButton" name="pushButton_6">
+               <widget class="QPushButton" name="btn_colour_modify">
                 <property name="text">
                  <string>Modify</string>
                 </property>
@@ -5147,6 +5258,7 @@
   <buttongroup name="buttonGroup_9"/>
   <buttongroup name="gp_seslog"/>
   <buttongroup name="buttonGroup"/>
+  <buttongroup name="gp_exit_close"/>
   <buttongroup name="gp_addressfamily"/>
   <buttongroup name="gp_curappear"/>
   <buttongroup name="gp_fontquality"/>
@@ -5154,6 +5266,5 @@
   <buttongroup name="gp_fnkeys"/>
   <buttongroup name="gp_termopt_edit"/>
   <buttongroup name="gp_contype"/>
-  <buttongroup name="gp_exit_close"/>
  </buttongroups>
 </ui>
