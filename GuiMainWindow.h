@@ -9,6 +9,7 @@
 
 #include <QtGui/QMainWindow>
 #include <QMdiArea>
+#include <QMenu>
 #include "GuiMainWindow.h"
 #include "QtCommon.h"
 
@@ -27,8 +28,12 @@ public:
 private:
     //TerminalMdiArea *mdiArea;
     QList<GuiTerminalWindow *> terminalList;
+    QMenu *menu;
+
+    void initializeMenuKeyboardShortcuts();
 
 public slots:
+    void openNewWindow();
     void openSettingsWindow();
     void closeTerminal(int index);
     void closeTerminal(GuiTerminalWindow *termWnd);

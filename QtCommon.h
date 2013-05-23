@@ -23,8 +23,6 @@ class GuiMainWindow;
 class GuiTerminalWindow;
 class TerminalMdiArea;
 
-extern GuiMainWindow *mainWindow;
-
 extern QTimer *qtimer;
 extern long timing_next_time;
 

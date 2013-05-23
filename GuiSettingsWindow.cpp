@@ -24,10 +24,12 @@ extern "C" {
 
 QtConfig qutty_config;
 
-GuiSettingsWindow::GuiSettingsWindow(QWidget *parent) :
+GuiSettingsWindow::GuiSettingsWindow(GuiMainWindow *parent) :
     QDialog(parent),
     ui(new Ui::GuiSettingsWindow)
 {
+    this->mainWindow = parent;
+
     memset(&this->cfg, 0, sizeof(Config));
 
     ui->setupUi(this);
@@ -118,6 +120,9 @@ GuiSettingsWindow::GuiSettingsWindow(QWidget *parent) :
     this->getConfig();
 
     this->loadSessionNames();
+
+    // resize to minimum needed dimension
+    this->resize(0, 0);
 }
 
 GuiSettingsWindow::~GuiSettingsWindow()

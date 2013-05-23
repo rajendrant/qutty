@@ -277,7 +277,7 @@ int TmuxGateway::cmd_hdlr_window_close(const char *command, int len)
         fail_reason = "Invalid paneid";
         goto cu0;
     }
-    mainWindow->tabArea->removeTab(mainWindow->tabArea->indexOf(_mapPanes[paneid]->termWnd()));
+    termGatewayWnd->getMainWindow()->tabArea->removeTab(termGatewayWnd->getMainWindow()->tabArea->indexOf(_mapPanes[paneid]->termWnd()));
     _mapPanes.erase(paneid);
     return 0;
 cu0:
@@ -404,7 +404,7 @@ int TmuxGateway::createNewWindowPane(int id, const char *name, TmuxLayout &layou
     switch (layout.layoutType) {
       case TmuxLayout::TMUX_LAYOUT_TYPE_LEAF:
         if (_mapPanes.find(layout.paneid) == _mapPanes.end()) {
-            GuiTerminalWindow *newtermwnd = mainWindow->newTerminal();
+            GuiTerminalWindow *newtermwnd = termGatewayWnd->getMainWindow()->newTerminal();
             newtermwnd->cfg = termGatewayWnd->cfg;
             TmuxWindowPane *tmuxPane = newtermwnd->
                     initTmuxClientTerminal(this, layout.paneid,
@@ -454,7 +454,7 @@ void TmuxGateway::closeAllPanes()
 {
     map<int, TmuxWindowPane*>::const_iterator it;
     for ( it=_mapPanes.begin() ; it != _mapPanes.end(); it++ ) {
-        mainWindow->closeTerminal(it->second->termWnd());
+        termGatewayWnd->getMainWindow()->closeTerminal(it->second->termWnd());
         delete it->second;
     }
     _mapPanes.clear();
@@ -464,7 +464,7 @@ void TmuxGateway::closePane(int paneid)
 {
     TmuxWindowPane *pane = _mapPanes[paneid];
     if (pane) {
-        mainWindow->closeTerminal(pane->termWnd());
+        termGatewayWnd->getMainWindow()->closeTerminal(pane->termWnd());
         _mapPanes.erase(paneid);
         delete pane;
     }

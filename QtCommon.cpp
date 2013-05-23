@@ -22,6 +22,7 @@ char sshver[] = "PuTTY-Local: " __DATE__ " " __TIME__;
 QTimer *qtimer = NULL;
 long timing_next_time;
 
+extern GuiMainWindow *mainWindow;
 void timer_change_notify(long next)
 {
     long ticks = next - GetTickCount();
@@ -404,7 +405,7 @@ void qutty_connection_fatal(void *frontend, char *msg)
     qt_critical_msgbox(frontend, msg, NULL);
 
     if (f->cfg.close_on_exit == FORCE_ON)
-        mainWindow->closeTerminal(f);
+        f->getMainWindow()->closeTerminal(f);
 }
 
 void notify_remote_exit(void *frontend)
@@ -418,7 +419,7 @@ void notify_remote_exit(void *frontend)
     if (exitcode >=0) {
         if (f->cfg.close_on_exit == FORCE_ON ||
             (f->cfg.close_on_exit == AUTO && exitcode != INT_MAX)) {
-            mainWindow->closeTerminal(f);
+            f->getMainWindow()->closeTerminal(f);
         } else {
             /* exitcode == INT_MAX indicates that the connection was closed
              * by a fatal error, so an error box will be coming our way and

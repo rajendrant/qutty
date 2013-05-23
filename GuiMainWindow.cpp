@@ -9,6 +9,7 @@
 #include <QToolButton>
 #include <QTabWidget>
 #include <QMessageBox>
+#include <QProxyStyle>
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include "GuiSettingsWindow.h"
@@ -19,6 +20,29 @@ extern "C" {
 }
 
 int initConfigDefaults(Config *cfg);
+
+class MyStyle : public QProxyStyle
+{
+    GuiMainWindow *mainWindow;
+public:
+    MyStyle(GuiMainWindow *wnd)
+    {
+        mainWindow = wnd;
+    }
+
+    QRect subElementRect ( SubElement element, const QStyleOption * option, const QWidget * widget = 0 ) const
+    {
+        QRect rc = QProxyStyle::subElementRect(element, option, widget);
+        if (element == QStyle::SE_TabWidgetRightCorner) {
+            // This is a very bad hack we are doing
+            // Reference: http://www.qtcentre.org/threads/12539-QTabWidget-corner-widget-is-not-shown
+            QWidget *wid = mainWindow->tabArea->cornerWidget();
+            if (wid)
+                rc.setSize(wid->size());
+        }
+        return rc;
+    }
+};
 
 GuiMainWindow::GuiMainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -43,13 +67,20 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
 
     QToolButton* closeTabButton = new QToolButton();
     closeTabButton->setText(tr("+"));
+    menu = new QMenu(closeTabButton);
+    initializeMenuKeyboardShortcuts();
+    closeTabButton->setMenu(menu);
+    closeTabButton->setPopupMode(QToolButton::MenuButtonPopup);
+
     //connect(closeTabButton, SIGNAL(clicked()), this, SLOT(newTelnetTerminal()));
     connect(closeTabButton, SIGNAL(clicked()), this, SLOT(openSettingsWindow()));
     tabArea->setCornerWidget( closeTabButton, Qt::TopRightCorner );
+    tabArea->setStyle(new MyStyle(this));
 
-    setWindowTitle(tr("QuTTY"));
+    setWindowTitle(APPNAME);
 
     this->setCentralWidget(tabArea);
+
     //setWindowFlags(Qt::CustomizeWindowHint);
     //showMaximized();
     //setStyle(QStyle::);
@@ -58,12 +89,34 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
 GuiMainWindow::~GuiMainWindow()
 {
     delete tabArea;
+    delete menu;
 }
 
+void GuiMainWindow::initializeMenuKeyboardShortcuts()
+{
+    QMenu *submenu;
+    menu->addAction("New Tab", this, SLOT(openSettingsWindow()), QKeySequence("Ctrl+Shift+t"));
+
+    menu->addAction("New Window", this, SLOT(openNewWindow()));
+
+    submenu = new QMenu("View");
+    submenu->addAction("Move to Left tab", this, SLOT(tabNext()), QKeySequence("Shift+Right"));
+    submenu->addAction("Move to Right tab", this, SLOT(tabPrev()), QKeySequence("Shift+Left"));
+    menu->addMenu(submenu);
+}
+
+void GuiMainWindow::openNewWindow()
+{
+    GuiMainWindow *mainWindow = new GuiMainWindow;
+    mainWindow->show();
+    GuiSettingsWindow *ss = new GuiSettingsWindow(mainWindow);
+    ss->loadDefaultSettings();
+    ss->show();
+}
 
 GuiTerminalWindow *GuiMainWindow::newTerminal()
 {
-    GuiTerminalWindow *termWnd = new GuiTerminalWindow(tabArea);
+    GuiTerminalWindow *termWnd = new GuiTerminalWindow(tabArea, this);
     tabArea->addTab(termWnd, tr("Qutty"));
     terminalList.append(termWnd);
     termWnd->setWindowState(termWnd->windowState() | Qt::WindowMaximized);
@@ -113,7 +166,7 @@ void GuiMainWindow::tabCloseRequested (int index)
 
 void GuiMainWindow::openSettingsWindow()
 {
-    GuiSettingsWindow *ss = new GuiSettingsWindow(mainWindow);
+    GuiSettingsWindow *ss = new GuiSettingsWindow(this);
     ss->loadDefaultSettings();
     ss->show();
 }

@@ -13,6 +13,7 @@
 #include "QtConfig.h"
 #include <QFileDialog>
 #include <QListWidgetItem>
+#include "GuiMainWindow.h"
 
 namespace Ui {
 class GuiSettingsWindow;
@@ -34,11 +35,12 @@ class GuiSettingsWindow : public QDialog
         GUI_LOGLVL_NONE, GUI_LOGLVL_PRINT_OUT, GUI_LOGLVL_ALL_SES_OUT, GUI_LOGLVL_SSH_PACKET, GUI_LOGLVL_SSH_RAWDATA
     } gui_loglevel_t;
 
+    GuiMainWindow *mainWindow;
     // config that is loaded onto the settings window
     Config cfg;
 
 public:
-    explicit GuiSettingsWindow(QWidget *parent = 0);
+    explicit GuiSettingsWindow(GuiMainWindow *parent);
     ~GuiSettingsWindow();
 
     // getter/setter to config in the settings window

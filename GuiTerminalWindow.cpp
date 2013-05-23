@@ -15,9 +15,11 @@ extern "C" {
 }
 #include "GuiTerminalWindow.h"
 
-GuiTerminalWindow::GuiTerminalWindow(QWidget *parent) :
+GuiTerminalWindow::GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow) :
     QAbstractScrollArea(parent)
 {
+    this->mainWindow = mainWindow;
+
     setFrameShape(QFrame::NoFrame);
     setWindowState(Qt::WindowMaximized);
     setWindowTitle(tr("QuTTY"));
@@ -138,7 +140,7 @@ int GuiTerminalWindow::initTerminal()
     qtsock = as->qtsock;
     QObject::connect(as->qtsock, SIGNAL(readyRead()), this, SLOT(readyRead()));
     QObject::connect(as->qtsock, SIGNAL(error(QAbstractSocket::SocketError)),
-                     this, SLOT(sockError()));
+                     this, SLOT(sockError(QAbstractSocket::SocketError)));
     QObject::connect(as->qtsock, SIGNAL(disconnected()),
                      this, SLOT(sockDisconnected()));
 
@@ -726,9 +728,12 @@ void GuiTerminalWindow::detachTmuxControllerMode()
 
 void GuiTerminalWindow::sockError (QAbstractSocket::SocketError socketError)
 {
-    char errStr[256];
+    char errStr[256], winTitle[256];
     qstring_to_char(errStr, as->qtsock->errorString(), sizeof(errStr));
     (*as->plug)->closing(as->plug, errStr, socketError, 0);
+    qstring_to_char(winTitle, this->windowTitle(), sizeof(winTitle));
+    strncat(winTitle, " (inactive)", sizeof(winTitle));
+    set_title(this, winTitle);
 }
 
 void GuiTerminalWindow::sockDisconnected()

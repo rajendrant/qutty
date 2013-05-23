@@ -33,6 +33,7 @@ class GuiTerminalWindow : public QAbstractScrollArea
 private:
     enum tmux_mode_t _tmuxMode;
     TmuxGateway *_tmuxGateway;
+    GuiMainWindow *mainWindow;
 
 public:
     QFont *_font;
@@ -60,8 +61,12 @@ public:
         BOLD_COLOURS, BOLD_SHADOW, BOLD_FONT
     } bold_mode;
 
-    explicit GuiTerminalWindow(QWidget *parent = 0);
+    explicit GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow);
     ~GuiTerminalWindow();
+
+    GuiMainWindow *getMainWindow() {
+        return mainWindow;
+    }
 
     /*
      * follow a two phased construction

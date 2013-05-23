@@ -26,10 +26,11 @@ void frontend_keypress(void *handle)
 
 void set_title(void *frontend, const char *title)
 {
+    assert(frontend);
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
     f->setWindowTitle(QString::fromAscii(title));
-    if (mainWindow->tabArea->indexOf(f) >= 0)
-        mainWindow->tabArea->setTabText(mainWindow->tabArea->indexOf(f),
+    if (f->getMainWindow()->tabArea->indexOf(f) >= 0)
+        f->getMainWindow()->tabArea->setTabText(f->getMainWindow()->tabArea->indexOf(f),
                                     QString::fromAscii(title));
 }
 

@@ -21,11 +21,13 @@ extern "C" {
 int askalg(void *frontend, const char *algtype, const char *algname,
        void (*callback)(void *ctx, int result), void *ctx)
 {
+    assert(frontend);
+    GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
     QString msg = 	QString("The first " + QString(algtype) + " supported by the server\n"
                             "is "+ QString(algname) +", which is below the configured\n"
                             "warning threshold.\n"
                             "Do you want to continue with this connection?\n");
-    switch (QMessageBox::warning(mainWindow, QString(APPNAME " Security Alert"),
+    switch (QMessageBox::warning(f->getMainWindow(), QString(APPNAME " Security Alert"),
                          msg,
                          QMessageBox::Yes | QMessageBox::No,
                          QMessageBox::No)) {
@@ -42,6 +44,8 @@ int askalg(void *frontend, const char *algtype, const char *algname,
 int askappend(void *frontend, Filename filename,
           void (*callback)(void *ctx, int result), void *ctx)
 {
+    assert(frontend);
+    GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
     QString msg = 	QString("The session log file \"") + QString(filename.path)
             + QString("\" already exists.\n"
             "You can overwrite it with a new session log,\n"
@@ -50,7 +54,7 @@ int askappend(void *frontend, Filename filename,
             "Hit Yes to wipe the file, No to append to it,\n"
             "or Cancel to disable logging.");
 
-    switch (QMessageBox::warning(mainWindow, QString(APPNAME " Log to File"),
+    switch (QMessageBox::warning(f->getMainWindow(), QString(APPNAME " Log to File"),
                          msg,
                          QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
                          QMessageBox::Cancel)) {
@@ -101,6 +105,8 @@ int verify_ssh_host_key(void *frontend, char *host, int port, char *keytype,
                         char *keystr, char *fingerprint,
                         void (*callback)(void *ctx, int result), void *ctx)
 {
+    assert(frontend);
+    GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
     int ret = 1;
     QString absentmsg =
         QString("The server's host key is not cached in the registry. You\n"
@@ -139,7 +145,7 @@ int verify_ssh_host_key(void *frontend, char *host, int port, char *keytype,
     if (ret == 0)		       /* success - key matched OK */
         return 1;
     else if (ret == 2) {	       /* key was different */
-        switch (QMessageBox::critical(mainWindow, QString(APPNAME " Security Alert"),
+        switch (QMessageBox::critical(f->getMainWindow(), QString(APPNAME " Security Alert"),
                              wrongmsg,
                              QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
                              QMessageBox::Cancel)) {
@@ -150,7 +156,7 @@ int verify_ssh_host_key(void *frontend, char *host, int port, char *keytype,
         default:                    return 0;
         }
     } else if (ret == 1) {	       /* key was absent */
-        switch (QMessageBox::warning(mainWindow, QString(APPNAME " Security Alert"),
+        switch (QMessageBox::warning(f->getMainWindow(), QString(APPNAME " Security Alert"),
                              absentmsg,
                              QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
                              QMessageBox::Cancel)) {
@@ -163,6 +169,8 @@ int verify_ssh_host_key(void *frontend, char *host, int port, char *keytype,
     }
     return 0;	/* abandon the connection */
 }
+
+extern GuiMainWindow *mainWindow;
 
 void old_keyfile_warning(void)
 {
@@ -181,10 +189,8 @@ void old_keyfile_warning(void)
 
 void qt_message_box(void * frontend, const char *title, char *msg)
 {
-    QWidget *f;
-    if (frontend)
-        f = static_cast<GuiTerminalWindow*>(frontend);
-    else f = mainWindow;
+    assert(frontend);
+    GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
     QMessageBox::critical(f, QString(title), QString(msg), QMessageBox::Ok);
 }
 

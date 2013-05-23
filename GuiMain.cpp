@@ -5,25 +5,11 @@
  */
 
 #include <QtGui/QApplication>
-#include <QShortcut>
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include "GuiSettingsWindow.h"
 
 GuiMainWindow *mainWindow;
-
-void initKeyboardShortcuts()
-{
-    QShortcut *shortcut = new QShortcut(QKeySequence("Shift+Right"), mainWindow);
-    shortcut->setContext(Qt::ApplicationShortcut);
-    QObject::connect(shortcut, SIGNAL(activated()), mainWindow, SLOT(tabNext()));
-    shortcut = new QShortcut(QKeySequence("Shift+Left"), mainWindow);
-    shortcut->setContext(Qt::ApplicationShortcut);
-    QObject::connect(shortcut, SIGNAL(activated()), mainWindow, SLOT(tabPrev()));
-    shortcut = new QShortcut(QKeySequence("Ctrl+Shift+t"), mainWindow);
-    shortcut->setContext(Qt::ApplicationShortcut);
-    QObject::connect(shortcut, SIGNAL(activated()), mainWindow, SLOT(openSettingsWindow()));
-}
 
 int main(int argc, char *argv[])
 {
@@ -31,7 +17,6 @@ int main(int argc, char *argv[])
     mainWindow = new GuiMainWindow();
     QObject::connect(&a, SIGNAL(focusChanged(QWidget *, QWidget *)), mainWindow, SLOT(focusChanged(QWidget*,QWidget*)));
     mainWindow->show();
-    initKeyboardShortcuts();
 
     qutty_config.restoreConfig();
     GuiSettingsWindow *ss = new GuiSettingsWindow(mainWindow);
