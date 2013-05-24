@@ -50,6 +50,7 @@ GuiTerminalWindow::GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow)
     _font = NULL;
     _fontMetrics = NULL;
     userClosingTab = false;
+    isSockDisconnected = false;
 
     mouseButtonAction = MA_NOTHING;
     setMouseTracking(true);
@@ -728,20 +729,14 @@ void GuiTerminalWindow::detachTmuxControllerMode()
 
 void GuiTerminalWindow::sockError (QAbstractSocket::SocketError socketError)
 {
-    char errStr[256], winTitle[256];
+    char errStr[256];
     qstring_to_char(errStr, as->qtsock->errorString(), sizeof(errStr));
     (*as->plug)->closing(as->plug, errStr, socketError, 0);
-    qstring_to_char(winTitle, this->windowTitle(), sizeof(winTitle));
-    strncat(winTitle, " (inactive)", sizeof(winTitle));
-    set_title(this, winTitle);
 }
 
 void GuiTerminalWindow::sockDisconnected()
 {
-    char errStr[256], winTitle[256];
+    char errStr[256];
     qstring_to_char(errStr, as->qtsock->errorString(), sizeof(errStr));
     (*as->plug)->closing(as->plug, errStr, as->qtsock->error(), 0);
-    qstring_to_char(winTitle, this->windowTitle(), sizeof(winTitle));
-    strncat(winTitle, " (inactive)", sizeof(winTitle));
-    set_title(this, winTitle);
 }

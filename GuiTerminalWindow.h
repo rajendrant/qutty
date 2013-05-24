@@ -56,6 +56,7 @@ public:
     QElapsedTimer mouseClickTimer;
 
     bool userClosingTab;
+    bool isSockDisconnected;
 
     enum {
         BOLD_COLOURS, BOLD_SHADOW, BOLD_FONT
