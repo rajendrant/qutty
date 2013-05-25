@@ -22,21 +22,13 @@ GuiTerminalWindow::GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow)
 
     setFrameShape(QFrame::NoFrame);
     setWindowState(Qt::WindowMaximized);
-    setWindowTitle(tr("QuTTY"));
 
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
     connect(verticalScrollBar(), SIGNAL(actionTriggered(int)), this, SLOT(vertScrollBarAction(int)));
     connect(verticalScrollBar(), SIGNAL(sliderMoved(int)), this, SLOT(vertScrollBarMoved(int)));
     connect(verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(vertScrollBarMoved(int)));
-
-    QPalette pal(palette());
-    // set black background // not working as expected
-    pal.setColor(QPalette::Background, Qt::black);
-    pal.setColor(QPalette::Foreground, Qt::white);
-    viewport()->setAutoFillBackground(true);
-    viewport()->setPalette(pal);
 
     setFocusPolicy(Qt::StrongFocus);
     _any_update = false;
@@ -47,8 +39,6 @@ GuiTerminalWindow::GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow)
     backend = NULL;
     backhandle = NULL;
     qtsock = NULL;
-    _font = NULL;
-    _fontMetrics = NULL;
     userClosingTab = false;
     isSockDisconnected = false;
 
@@ -164,6 +154,32 @@ cu0:
     return -1;
 }
 
+int GuiTerminalWindow::restartTerminal()
+{
+    if (_tmuxMode==TMUX_MODE_GATEWAY && _tmuxGateway) {
+        _tmuxGateway->initiateDetach();
+        delete _tmuxGateway;
+    }
+
+    if (ldisc) {
+        ldisc_free(ldisc);
+        ldisc = NULL;
+    }
+    if (backend) {
+        backend->free(backhandle);
+        backhandle = NULL;
+        backend = NULL;
+        term_provide_resize_fn(term, NULL, NULL);
+        term_free(term);
+        qtsock->close();
+        term = NULL;
+        qtsock = NULL;
+    }
+    isSockDisconnected = false;
+    set_title(this, APPNAME);
+    return initTerminal();
+}
+
 TmuxWindowPane *GuiTerminalWindow::initTmuxClientTerminal(TmuxGateway *gateway,
                                         int id, int width, int height)
 {
@@ -273,9 +289,10 @@ void GuiTerminalWindow::paintEvent (QPaintEvent *e)
 {
     QPainter painter(viewport());
 
-    painter.fillRect(e->rect(), Qt::black);
     if(!term)
         return;
+
+    painter.fillRect(e->rect(), colours[258]);
 
     for(int i=0; i<e->region().rects().size(); i++) {
         const QRect &r = e->region().rects().at(i);
@@ -332,7 +349,7 @@ void GuiTerminalWindow::paintText(QPainter &painter, int row, int col,
                           colours[nbg]);
     painter.setPen(colours[nfg]);
     painter.drawText(col*fontWidth,
-                     row*fontHeight+_fontMetrics->ascent(),
+                     row*fontHeight+fontAscent,
                      str);
 }
 
@@ -430,21 +447,20 @@ void GuiTerminalWindow::drawText(int row, int col, wchar_t *ch, int len, unsigne
 
 void GuiTerminalWindow::setTermFont(Config *cfg)
 {
-    if (_font) delete _font;
-    if (_fontMetrics) delete _fontMetrics;
-
-    _font = new QFont(cfg->font.name, cfg->font.height);
-    _font->setStyleHint(QFont::TypeWriter);
+    _font.setFamily(cfg->font.name);
+    _font.setPointSize(cfg->font.height);
+    _font.setStyleHint(QFont::TypeWriter);
 
     if (cfg->font_quality == FQ_NONANTIALIASED)
-        _font->setStyleStrategy(QFont::NoAntialias);
+        _font.setStyleStrategy(QFont::NoAntialias);
     else if (cfg->font_quality == FQ_ANTIALIASED)
-        _font->setStyleStrategy(QFont::PreferAntialias);
-    setFont(*_font);
-    _fontMetrics = new QFontMetrics(*_font);
+        _font.setStyleStrategy(QFont::PreferAntialias);
+    setFont(_font);
 
-    fontWidth = _fontMetrics->width(QChar('a'));
-    fontHeight = _fontMetrics->height();
+    QFontMetrics fontMetrics = QFontMetrics(_font);
+    fontWidth = fontMetrics.width(QChar('a'));
+    fontHeight = fontMetrics.height();
+    fontAscent = fontMetrics.ascent();
 }
 
 void GuiTerminalWindow::cfgtopalette(Config *cfg)

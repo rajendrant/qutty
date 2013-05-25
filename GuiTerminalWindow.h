@@ -36,9 +36,8 @@ private:
     GuiMainWindow *mainWindow;
 
 public:
-    QFont *_font;
-    QFontMetrics *_fontMetrics;
-    int fontWidth, fontHeight;
+    QFont _font;
+    int fontWidth, fontHeight, fontAscent;
     void *ldisc;
     Terminal *term;
     Backend *backend;
@@ -75,6 +74,7 @@ public:
      * 2. termWnd->initTerminal() -> init the internals with config
      */
     int initTerminal();
+    int restartTerminal();
 
     void keyPressEvent ( QKeyEvent * e );
     void keyReleaseEvent ( QKeyEvent * e );

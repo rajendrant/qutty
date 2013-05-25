@@ -211,6 +211,7 @@ bool QtConfig::restoreConfig()
         return false;
     }
     readFromXML(&file);
+    emit savedSessionsChanged();
     return true;
 }
 

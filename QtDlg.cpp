@@ -170,11 +170,10 @@ int verify_ssh_host_key(void *frontend, char *host, int port, char *keytype,
     return 0;	/* abandon the connection */
 }
 
-extern GuiMainWindow *mainWindow;
 
 void old_keyfile_warning(void)
 {
-    QMessageBox::warning(mainWindow, QString(APPNAME "%s Key File Warning"),
+    QMessageBox::warning(NULL, QString(APPNAME "%s Key File Warning"),
         QString("You are loading an SSH-2 private key which has an\n"
            "old version of the file format. This means your key\n"
            "file is not fully tamperproof. Future versions of\n"

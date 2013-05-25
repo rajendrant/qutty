@@ -142,9 +142,6 @@ void GuiSettingsWindow::on_rb_contype_ssh_clicked()
 
 void GuiSettingsWindow::on_buttonBox_accepted()
 {
-    int rc;
-    GuiTerminalWindow *newWnd;
-
     if (ui->le_hostname->text() == "" &&
         ui->l_saved_sess->currentItem()->text() == QUTTY_DEFAULT_CONFIG_SETTINGS) {
         return;
@@ -155,19 +152,10 @@ void GuiSettingsWindow::on_buttonBox_accepted()
             return;
         setConfig(&qutty_config.config_list[config_name]);
     }
-
-    newWnd = mainWindow->newTerminal();
-    newWnd->cfg = *this->getConfig();
-
     // check for NOT_YET_SUPPORTED configs
-    chkUnsupportedConfigs(newWnd->cfg);
+    chkUnsupportedConfigs(*getConfig());
 
-    if ((rc=newWnd->initTerminal())) {
-        delete newWnd;
-    } else {    // success
-        mainWindow->tabArea->setCurrentWidget(newWnd);
-    }
-
+    mainWindow->createNewTab(getConfig());
     this->close();
 }
 

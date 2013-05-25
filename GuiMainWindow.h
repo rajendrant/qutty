@@ -21,6 +21,7 @@ public:
     GuiMainWindow(QWidget *parent = 0);
     ~GuiMainWindow();
     GuiTerminalWindow *newTerminal();
+    void createNewTab(Config *cfg);
     bool winEvent ( MSG * msg, long * result );
     void closeEvent ( QCloseEvent * event );
     GuiTerminalWindow *getCurrentTerminal();

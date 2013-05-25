@@ -11,11 +11,19 @@ class GuiTabWidget : public QTabWidget {
     GuiMainWindow *mainWindow;
     // context menu to show when right-click on Tabbar
     QMenu menu;
+    QMenu menuSavedSessions;
+    int menuTabIndex;
 
 public:
     GuiTabWidget(GuiMainWindow *parent);
 public slots:
     void showContextMenu(const QPoint &point);
+    void savedSessionsChanged();
+    void contextMenuDuplicateSessionTriggered();
+    void contextMenuRestartSessionTriggered();
+    void contextMenuSavedSessionTriggered();
+    void contextMenuChangeSettingsTriggered();
+    void contextMenuCloseSessionTriggered();
 };
 
 

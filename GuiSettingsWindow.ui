@@ -248,7 +248,7 @@
         <enum>QFrame::NoFrame</enum>
        </property>
        <property name="currentIndex">
-        <number>11</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="page_1">
         <layout class="QVBoxLayout" name="verticalLayout_25" stretch="0,1,1,0,0">
@@ -337,6 +337,9 @@
              <layout class="QHBoxLayout" name="horizontalLayout">
               <item>
                <widget class="QRadioButton" name="rb_contype_raw">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="text">
                  <string>Raw</string>
                 </property>
@@ -357,6 +360,9 @@
               </item>
               <item>
                <widget class="QRadioButton" name="rb_contype_rlogin">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="text">
                  <string>Rlogin</string>
                 </property>
@@ -380,6 +386,9 @@
               </item>
               <item>
                <widget class="QRadioButton" name="rb_contype_serial">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="text">
                  <string>Serial</string>
                 </property>

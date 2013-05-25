@@ -10,20 +10,25 @@ extern "C" {
 
 using namespace std;
 
-class QtConfig {
+class QtConfig : public QObject {
+
+    Q_OBJECT
+
 public:
     map<string, string> ssh_host_keys;
     map<string, Config> config_list;
 
     QtConfig();
 
-    int readFromXML(QIODevice *device);
-    int writeToXML(QIODevice *device);
-
     bool restoreConfig();
     bool saveConfig();
 
+signals:
+    void savedSessionsChanged();
+
 private:
+    int readFromXML(QIODevice *device);
+    int writeToXML(QIODevice *device);
     bool restoreFromPuttyWinRegistry();
 };
 

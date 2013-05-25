@@ -103,8 +103,8 @@ void GuiMainWindow::initializeMenuKeyboardShortcuts()
     menu->addAction("New Window", this, SLOT(openNewWindow()));
 
     submenu = new QMenu("View");
-    submenu->addAction("Move to Left tab", this, SLOT(tabNext()), QKeySequence("Shift+Right"));
-    submenu->addAction("Move to Right tab", this, SLOT(tabPrev()), QKeySequence("Shift+Left"));
+    submenu->addAction("Switch to Left Tab", this, SLOT(tabNext()), QKeySequence("Shift+Right"));
+    submenu->addAction("Switch to Right Tab", this, SLOT(tabPrev()), QKeySequence("Shift+Left"));
     menu->addMenu(submenu);
 }
 
@@ -115,6 +115,19 @@ void GuiMainWindow::openNewWindow()
     GuiSettingsWindow *ss = new GuiSettingsWindow(mainWindow);
     ss->loadDefaultSettings();
     ss->show();
+}
+
+void GuiMainWindow::createNewTab(Config *cfg)
+{
+    int rc;
+    GuiTerminalWindow *newWnd = this->newTerminal();
+    newWnd->cfg = *cfg;
+
+    if ((rc=newWnd->initTerminal())) {
+        delete newWnd;
+    } else {    // success
+        tabArea->setCurrentWidget(newWnd);
+    }
 }
 
 GuiTerminalWindow *GuiMainWindow::newTerminal()
@@ -159,7 +172,7 @@ void GuiMainWindow::tabCloseRequested (int index)
     assert(termWnd);
     termWnd->userClosingTab = true;
     if (termWnd->cfg.warn_on_close &&
-        termWnd->as->qtsock->state() == QAbstractSocket::ConnectedState &&
+        !termWnd->isSockDisconnected &&
         QMessageBox::No == QMessageBox::question(this, "Exit Confirmation?",
                                   "Are you sure you want to close this session?",
                                   QMessageBox::Yes|QMessageBox::No))

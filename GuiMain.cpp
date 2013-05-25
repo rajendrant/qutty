@@ -10,7 +10,6 @@
 #include "GuiSettingsWindow.h"
 #include "QtTimer.h"
 
-GuiMainWindow *mainWindow;
 QtTimer *globalTimer;
 
 int main(int argc, char *argv[])
@@ -18,7 +17,7 @@ int main(int argc, char *argv[])
     globalTimer = new QtTimer;
 
     QApplication a(argc, argv);
-    mainWindow = new GuiMainWindow();
+    GuiMainWindow *mainWindow = new GuiMainWindow();
     QObject::connect(&a, SIGNAL(focusChanged(QWidget *, QWidget *)), mainWindow, SLOT(focusChanged(QWidget*,QWidget*)));
     mainWindow->show();
 
