@@ -40,7 +40,7 @@ void set_sbar(void *frontend, int total, int start, int page)
 {
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
     f->setScrollBar(total, start, page);
-    qDebug()<<__FUNCTION__<<total<<start<<page;
+    //qDebug()<<__FUNCTION__<<total<<start<<page;
 }
 
 Context get_ctx(void *frontend)

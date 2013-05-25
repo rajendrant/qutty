@@ -78,6 +78,8 @@ GuiTerminalWindow::~GuiTerminalWindow()
         term_provide_resize_fn(term, NULL, NULL);
         term_free(term);
         qtsock->close();
+        term = NULL;
+        qtsock = NULL;
     }
 }
 
@@ -102,7 +104,8 @@ int GuiTerminalWindow::initTerminal()
 
     if (error) {
         char msg[512];
-        sprintf(msg, "Unable to open connection to\n"
+        _snprintf(msg, sizeof(msg),
+                    "Unable to open connection to\n"
                     "%.800s\n" "%s", cfg_dest(&cfg), error);
         qt_message_box(this, APPNAME " Error", msg);
         backend = NULL;
@@ -431,7 +434,7 @@ void GuiTerminalWindow::setTermFont(Config *cfg)
     if (_fontMetrics) delete _fontMetrics;
 
     _font = new QFont(cfg->font.name, cfg->font.height);
-    //_font->setStyleHint(QFont::TypeWriter);
+    _font->setStyleHint(QFont::TypeWriter);
 
     if (cfg->font_quality == FQ_NONANTIALIASED)
         _font->setStyleStrategy(QFont::NoAntialias);
@@ -646,7 +649,12 @@ bool GuiTerminalWindow::event(QEvent *event)
     if (event->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
         if (keyEvent->key() == Qt::Key_Tab) {
+            if (keyEvent->modifiers() == Qt::ControlModifier) {
+                qDebug() << "ctrl tab";
+                return true;
+            }
             keyPressEvent(keyEvent);
+            qDebug() << "key" <<keyEvent;
             return true;
         }
     }

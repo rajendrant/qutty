@@ -7,6 +7,7 @@
 #include "QtCommon.h"
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
+#include "QtTimer.h"
 #include <QKeyEvent>
 extern "C" {
 #include "putty.h"
@@ -19,21 +20,11 @@ using namespace Qt;
 
 char sshver[] = "PuTTY-Local: " __DATE__ " " __TIME__;
 
-QTimer *qtimer = NULL;
-long timing_next_time;
 
-extern GuiMainWindow *mainWindow;
+extern QtTimer *globalTimer;
 void timer_change_notify(long next)
 {
-    long ticks = next - GetTickCount();
-    if (ticks <= 0) ticks = 1;	       /* just in case */
-    if(!qtimer) {
-        qtimer = new QTimer(mainWindow);
-        QObject::connect(qtimer, SIGNAL(timeout()), mainWindow, SLOT(timerHandler()));
-        qtimer->setSingleShot(true);
-    }
-    qtimer->start(ticks);
-    timing_next_time = next;
+    globalTimer->startTimerForTick(next);
 }
 
 int get_remote_username(Config *cfg, char *user, size_t len) {

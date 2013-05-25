@@ -30,6 +30,7 @@ SOURCES +=  \
     QtGss.cpp \
     QtX11.cpp \
     QtConfig.cpp \
+    GuiTabWidget.cpp \
     puttysrc/WINDOWS/winnoise.c \
     puttysrc/WINDOWS/winstore.c \
     puttysrc/WINDOWS/windefs.c \
@@ -85,6 +86,8 @@ HEADERS +=  \
     QtLogDbg.h \
     QtConfig.h \
     QtConfigTag.h \
+    QtTimer.h \
+    GuiTabWidget.h \
     puttysrc/WINDOWS/STORAGE.H \
     puttysrc/TREE234.H \
     puttysrc/TERMINAL.H \

@@ -23,6 +23,7 @@ public:
     GuiTerminalWindow *newTerminal();
     bool winEvent ( MSG * msg, long * result );
     void closeEvent ( QCloseEvent * event );
+    GuiTerminalWindow *getCurrentTerminal();
 
     QTabWidget *tabArea;
 private:
@@ -38,7 +39,6 @@ public slots:
     void closeTerminal(int index);
     void closeTerminal(GuiTerminalWindow *termWnd);
     void tabCloseRequested (int index);
-    void timerHandler();
     void currentChanged(int index);
     void focusChanged ( QWidget * old, QWidget * now );
 

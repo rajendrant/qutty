@@ -10,9 +10,11 @@
 #include <QTabWidget>
 #include <QMessageBox>
 #include <QProxyStyle>
+#include <QTabBar>
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include "GuiSettingsWindow.h"
+#include "GuiTabWidget.h"
 //#include "windows.h"
 extern "C" {
 #include "putty.h"
@@ -44,6 +46,7 @@ public:
     }
 };
 
+
 GuiMainWindow::GuiMainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -55,7 +58,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
     mdiArea->setTabsClosable(true);
     mdiArea->setTabsMovable(true);
 */
-    tabArea = new QTabWidget;
+    tabArea = new GuiTabWidget(this);
     tabArea->setTabsClosable(true);
     tabArea->setMovable(true);
 
@@ -173,15 +176,6 @@ void GuiMainWindow::openSettingsWindow()
 
 extern "C" Socket get_ssh_socket(void *handle);
 extern "C" Socket get_telnet_socket(void *handle);
-
-void GuiMainWindow::timerHandler()
-{
-    long next;
-    qDebug() << "Timer fired";
-    if (run_timers(timing_next_time, &next)) {
-        timer_change_notify(next);
-    }
-}
 
 bool GuiMainWindow::winEvent ( MSG * msg, long * result )
 {
@@ -402,4 +396,15 @@ void GuiMainWindow::tabPrev ()
         tabArea->setCurrentIndex(tabArea->currentIndex()-1);
     else
         tabArea->setCurrentIndex(tabArea->count()-1);
+}
+
+GuiTerminalWindow * GuiMainWindow::getCurrentTerminal()
+{
+    QWidget *widget = tabArea->currentWidget();
+    if (!widget)
+        return NULL;
+    GuiTerminalWindow *termWindow = static_cast<GuiTerminalWindow*>(widget);
+    if (terminalList.indexOf(termWindow) != -1)
+        return termWindow;
+    return NULL;
 }
