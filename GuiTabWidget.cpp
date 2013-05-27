@@ -3,6 +3,7 @@
 #include "GuiTabWidget.h"
 #include "GuiTerminalWindow.h"
 #include "QtConfig.h"
+#include "GuiSettingsWindow.h"
 
 GuiTabWidget::GuiTabWidget(GuiMainWindow * parent) :
     QTabWidget(parent),
@@ -18,7 +19,7 @@ GuiTabWidget::GuiTabWidget(GuiMainWindow * parent) :
 
     menu.addAction(tr("Paste"));
     menu.addSeparator();
-    menu.addAction(tr("New Session"), mainWindow, SLOT(openSettingsWindow()), QKeySequence("Ctrl+Shift+t"));
+    menu.addAction(tr("New Session"), mainWindow, SLOT(on_openNewTab()), QKeySequence("Ctrl+Shift+t"));
     menu.addAction(tr(""));
     menu.addMenu(&menuSavedSessions);
     tmp = menu.addMenu(tr("Split Session"));
@@ -101,6 +102,7 @@ void GuiTabWidget::contextMenuChangeSettingsTriggered()
     QAction *action = qobject_cast<QAction *>(sender());
     if (!action)
         return;
+    emit sig_tabChangeSettings(menuTabIndex);
 }
 
 void GuiTabWidget::contextMenuCloseSessionTriggered()

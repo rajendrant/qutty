@@ -48,16 +48,9 @@ public:
 
 
 GuiMainWindow::GuiMainWindow(QWidget *parent)
-    : QMainWindow(parent)
+    : QMainWindow(parent),
+      settingsWindow(NULL)
 {
-    /*
-    mdiArea = new TerminalMdiArea;
-    mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    mdiArea->setViewMode(QMdiArea::TabbedView);
-    mdiArea->setTabsClosable(true);
-    mdiArea->setTabsMovable(true);
-*/
     tabArea = new GuiTabWidget(this);
     tabArea->setTabsClosable(true);
     tabArea->setMovable(true);
@@ -67,6 +60,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
 
     connect(tabArea, SIGNAL(tabCloseRequested(int)), SLOT(tabCloseRequested(int)));
     connect(tabArea, SIGNAL(currentChanged(int)), SLOT(currentChanged(int)));
+    connect(tabArea, SIGNAL(sig_tabChangeSettings(int)), SLOT(on_changeSettingsTab(int)));
 
     QToolButton* closeTabButton = new QToolButton();
     closeTabButton->setText(tr("+"));
@@ -76,7 +70,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
     closeTabButton->setPopupMode(QToolButton::MenuButtonPopup);
 
     //connect(closeTabButton, SIGNAL(clicked()), this, SLOT(newTelnetTerminal()));
-    connect(closeTabButton, SIGNAL(clicked()), this, SLOT(openSettingsWindow()));
+    connect(closeTabButton, SIGNAL(clicked()), SLOT(on_openNewTab()));
     tabArea->setCornerWidget( closeTabButton, Qt::TopRightCorner );
     tabArea->setStyle(new MyStyle(this));
 
@@ -98,9 +92,9 @@ GuiMainWindow::~GuiMainWindow()
 void GuiMainWindow::initializeMenuKeyboardShortcuts()
 {
     QMenu *submenu;
-    menu->addAction("New Tab", this, SLOT(openSettingsWindow()), QKeySequence("Ctrl+Shift+t"));
+    menu->addAction("New Tab", this, SLOT(on_openNewTab()), QKeySequence("Ctrl+Shift+t"));
 
-    menu->addAction("New Window", this, SLOT(openNewWindow()));
+    menu->addAction("New Window", this, SLOT(on_openNewWindow()));
 
     submenu = new QMenu("View");
     submenu->addAction("Switch to Left Tab", this, SLOT(tabNext()), QKeySequence("Shift+Right"));
@@ -108,13 +102,10 @@ void GuiMainWindow::initializeMenuKeyboardShortcuts()
     menu->addMenu(submenu);
 }
 
-void GuiMainWindow::openNewWindow()
+void GuiMainWindow::on_createNewTab(Config cfg)
 {
-    GuiMainWindow *mainWindow = new GuiMainWindow;
-    mainWindow->show();
-    GuiSettingsWindow *ss = new GuiSettingsWindow(mainWindow);
-    ss->loadDefaultSettings();
-    ss->show();
+    // User has selected a session
+    this->createNewTab(&cfg);
 }
 
 void GuiMainWindow::createNewTab(Config *cfg)
@@ -133,9 +124,10 @@ void GuiMainWindow::createNewTab(Config *cfg)
 GuiTerminalWindow *GuiMainWindow::newTerminal()
 {
     GuiTerminalWindow *termWnd = new GuiTerminalWindow(tabArea, this);
-    tabArea->addTab(termWnd, tr("Qutty"));
+    tabArea->addTab(termWnd, "");
     terminalList.append(termWnd);
     termWnd->setWindowState(termWnd->windowState() | Qt::WindowMaximized);
+    set_title(termWnd, APPNAME);
     return termWnd;
 }
 
@@ -180,11 +172,57 @@ void GuiMainWindow::tabCloseRequested (int index)
     closeTerminal(index);
 }
 
-void GuiMainWindow::openSettingsWindow()
+void GuiMainWindow::on_openNewTab()
 {
-    GuiSettingsWindow *ss = new GuiSettingsWindow(this);
-    ss->loadDefaultSettings();
-    ss->show();
+    /*
+     * 1. Context menu -> New Tab
+     * 2. Main Menu -> New tab
+     * 3. Keyboard shortcut
+     */
+    if (settingsWindow) {
+        QMessageBox::information(this, tr("Cannot open"), tr("Close the existing settings window"));
+        return;
+    }
+    settingsWindow = new GuiSettingsWindow(this);
+    connect(settingsWindow, SIGNAL(signal_session_open(Config)), SLOT(on_createNewTab(Config)));
+    connect(settingsWindow, SIGNAL(signal_session_close()), SLOT(on_settingsWindowClose()));
+    settingsWindow->loadDefaultSettings();
+    settingsWindow->show();
+}
+
+void GuiMainWindow::on_settingsWindowClose()
+{
+    settingsWindow = NULL;
+}
+
+void GuiMainWindow::on_openNewWindow()
+{
+    GuiMainWindow *mainWindow = new GuiMainWindow;
+    mainWindow->on_openNewTab();
+    mainWindow->show();
+}
+
+void GuiMainWindow::on_changeSettingsTab(int tabIndex)
+{
+    if (settingsWindow) {
+        QMessageBox::information(this, tr("Cannot open"), tr("Close the existing settings window"));
+        return;
+    }
+    GuiTerminalWindow *termWnd = (GuiTerminalWindow*)tabArea->widget(tabIndex);
+    assert(termWnd);
+    settingsWindow = new GuiSettingsWindow(this);
+    settingsWindow->enableModeChangeSettings(&termWnd->cfg, tabIndex);
+    connect(settingsWindow, SIGNAL(signal_session_change(Config, int)), SLOT(on_changeSettingsTabComplete(Config, int)));
+    connect(settingsWindow, SIGNAL(signal_session_close()), SLOT(on_settingsWindowClose()));
+    settingsWindow->show();
+}
+
+void GuiMainWindow::on_changeSettingsTabComplete(Config cfg, int tabIndex)
+{
+    settingsWindow = NULL;
+    GuiTerminalWindow *termWnd = (GuiTerminalWindow*)tabArea->widget(tabIndex);
+    assert(termWnd);
+    termWnd->reconfigureTerminal(&cfg);
 }
 
 extern "C" Socket get_ssh_socket(void *handle);

@@ -27,6 +27,7 @@ extern "C" {
 #define NEXTCOLOURS 240
 #define NALLCOLOURS (NCFGCOLOURS + NEXTCOLOURS)
 
+
 class GuiTerminalWindow : public QAbstractScrollArea
 {
     Q_OBJECT
@@ -75,6 +76,7 @@ public:
      */
     int initTerminal();
     int restartTerminal();
+    int reconfigureTerminal(Config *new_cfg);
 
     void keyPressEvent ( QKeyEvent * e );
     void keyReleaseEvent ( QKeyEvent * e );

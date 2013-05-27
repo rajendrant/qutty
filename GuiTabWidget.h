@@ -24,6 +24,9 @@ public slots:
     void contextMenuSavedSessionTriggered();
     void contextMenuChangeSettingsTriggered();
     void contextMenuCloseSessionTriggered();
+
+signals:
+    void sig_tabChangeSettings(int index);
 };
 
 

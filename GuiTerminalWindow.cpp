@@ -180,6 +180,63 @@ int GuiTerminalWindow::restartTerminal()
     return initTerminal();
 }
 
+int GuiTerminalWindow::reconfigureTerminal(Config *new_cfg)
+{
+    Config prev_cfg = this->cfg;
+
+    this->cfg = *new_cfg;
+
+    /* Pass new config data to the logging module */
+    log_reconfig(term->logctx, &cfg);
+
+    /*
+     * Flush the line discipline's edit buffer in the
+     * case where local editing has just been disabled.
+     */
+    if (ldisc)
+        ldisc_send(ldisc, NULL, 0, 0);
+
+    cfgtopalette(&cfg);
+
+    /* Pass new config data to the terminal */
+    term_reconfig(term, &cfg);
+
+    /* Pass new config data to the back end */
+    if (backend)
+        backend->reconfig(backhandle, &cfg);
+
+    /* Screen size changed ? */
+    if (cfg.height != prev_cfg.height ||
+        cfg.width != prev_cfg.width ||
+        cfg.savelines != prev_cfg.savelines ||
+        cfg.resize_action == RESIZE_FONT ||
+        (cfg.resize_action == RESIZE_EITHER /*&& IsZoomed(hwnd)*/) ||
+        cfg.resize_action == RESIZE_DISABLED)
+        term_size(term, cfg.height, cfg.width, cfg.savelines);
+
+    if (cfg.alwaysontop != prev_cfg.alwaysontop) {
+    }
+
+    if (strcmp(cfg.font.name, prev_cfg.font.name) != 0 ||
+        strcmp(cfg.line_codepage, prev_cfg.line_codepage) != 0 ||
+        cfg.font.isbold != prev_cfg.font.isbold ||
+        cfg.font.height != prev_cfg.font.height ||
+        cfg.font.charset != prev_cfg.font.charset ||
+        cfg.font_quality != prev_cfg.font_quality ||
+        cfg.vtmode != prev_cfg.vtmode ||
+        cfg.bold_colour != prev_cfg.bold_colour ||
+        cfg.resize_action == RESIZE_DISABLED ||
+        cfg.resize_action == RESIZE_EITHER ||
+        (cfg.resize_action != prev_cfg.resize_action)) {
+        init_ucs(&cfg, &ucsdata);
+        setTermFont(&cfg);
+    }
+
+    repaint();
+
+    return 0;
+}
+
 TmuxWindowPane *GuiTerminalWindow::initTmuxClientTerminal(TmuxGateway *gateway,
                                         int id, int width, int height)
 {

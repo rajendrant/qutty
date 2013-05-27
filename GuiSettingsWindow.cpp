@@ -24,13 +24,12 @@ extern "C" {
 
 QtConfig qutty_config;
 
-GuiSettingsWindow::GuiSettingsWindow(GuiMainWindow *parent) :
+GuiSettingsWindow::GuiSettingsWindow(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::GuiSettingsWindow)
 {
-    this->mainWindow = parent;
-
     memset(&this->cfg, 0, sizeof(Config));
+    isChangeSettingsMode = false;
 
     ui->setupUi(this);
     ui->stackedWidget->setCurrentIndex(0);
@@ -123,6 +122,8 @@ GuiSettingsWindow::GuiSettingsWindow(GuiMainWindow *parent) :
 
     // resize to minimum needed dimension
     this->resize(0, 0);
+
+    this->connect(this, SIGNAL(rejected()), SLOT(slot_GuiSettingsWindow_rejected()));
 }
 
 GuiSettingsWindow::~GuiSettingsWindow()
@@ -137,11 +138,17 @@ void GuiSettingsWindow::on_rb_contype_telnet_clicked()
 
 void GuiSettingsWindow::on_rb_contype_ssh_clicked()
 {
-   ui->le_port->setText("22");
+    ui->le_port->setText("22");
 }
 
 void GuiSettingsWindow::on_buttonBox_accepted()
 {
+    if (isChangeSettingsMode) {
+        emit signal_session_change(*getConfig(), tabIndex);
+        this->close();
+        return;
+    }
+
     if (ui->le_hostname->text() == "" &&
         ui->l_saved_sess->currentItem()->text() == QUTTY_DEFAULT_CONFIG_SETTINGS) {
         return;
@@ -155,7 +162,7 @@ void GuiSettingsWindow::on_buttonBox_accepted()
     // check for NOT_YET_SUPPORTED configs
     chkUnsupportedConfigs(*getConfig());
 
-    mainWindow->createNewTab(getConfig());
+    emit signal_session_open(*getConfig());
     this->close();
 }
 
@@ -164,6 +171,11 @@ void GuiSettingsWindow::on_buttonBox_rejected()
     this->close();
 }
 
+void GuiSettingsWindow::slot_GuiSettingsWindow_rejected()
+{
+    emit signal_session_close();
+    this->close();
+}
 
 void GuiSettingsWindow::setConfig(Config *_cfg)
 {
@@ -416,6 +428,18 @@ void GuiSettingsWindow::loadDefaultSettings()
     }
 }
 
+void GuiSettingsWindow::enableModeChangeSettings(Config *cfg, int tabIndex)
+{
+    isChangeSettingsMode = true;
+    this->tabIndex = tabIndex;
+    setConfig(cfg);
+
+    ui->buttonBox->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    ui->gp_connection->setEnabled(false);
+    ui->b_load_sess->setEnabled(false);
+    ui->b_delete_sess->setEnabled(false);
+}
+
 void GuiSettingsWindow::on_b_delete_sess_clicked()
 {
     char config_name[100];
@@ -434,6 +458,9 @@ void GuiSettingsWindow::on_b_delete_sess_clicked()
 
 void GuiSettingsWindow::on_l_saved_sess_doubleClicked(const QModelIndex &index)
 {
+    if (isChangeSettingsMode)
+        return;
+
     on_b_load_sess_clicked();
     on_buttonBox_accepted();
 }

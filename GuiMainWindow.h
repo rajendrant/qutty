@@ -12,6 +12,9 @@
 #include <QMenu>
 #include "GuiMainWindow.h"
 #include "QtCommon.h"
+#include "GuiSettingsWindow.h"
+
+class GuiSettingsWindow;
 
 class GuiMainWindow : public QMainWindow
 {
@@ -28,15 +31,19 @@ public:
 
     QTabWidget *tabArea;
 private:
-    //TerminalMdiArea *mdiArea;
+    GuiSettingsWindow *settingsWindow;
     QList<GuiTerminalWindow *> terminalList;
     QMenu *menu;
 
     void initializeMenuKeyboardShortcuts();
 
 public slots:
-    void openNewWindow();
-    void openSettingsWindow();
+    void on_openNewWindow();
+    void on_openNewTab();
+    void on_createNewTab(Config cfg);
+    void on_settingsWindowClose();
+    void on_changeSettingsTab(int tabIndex);
+    void on_changeSettingsTabComplete(Config cfg, int tabIndex);
     void closeTerminal(int index);
     void closeTerminal(GuiTerminalWindow *termWnd);
     void tabCloseRequested (int index);

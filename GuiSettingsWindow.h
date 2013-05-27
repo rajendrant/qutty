@@ -13,7 +13,6 @@
 #include "QtConfig.h"
 #include <QFileDialog>
 #include <QListWidgetItem>
-#include "GuiMainWindow.h"
 
 namespace Ui {
 class GuiSettingsWindow;
@@ -35,12 +34,13 @@ class GuiSettingsWindow : public QDialog
         GUI_LOGLVL_NONE, GUI_LOGLVL_PRINT_OUT, GUI_LOGLVL_ALL_SES_OUT, GUI_LOGLVL_SSH_PACKET, GUI_LOGLVL_SSH_RAWDATA
     } gui_loglevel_t;
 
-    GuiMainWindow *mainWindow;
     // config that is loaded onto the settings window
     Config cfg;
+    bool isChangeSettingsMode;
+    int tabIndex; // tab index for which 'change settings' happens
 
 public:
-    explicit GuiSettingsWindow(GuiMainWindow *parent);
+    explicit GuiSettingsWindow(QWidget *parent);
     ~GuiSettingsWindow();
 
     // getter/setter to config in the settings window
@@ -49,11 +49,19 @@ public:
 
     void loadSessionNames();
     void loadDefaultSettings();
+    void enableModeChangeSettings(Config *cfg, int tabIndex);
+
+signals:
+    void signal_session_open(Config cfg);
+    void signal_session_change(Config cfg, int tabIndex);
+    void signal_session_close();
 
 private slots:
     void on_buttonBox_accepted();
 
     void on_buttonBox_rejected();
+
+    void slot_GuiSettingsWindow_rejected();
 
     void on_rb_contype_telnet_clicked();
 

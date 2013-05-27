@@ -18,13 +18,12 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
     GuiMainWindow *mainWindow = new GuiMainWindow();
+
+    qutty_config.restoreConfig();
+
+    mainWindow->on_openNewTab();
     QObject::connect(&a, SIGNAL(focusChanged(QWidget *, QWidget *)), mainWindow, SLOT(focusChanged(QWidget*,QWidget*)));
     mainWindow->show();
 
-    qutty_config.restoreConfig();
-    GuiSettingsWindow *ss = new GuiSettingsWindow(mainWindow);
-    ss->loadDefaultSettings();
-
-    ss->show();
     return a.exec();
 }

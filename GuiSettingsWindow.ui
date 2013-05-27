@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>GuiSettingsWindow</class>
  <widget class="QDialog" name="GuiSettingsWindow">
+  <property name="windowModality">
+   <enum>Qt::WindowModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -281,7 +284,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBox">
+          <widget class="QGroupBox" name="gp_connection">
            <property name="title">
             <string>Specify the destination you want to connect to</string>
            </property>
