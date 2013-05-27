@@ -622,7 +622,10 @@ void 	GuiTerminalWindow::mousePressEvent ( QMouseEvent * e )
 
     if(e->button()==Qt::RightButton &&
             ((e->modifiers() & Qt::ControlModifier) || (cfg.mouse_is_xterm == 2))) {
-        // TODO right click menu
+        // right click menu
+        this->showContextMenu(e);
+        e->accept();
+        return;
     }
     Mouse_Button button, bcooked;
     button = e->button()==Qt::LeftButton ? MBT_LEFT :

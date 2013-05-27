@@ -36,6 +36,8 @@ private:
     TmuxGateway *_tmuxGateway;
     GuiMainWindow *mainWindow;
 
+    void showContextMenu(QMouseEvent *e);
+
 public:
     QFont _font;
     int fontWidth, fontHeight, fontAscent;

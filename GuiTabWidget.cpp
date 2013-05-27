@@ -4,32 +4,30 @@
 #include "GuiTerminalWindow.h"
 #include "QtConfig.h"
 #include "GuiSettingsWindow.h"
+#include "GuiMenu.h"
 
 GuiTabWidget::GuiTabWidget(GuiMainWindow * parent) :
     QTabWidget(parent),
     menu(this),
     mainWindow(parent),
-    menuTabIndex(-1),
-    menuSavedSessions(tr("Saved Sessions"))
+    menuTabIndex(-1)
 {
     QMenu *tmp;
     this->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, SIGNAL(customContextMenuRequested(QPoint)),
             SLOT(showContextMenu(QPoint)));
 
-    menu.addAction(tr("Paste"));
+    QUTTY_MENU_ADD_ACTION(&menu, MENU_PASTE, this, contextMenuPaste());
     menu.addSeparator();
-    menu.addAction(tr("New Session"), mainWindow, SLOT(on_openNewTab()), QKeySequence("Ctrl+Shift+t"));
-    menu.addAction(tr(""));
-    menu.addMenu(&menuSavedSessions);
-    tmp = menu.addMenu(tr("Split Session"));
-    tmp->addAction(tr("Horizontally"));
-    tmp->addAction(tr("Vertcally"));
-    menu.addAction(tr("Change Settings"), this, SLOT(contextMenuChangeSettingsTriggered()));
+    QUTTY_MENU_ADD_ACTION(&menu, MENU_NEW_SESSION, mainWindow, on_openNewTab());
+    menu.addAction("");  // Restart/Duplicate
+    menu.addMenu(&mainWindow->menuSavedSessions);
+    tmp = menu.addMenu(qutty_menu_common_name[MENU_SPLIT_SESSION]);
+    tmp->addAction(qutty_menu_common_name[MENU_SPLIT_HORIZONTAL]);
+    tmp->addAction(qutty_menu_common_name[MENU_SPLIT_VERTICAL]);
+    QUTTY_MENU_ADD_ACTION(&menu, MENU_CHANGE_SETTINGS, this, contextMenuChangeSettingsTriggered());
     menu.addSeparator();
-    menu.addAction(tr("Close"), this, SLOT(contextMenuCloseSessionTriggered()));
-
-    connect(&qutty_config, SIGNAL(savedSessionsChanged()), this, SLOT(savedSessionsChanged()));
+    QUTTY_MENU_ADD_ACTION(&menu, MENU_CLOSE_SESSION, this, contextMenuCloseSessionTriggered());
 }
 
 void GuiTabWidget::showContextMenu(const QPoint &point)
@@ -44,28 +42,28 @@ void GuiTabWidget::showContextMenu(const QPoint &point)
         return;
 
     GuiTerminalWindow *termWindow = static_cast<GuiTerminalWindow*>(widget);
+    QAction *act = menu.actions()[3];
+    act->disconnect();
     if (termWindow && !termWindow->isSockDisconnected) {
-        menu.actions()[3]->setText(tr("Duplicate Session"));
-        menu.actions()[3]->disconnect();
-        connect(menu.actions()[3], SIGNAL(triggered()), this, SLOT(contextMenuDuplicateSessionTriggered()));
+        act->setText(qutty_menu_common_name[MENU_DUPLICATE_SESSION]);
+        connect(act, SIGNAL(triggered()), this, SLOT(contextMenuDuplicateSessionTriggered()));
     } else {
-        menu.actions()[3]->setText(tr("Restart Session"));
-        menu.actions()[3]->disconnect();
-        connect(menu.actions()[3], SIGNAL(triggered()), this, SLOT(contextMenuRestartSessionTriggered()));
+        act->setText(qutty_menu_common_name[MENU_RESTART_SESSION]);
+        connect(act, SIGNAL(triggered()), this, SLOT(contextMenuRestartSessionTriggered()));
     }
 
     menu.exec(this->mapToGlobal(point));
 }
 
-void GuiTabWidget::savedSessionsChanged()
+
+void GuiTabWidget::contextMenuPaste()
 {
-    menuSavedSessions.clear();
-    for(std::map<string, Config>::iterator it = qutty_config.config_list.begin();
-        it != qutty_config.config_list.end(); it++) {
-        if (it->first == QUTTY_DEFAULT_CONFIG_SETTINGS)
-            continue;
-        menuSavedSessions.addAction(it->first.c_str(), this, SLOT(contextMenuSavedSessionTriggered()));
-    }
+    QAction *action = qobject_cast<QAction *>(sender());
+    if (!action)
+        return;
+    GuiTerminalWindow *termWnd = (GuiTerminalWindow*)this->widget(menuTabIndex);
+    assert(termWnd);
+    termWnd->requestPaste();
 }
 
 void GuiTabWidget::contextMenuDuplicateSessionTriggered()
@@ -86,15 +84,6 @@ void GuiTabWidget::contextMenuRestartSessionTriggered()
     GuiTerminalWindow *termWnd = (GuiTerminalWindow*)this->widget(menuTabIndex);
     assert(termWnd);
     termWnd->restartTerminal();
-}
-
-void GuiTabWidget::contextMenuSavedSessionTriggered()
-{
-    QAction *action = qobject_cast<QAction *>(sender());
-    if (!action ||
-        qutty_config.config_list.find(action->text().toStdString()) == qutty_config.config_list.end())
-        return;
-    mainWindow->createNewTab(&qutty_config.config_list[action->text().toStdString()]);
 }
 
 void GuiTabWidget::contextMenuChangeSettingsTriggered()

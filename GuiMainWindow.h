@@ -10,9 +10,11 @@
 #include <QtGui/QMainWindow>
 #include <QMdiArea>
 #include <QMenu>
+#include <QToolButton>
 #include "GuiMainWindow.h"
 #include "QtCommon.h"
 #include "GuiSettingsWindow.h"
+#include "GuiMenu.h"
 
 class GuiSettingsWindow;
 
@@ -21,6 +23,10 @@ class GuiMainWindow : public QMainWindow
     Q_OBJECT
     
 public:
+    QMenu menuTermWnd;              // shown in terminal ctrl-right-click
+    GuiTerminalWindow *menuTermWndCurr;
+    QMenu menuSavedSessions;
+
     GuiMainWindow(QWidget *parent = 0);
     ~GuiMainWindow();
     GuiTerminalWindow *newTerminal();
@@ -33,9 +39,10 @@ public:
 private:
     GuiSettingsWindow *settingsWindow;
     QList<GuiTerminalWindow *> terminalList;
-    QMenu *menu;
+    QToolButton newTabToolButton;   // shown in top right corner of tabbar
+    QMenu menuTabBar;               // shown in top right corner of tabbar
 
-    void initializeMenuKeyboardShortcuts();
+    void initializeMenuSystem();
 
 public slots:
     void on_openNewWindow();
@@ -53,6 +60,13 @@ public slots:
     void tabNext();
     void tabPrev();
 
+    void contextMenuPaste();
+    void contextMenuSavedSessionsChanged();
+    void contextMenuSavedSessionTriggered();
+    void contextMenuDuplicateSessionTriggered();
+    void contextMenuRestartSessionTriggered();
+    void contextMenuChangeSettingsTriggered();
+    void contextMenuCloseSessionTriggered();
 };
 
 #endif // MAINWINDOW_H
