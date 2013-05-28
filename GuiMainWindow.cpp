@@ -9,6 +9,8 @@
 #include <QTabWidget>
 #include <QMessageBox>
 #include <QTabBar>
+#include <QSettings>
+#include <QMenuBar>
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include "GuiSettingsWindow.h"
@@ -26,8 +28,13 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
       settingsWindow(NULL),
       newTabToolButton(),
       menuTabBar(&newTabToolButton),
-      menuTermWnd()
+      menuTermWnd(this),
+      menuCookieTermWnd(NULL),
+      menuCookieTabIndex(-1)
 {
+    memset(menuCommonActions, 0, sizeof(menuCommonActions));
+    memset(menuCommonMenus, 0, sizeof(menuCommonMenus));
+
     setWindowTitle(APPNAME);
 
     tabArea = new GuiTabWidget(this);
@@ -44,6 +51,9 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
     initializeMenuSystem();
 
     this->setCentralWidget(tabArea);
+
+    // read & restore the settings
+    readSettings();
 }
 
 GuiMainWindow::~GuiMainWindow()
@@ -102,6 +112,7 @@ void GuiMainWindow::closeEvent ( QCloseEvent * event )
                                   "Are you sure you want to close all the sessions?",
                                   QMessageBox::Yes|QMessageBox::No))
     {
+        writeSettings();
         event->accept();
     }
 }
@@ -407,4 +418,36 @@ GuiTerminalWindow * GuiMainWindow::getCurrentTerminal()
     if (terminalList.indexOf(termWindow) != -1)
         return termWindow;
     return NULL;
+}
+
+void GuiMainWindow::readSettings()
+{
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope, APPNAME, APPNAME);
+
+    settings.beginGroup("GuiMainWindow");
+    resize(settings.value("Size", QSize(400, 400)).toSize());
+    move(settings.value("Position", QPoint(200, 200)).toPoint());
+    setWindowState((Qt::WindowState)settings.value("WindowState", (int)windowState()).toInt());
+    setWindowFlags((Qt::WindowFlags)settings.value("WindowFlags", (int)windowFlags()).toInt());
+    menuBar()->setVisible(settings.value("ShowMenuBar", true).toBool());
+    settings.endGroup();
+
+    menuCommonActions[MENU_FULLSCREEN]->setChecked((windowState() & Qt::WindowFullScreen));
+    menuCommonActions[MENU_ALWAYSONTOP]->setChecked((windowFlags() & Qt::WindowStaysOnTopHint));
+    menuCommonActions[MENU_MENUBAR]->setChecked(menuBar()->isVisible());
+
+    this->show();
+}
+
+void GuiMainWindow::writeSettings()
+{
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope, APPNAME, APPNAME);
+
+    settings.beginGroup("GuiMainWindow");
+    settings.setValue("Size", size());
+    settings.setValue("Position", pos());
+    settings.setValue("WindowState", (int)windowState());
+    settings.setValue("WindowFlags", (int)windowFlags());
+    settings.setValue("ShowMenuBar", menuBar()->isVisible());
+    settings.endGroup();
 }

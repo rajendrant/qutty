@@ -23,8 +23,11 @@ class GuiMainWindow : public QMainWindow
     Q_OBJECT
     
 public:
+    QAction *menuCommonActions[MENU_MAX_ACTION];
+    QMenu *menuCommonMenus[MENU_MAX_MENU];
     QMenu menuTermWnd;              // shown in terminal ctrl-right-click
-    GuiTerminalWindow *menuTermWndCurr;
+    GuiTerminalWindow *menuCookieTermWnd;
+    int menuCookieTabIndex;
     QMenu menuSavedSessions;
 
     GuiMainWindow(QWidget *parent = 0);
@@ -43,6 +46,10 @@ private:
     QMenu menuTabBar;               // shown in top right corner of tabbar
 
     void initializeMenuSystem();
+    void populateMenu(QMenu &menu, qutty_menu_id_t menu_list[], int len);
+
+    void readSettings();
+    void writeSettings();
 
 public slots:
     void on_openNewWindow();
@@ -67,6 +74,10 @@ public slots:
     void contextMenuRestartSessionTriggered();
     void contextMenuChangeSettingsTriggered();
     void contextMenuCloseSessionTriggered();
+    void contextMenuCloseWindowTriggered();
+    void contextMenuMenuBar();
+    void contextMenuFullScreen();
+    void contextMenuAlwaysOnTop();
 };
 
 #endif // MAINWINDOW_H
