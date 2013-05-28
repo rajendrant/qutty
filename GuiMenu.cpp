@@ -68,6 +68,7 @@ void GuiMainWindow::initializeMenuSystem()
     menuBar()->addMenu(menuCommonMenus[MENU_FILE-MENU_SEPARATOR-1]);
     menuBar()->addMenu(menuCommonMenus[MENU_EDIT-MENU_SEPARATOR-1]);
     menuBar()->addMenu(menuCommonMenus[MENU_VIEW-MENU_SEPARATOR-1]);
+    menuCommonActions[MENU_MENUBAR]->setChecked(true);
 
     qutty_menu_id_t menus_term_wnd[] = {
         MENU_PASTE,

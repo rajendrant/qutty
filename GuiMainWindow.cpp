@@ -422,6 +422,7 @@ GuiTerminalWindow * GuiMainWindow::getCurrentTerminal()
 
 void GuiMainWindow::readSettings()
 {
+    bool menuBarVisible;
     QSettings settings(QSettings::IniFormat, QSettings::UserScope, APPNAME, APPNAME);
 
     settings.beginGroup("GuiMainWindow");
@@ -429,12 +430,13 @@ void GuiMainWindow::readSettings()
     move(settings.value("Position", QPoint(200, 200)).toPoint());
     setWindowState((Qt::WindowState)settings.value("WindowState", (int)windowState()).toInt());
     setWindowFlags((Qt::WindowFlags)settings.value("WindowFlags", (int)windowFlags()).toInt());
-    menuBar()->setVisible(settings.value("ShowMenuBar", true).toBool());
+    menuBarVisible = settings.value("ShowMenuBar", true).toBool();
     settings.endGroup();
 
     menuCommonActions[MENU_FULLSCREEN]->setChecked((windowState() & Qt::WindowFullScreen));
     menuCommonActions[MENU_ALWAYSONTOP]->setChecked((windowFlags() & Qt::WindowStaysOnTopHint));
-    menuCommonActions[MENU_MENUBAR]->setChecked(menuBar()->isVisible());
+    menuCommonActions[MENU_MENUBAR]->setChecked(menuBarVisible);
+    menuBarVisible ? menuBar()->show() : menuBar()->hide();
 
     this->show();
 }
