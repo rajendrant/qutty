@@ -38,7 +38,7 @@ void GuiTabWidget::showContextMenu(const QPoint &point)
     this->mainWindow->menuCookieTermWnd = NULL;
     this->mainWindow->menuCookieTabIndex = menuTabIndex;
     mainWindow->menuCommonActions[id]->setVisible(false);
-    this->mainWindow->menuTermWnd.exec(this->mapToGlobal(point));
+    this->mainWindow->getMenuById(MENU_TERM_WINDOW)->exec(this->mapToGlobal(point));
     mainWindow->menuCommonActions[id]->setVisible(true);
     this->mainWindow->menuCookieTermWnd = NULL;
     this->mainWindow->menuCookieTabIndex = -1;

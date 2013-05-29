@@ -27,13 +27,10 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
     : QMainWindow(parent),
       settingsWindow(NULL),
       newTabToolButton(),
-      menuTabBar(&newTabToolButton),
-      menuTermWnd(this),
       menuCookieTermWnd(NULL),
       menuCookieTabIndex(-1)
 {
     memset(menuCommonActions, 0, sizeof(menuCommonActions));
-    memset(menuCommonMenus, 0, sizeof(menuCommonMenus));
 
     setWindowTitle(APPNAME);
 
@@ -59,6 +56,8 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
 GuiMainWindow::~GuiMainWindow()
 {
     delete tabArea;
+    for (int i=0; i < MENU_MAX_ACTION; i++)
+        delete menuCommonActions[i];
 }
 
 void GuiMainWindow::on_createNewTab(Config cfg)

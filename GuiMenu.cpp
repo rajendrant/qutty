@@ -16,9 +16,16 @@ qutty_menu_links_t qutty_menu_links[MENU_MAX_MENU] = {
 { "File", 7, {MENU_NEW_TAB, MENU_NEW_WINDOW, MENU_SEPARATOR, MENU_SAVED_SESSIONS, MENU_EXPORT_IMPORT, MENU_SEPARATOR, MENU_EXIT} },
 { "Edit", 0, {} },
 { "View", 6, { MENU_SWITCH_LEFT_TAB, MENU_SWITCH_RIGHT_TAB, MENU_SEPARATOR, MENU_MENUBAR, MENU_ALWAYSONTOP, MENU_FULLSCREEN } },
-{ "Export/Import Settings",     3, { MENU_IMPORT_FILE, MENU_IMPORT_REGISTRY, MENU_EXPORT_FILE} },
-{ "Saved Sessions",             0, {} },
-{ "Split Session",              2, { MENU_SPLIT_HORIZONTAL, MENU_SPLIT_VERTICAL } },
+{ "Export/Import Settings",     3,  { MENU_IMPORT_FILE, MENU_IMPORT_REGISTRY, MENU_EXPORT_FILE} },
+{ "Saved Sessions",             0,  {} },
+{ "Split Session",              2,  { MENU_SPLIT_HORIZONTAL, MENU_SPLIT_VERTICAL } },
+{ "Menu Term Window",           10, { MENU_PASTE, MENU_SEPARATOR,
+                                      MENU_NEW_SESSION, MENU_RESTART_SESSION, MENU_DUPLICATE_SESSION,
+                                      MENU_SAVED_SESSIONS, MENU_SPLIT_SESSION, MENU_CHANGE_SETTINGS,
+                                      MENU_SEPARATOR, MENU_CLOSE_SESSION} },
+{ "Menu Tabbar",                10, { MENU_NEW_TAB, MENU_NEW_WINDOW, MENU_SEPARATOR,
+                                      MENU_SAVED_SESSIONS, MENU_SEPARATOR, MENU_EXPORT_IMPORT,
+                                      MENU_SEPARATOR, MENU_VIEW, MENU_SEPARATOR, MENU_EXIT } },
 };
 
 class MyStyle : public QProxyStyle
@@ -54,10 +61,8 @@ void GuiMainWindow::initializeMenuSystem()
 #undef QUTTY_ENTRY
 
     for(int i=0; i<MENU_MAX_MENU; i++) {
-        menuCommonMenus[i] = new QMenu(qutty_menu_links[i].name);
-    }
-    for(int i=0; i<MENU_MAX_MENU; i++) {
-        populateMenu(*menuCommonMenus[i], qutty_menu_links[i].links, qutty_menu_links[i].len);
+        menuCommonMenus[i].setTitle(qutty_menu_links[i].name);
+        populateMenu(menuCommonMenus[i], qutty_menu_links[i].links, qutty_menu_links[i].len);
     }
 
     menuCommonActions[MENU_MENUBAR]->setCheckable(true);
@@ -65,40 +70,13 @@ void GuiMainWindow::initializeMenuSystem()
     menuCommonActions[MENU_ALWAYSONTOP]->setCheckable(true);
 
     // setup main menubar
-    menuBar()->addMenu(menuCommonMenus[MENU_FILE-MENU_SEPARATOR-1]);
-    menuBar()->addMenu(menuCommonMenus[MENU_EDIT-MENU_SEPARATOR-1]);
-    menuBar()->addMenu(menuCommonMenus[MENU_VIEW-MENU_SEPARATOR-1]);
+    menuBar()->addMenu(&menuCommonMenus[MENU_FILE-MENU_SEPARATOR-1]);
+    menuBar()->addMenu(&menuCommonMenus[MENU_EDIT-MENU_SEPARATOR-1]);
+    menuBar()->addMenu(&menuCommonMenus[MENU_VIEW-MENU_SEPARATOR-1]);
     menuCommonActions[MENU_MENUBAR]->setChecked(true);
 
-    qutty_menu_id_t menus_term_wnd[] = {
-        MENU_PASTE,
-        MENU_SEPARATOR,
-        MENU_NEW_SESSION, MENU_RESTART_SESSION, MENU_DUPLICATE_SESSION,
-        MENU_SAVED_SESSIONS, MENU_SPLIT_SESSION, MENU_CHANGE_SETTINGS,
-        MENU_SEPARATOR,
-        MENU_CLOSE_SESSION
-    };
-
-    qutty_menu_id_t menus_toolbar[] = {
-        MENU_NEW_TAB, MENU_NEW_WINDOW,
-        MENU_SEPARATOR,
-        MENU_SAVED_SESSIONS,
-        MENU_SEPARATOR,
-        MENU_EXPORT_IMPORT,
-        MENU_SEPARATOR,
-        MENU_VIEW,
-        MENU_SEPARATOR,
-        MENU_EXIT
-    };
-
-    // populate terminal context menu
-    populateMenu(menuTermWnd, menus_term_wnd, sizeof(menus_term_wnd)/sizeof(menus_term_wnd[0]));
-
-    // populate terminal context menu
-    populateMenu(menuTabBar, menus_toolbar, sizeof(menus_toolbar)/sizeof(menus_toolbar[0]));
-
     newTabToolButton.setText(tr("+"));
-    newTabToolButton.setMenu(&menuTabBar);
+    newTabToolButton.setMenu(getMenuById(MENU_TAB_BAR));
     newTabToolButton.setPopupMode(QToolButton::MenuButtonPopup);
 
     connect(&newTabToolButton, SIGNAL(clicked()), SLOT(on_openNewTab()));
@@ -115,7 +93,7 @@ void GuiMainWindow::populateMenu(QMenu &menu, qutty_menu_id_t menu_list[], int l
         if (menu_list[i] < MENU_SEPARATOR) {
             menu.addAction(menuCommonActions[menu_list[i]]);
         } else if (menu_list[i] > MENU_SEPARATOR) {
-            menu.addMenu(menuCommonMenus[menu_list[i] - MENU_SEPARATOR - 1]);
+            menu.addMenu(&menuCommonMenus[menu_list[i] - MENU_SEPARATOR - 1]);
         } else {
             menu.addSeparator();
         }
@@ -136,7 +114,7 @@ void GuiTerminalWindow::showContextMenu(QMouseEvent *e)
     this->mainWindow->menuCookieTermWnd = this;
     this->mainWindow->menuCookieTabIndex = -1;
     mainWindow->menuCommonActions[id]->setVisible(false);
-    this->mainWindow->menuTermWnd.exec(e->globalPos());
+    this->mainWindow->getMenuById(MENU_TERM_WINDOW)->exec(e->globalPos());
     mainWindow->menuCommonActions[id]->setVisible(true);
     this->mainWindow->menuCookieTermWnd = NULL;
     this->mainWindow->menuCookieTabIndex = -1;
@@ -144,7 +122,7 @@ void GuiTerminalWindow::showContextMenu(QMouseEvent *e)
 
 void GuiMainWindow::contextMenuSavedSessionsChanged()
 {
-    QMenu *menuSavedSessions = menuCommonMenus[MENU_SAVED_SESSIONS - MENU_SEPARATOR - 1];
+    QMenu *menuSavedSessions = &menuCommonMenus[MENU_SAVED_SESSIONS - MENU_SEPARATOR - 1];
     if (!menuSavedSessions)
         return;
     menuSavedSessions->clear();

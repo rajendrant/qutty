@@ -24,8 +24,7 @@ class GuiMainWindow : public QMainWindow
     
 public:
     QAction *menuCommonActions[MENU_MAX_ACTION];
-    QMenu *menuCommonMenus[MENU_MAX_MENU];
-    QMenu menuTermWnd;              // shown in terminal ctrl-right-click
+    QMenu menuCommonMenus[MENU_MAX_MENU];
     GuiTerminalWindow *menuCookieTermWnd;
     int menuCookieTabIndex;
     QMenu menuSavedSessions;
@@ -38,12 +37,16 @@ public:
     void closeEvent ( QCloseEvent * event );
     GuiTerminalWindow *getCurrentTerminal();
 
+    QMenu *getMenuById(qutty_menu_id_t id) {
+        assert(id > MENU_SEPARATOR && id <= MENU_SEPARATOR + MENU_MAX_MENU);
+        return &menuCommonMenus[id - MENU_SEPARATOR - 1];
+    }
+
     QTabWidget *tabArea;
 private:
     GuiSettingsWindow *settingsWindow;
     QList<GuiTerminalWindow *> terminalList;
     QToolButton newTabToolButton;   // shown in top right corner of tabbar
-    QMenu menuTabBar;               // shown in top right corner of tabbar
 
     void initializeMenuSystem();
     void populateMenu(QMenu &menu, qutty_menu_id_t menu_list[], int len);

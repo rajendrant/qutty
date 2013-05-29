@@ -36,11 +36,13 @@ enum qutty_menu_id_t {
     MENU_VIEW,
     MENU_EXPORT_IMPORT,
     MENU_SAVED_SESSIONS,
-    MENU_SPLIT_SESSION
+    MENU_SPLIT_SESSION,
+    MENU_TERM_WINDOW,
+    MENU_TAB_BAR
 };
 
 #define MENU_MAX_ACTION     20
-#define MENU_MAX_MENU       6
+#define MENU_MAX_MENU       8
 
 struct qutty_menu_links_t {
     char *name;
