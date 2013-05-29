@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2013 Rajendran Thirupugalsamy
+ * See LICENSE for full copyright and license information.
+ * See COPYING for distribution information.
+ */
+
 #ifndef GUIMENU_H
 #define GUIMENU_H
 
@@ -13,8 +19,8 @@
     QUTTY_ENTRY(MENU_NEW_TAB,           "New Tab",             "Ctrl+Shift+T",  on_openNewTab) \
     QUTTY_ENTRY(MENU_NEW_WINDOW,        "New Window",          "",              on_openNewWindow) \
     QUTTY_ENTRY(MENU_CLOSE_SESSION,     "Close",               "",              contextMenuCloseSessionTriggered) \
-    QUTTY_ENTRY(MENU_SPLIT_HORIZONTAL,  "Horizontally",        "Ctrl+Shift+H",  "") \
-    QUTTY_ENTRY(MENU_SPLIT_VERTICAL,    "Vertically",          "Ctrl+Shift+V",  "") \
+    QUTTY_ENTRY(MENU_SPLIT_HORIZONTAL,  "Horizontally",        "Ctrl+Shift+H",  on_openNewSplitHorizontal) \
+    QUTTY_ENTRY(MENU_SPLIT_VERTICAL,    "Vertically",          "Ctrl+Shift+V",  on_openNewSplitVertical) \
     QUTTY_ENTRY(MENU_SWITCH_LEFT_TAB,   "Switch to Left Tab",  "Shift+Left",    tabPrev) \
     QUTTY_ENTRY(MENU_SWITCH_RIGHT_TAB,  "Switch to Right Tab", "Shift+Right",   tabNext) \
     QUTTY_ENTRY(MENU_IMPORT_FILE,       "Import from File",    "",              "") \
@@ -45,7 +51,7 @@ enum qutty_menu_id_t {
 #define MENU_MAX_MENU       8
 
 struct qutty_menu_links_t {
-    char *name;
+    const char *name;
     int len;
     qutty_menu_id_t links[20];
 };

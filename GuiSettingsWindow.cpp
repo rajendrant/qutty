@@ -24,8 +24,9 @@ extern "C" {
 
 QtConfig qutty_config;
 
-GuiSettingsWindow::GuiSettingsWindow(QWidget *parent) :
+GuiSettingsWindow::GuiSettingsWindow(QWidget *parent, GuiBase::SplitType openmode) :
     QDialog(parent),
+    openMode(openmode),
     ui(new Ui::GuiSettingsWindow)
 {
     memset(&this->cfg, 0, sizeof(Config));
@@ -145,8 +146,7 @@ void GuiSettingsWindow::on_buttonBox_accepted()
 {
     if (isChangeSettingsMode) {
         emit signal_session_change(*getConfig(), tabIndex);
-        this->close();
-        return;
+        goto cu0;
     }
 
     if (ui->le_hostname->text() == "" &&
@@ -162,19 +162,24 @@ void GuiSettingsWindow::on_buttonBox_accepted()
     // check for NOT_YET_SUPPORTED configs
     chkUnsupportedConfigs(*getConfig());
 
-    emit signal_session_open(*getConfig());
+    emit signal_session_open(*getConfig(), openMode);
+
+cu0:
     this->close();
+    this->deleteLater();
 }
 
 void GuiSettingsWindow::on_buttonBox_rejected()
 {
     this->close();
+    this->deleteLater();
 }
 
 void GuiSettingsWindow::slot_GuiSettingsWindow_rejected()
 {
     emit signal_session_close();
     this->close();
+    this->deleteLater();
 }
 
 void GuiSettingsWindow::setConfig(Config *_cfg)

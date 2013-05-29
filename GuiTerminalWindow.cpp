@@ -48,6 +48,8 @@ GuiTerminalWindow::GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow)
 
     _tmuxMode = TMUX_MODE_NONE;
     _tmuxGateway = NULL;
+
+    _disableResize = false;
 }
 
 GuiTerminalWindow::~GuiTerminalWindow()
@@ -705,6 +707,11 @@ void GuiTerminalWindow::writeClip(wchar_t * data, int *attr, int len, int must_d
 
 void 	GuiTerminalWindow::resizeEvent ( QResizeEvent * e )
 {
+    qDebug()<<"resize"<<term<<viewport()->size();
+    if (_disableResize) {
+        qDebug()<<"_disableResize set"<<term;
+        return;
+    }
     if (_tmuxMode==TMUX_MODE_CLIENT) {
         wchar_t cmd_resize[128];
         int cmd_resize_len = wsprintf(cmd_resize, L"control set-client-size %d,%d\n",
@@ -823,4 +830,56 @@ void GuiTerminalWindow::sockDisconnected()
     char errStr[256];
     qstring_to_char(errStr, as->qtsock->errorString(), sizeof(errStr));
     (*as->plug)->closing(as->plug, errStr, as->qtsock->error(), 0);
+}
+
+void GuiTerminalWindow::createSplitLayout(GuiBase::SplitType split, GuiTerminalWindow *newTerm)
+{
+    GuiSplitter *splitter, *oldparent = parentSplit;
+    Qt::Orientation orient = split==GuiBase::TYPE_HORIZONTAL ? Qt::Horizontal :
+                                                               Qt::Vertical;
+    this->_disableResize = newTerm->_disableResize = true;
+    bool tabchg = mainWindow->tabArea->currentWidget()==this;
+    if (tabchg)
+        mainWindow->tabArea->removeTab(mainWindow->tabArea->currentIndex());
+
+    if (!parentSplit || parentSplit->orientation() != orient) {
+        int ind = -1;
+        QList<int> listsizes;
+        int initsize = orient==Qt::Horizontal ? this->width() :
+                                                this->height();
+        if (parentSplit) {
+            ind = parentSplit->indexOf(this);
+            listsizes = parentSplit->sizes();
+        }
+        splitter = new GuiSplitter(orient, parentSplit, parentSplit);
+        if (parentSplit) {
+            parentSplit->insertWidget(ind, splitter);
+            parentSplit->child.erase(
+                        std::remove(parentSplit->child.begin(),
+                                    parentSplit->child.end(),
+                                    this));
+        }
+
+        splitter->addTerminalConsecutive(this, newTerm);
+        if (oldparent)
+            oldparent->setSizes(listsizes);
+        listsizes = splitter->sizes();
+        assert(listsizes.length() == 2);
+        listsizes[0] = initsize - initsize/2;
+        listsizes[1] = initsize/2;
+        splitter->setSizes(listsizes);
+        this->show();
+    } else {
+        splitter = parentSplit;
+        splitter->addTerminalAfter(newTerm, this);
+    }
+
+    if (tabchg) {
+        mainWindow->tabArea->addTab(splitter, tr("Qutty"));
+        mainWindow->tabArea->setCurrentWidget(splitter);
+    }
+    newTerm->show();
+    this->_disableResize = newTerm->_disableResize = false;
+    newTerm->resizeEvent(NULL);
+    this->resizeEvent(NULL);
 }

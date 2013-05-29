@@ -10,9 +10,10 @@
 #include <QDialog>
 #include <QTreeWidgetItem>
 #include <QButtonGroup>
-#include "QtConfig.h"
 #include <QFileDialog>
 #include <QListWidgetItem>
+#include "QtConfig.h"
+#include "GuiBase.h"
 
 namespace Ui {
 class GuiSettingsWindow;
@@ -38,9 +39,10 @@ class GuiSettingsWindow : public QDialog
     Config cfg;
     bool isChangeSettingsMode;
     int tabIndex; // tab index for which 'change settings' happens
+    GuiBase::SplitType openMode;
 
 public:
-    explicit GuiSettingsWindow(QWidget *parent);
+    explicit GuiSettingsWindow(QWidget *parent, GuiBase::SplitType openmode = GuiBase::TYPE_LEAF);
     ~GuiSettingsWindow();
 
     // getter/setter to config in the settings window
@@ -52,7 +54,7 @@ public:
     void enableModeChangeSettings(Config *cfg, int tabIndex);
 
 signals:
-    void signal_session_open(Config cfg);
+    void signal_session_open(Config cfg, GuiBase::SplitType splittype);
     void signal_session_change(Config cfg, int tabIndex);
     void signal_session_close();
 

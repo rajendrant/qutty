@@ -31,6 +31,9 @@ SOURCES +=  \
     QtX11.cpp \
     QtConfig.cpp \
     GuiTabWidget.cpp \
+    GuiMenu.cpp \
+    GuiBase.cpp \
+    GuiSplitter.cpp \
     puttysrc/WINDOWS/winnoise.c \
     puttysrc/WINDOWS/winstore.c \
     puttysrc/WINDOWS/windefs.c \
@@ -76,8 +79,7 @@ SOURCES +=  \
     tmux/TmuxBackend.cpp \
     tmux/TmuxGateway.cpp \
     tmux/TmuxWindowPane.cpp \
-    tmux/TmuxLayout.cpp \
-    GuiMenu.cpp
+    tmux/TmuxLayout.cpp
 
 HEADERS +=  \
     GuiMainWindow.h \
@@ -89,6 +91,9 @@ HEADERS +=  \
     QtConfigTag.h \
     QtTimer.h \
     GuiTabWidget.h \
+    GuiMenu.h \
+    GuiBase.h \
+    GuiSplitter.h \
     puttysrc/WINDOWS/STORAGE.H \
     puttysrc/TREE234.H \
     puttysrc/TERMINAL.H \
@@ -109,8 +114,7 @@ HEADERS +=  \
     tmux/tmux.h \
     tmux/TmuxGateway.h \
     tmux/TmuxWindowPane.h \
-    tmux/TmuxLayout.h \
-    GuiMenu.h
+    tmux/TmuxLayout.h
 
 INCLUDEPATH += ./ puttysrc/
 

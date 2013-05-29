@@ -28,13 +28,15 @@ extern "C" {
 #define NALLCOLOURS (NCFGCOLOURS + NEXTCOLOURS)
 
 
-class GuiTerminalWindow : public QAbstractScrollArea
+class GuiTerminalWindow : public QAbstractScrollArea, public GuiBase
 {
     Q_OBJECT
 private:
     enum tmux_mode_t _tmuxMode;
     TmuxGateway *_tmuxGateway;
     GuiMainWindow *mainWindow;
+
+    bool _disableResize;        // for temporarily disabling resize
 
     void showContextMenu(QMouseEvent *e);
 
@@ -79,6 +81,8 @@ public:
     int initTerminal();
     int restartTerminal();
     int reconfigureTerminal(Config *new_cfg);
+
+    void createSplitLayout(GuiBase::SplitType split, GuiTerminalWindow *newTerm);
 
     void keyPressEvent ( QKeyEvent * e );
     void keyReleaseEvent ( QKeyEvent * e );

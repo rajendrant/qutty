@@ -60,32 +60,33 @@ GuiMainWindow::~GuiMainWindow()
         delete menuCommonActions[i];
 }
 
-void GuiMainWindow::on_createNewTab(Config cfg)
+void GuiMainWindow::on_createNewSession(Config cfg, GuiBase::SplitType splittype)
 {
     // User has selected a session
-    this->createNewTab(&cfg);
+    this->createNewTab(&cfg, splittype);
 }
 
-void GuiMainWindow::createNewTab(Config *cfg)
+void GuiMainWindow::createNewTab(Config *cfg, GuiBase::SplitType splittype)
 {
     int rc;
     GuiTerminalWindow *newWnd = this->newTerminal();
     newWnd->cfg = *cfg;
 
-    if ((rc=newWnd->initTerminal())) {
-        delete newWnd;
-    } else {    // success
-        tabArea->setCurrentWidget(newWnd);
-    }
+    if ((rc=newWnd->initTerminal()))
+        goto err_exit;
+
+    if (this->setupLayout(newWnd, splittype))
+        goto err_exit;
+
+    return;
+
+err_exit:
+    delete newWnd;
 }
 
 GuiTerminalWindow *GuiMainWindow::newTerminal()
 {
     GuiTerminalWindow *termWnd = new GuiTerminalWindow(tabArea, this);
-    tabArea->addTab(termWnd, "");
-    terminalList.append(termWnd);
-    termWnd->setWindowState(termWnd->windowState() | Qt::WindowMaximized);
-    set_title(termWnd, APPNAME);
     return termWnd;
 }
 
@@ -131,19 +132,20 @@ void GuiMainWindow::tabCloseRequested (int index)
     closeTerminal(index);
 }
 
-void GuiMainWindow::on_openNewTab()
+void GuiMainWindow::on_openNewSession(GuiBase::SplitType splittype)
 {
     /*
      * 1. Context menu -> New Tab
      * 2. Main Menu -> New tab
      * 3. Keyboard shortcut
+     * 4. Split sessions
      */
     if (settingsWindow) {
         QMessageBox::information(this, tr("Cannot open"), tr("Close the existing settings window"));
         return;
     }
-    settingsWindow = new GuiSettingsWindow(this);
-    connect(settingsWindow, SIGNAL(signal_session_open(Config)), SLOT(on_createNewTab(Config)));
+    settingsWindow = new GuiSettingsWindow(this, splittype);
+    connect(settingsWindow, SIGNAL(signal_session_open(Config, GuiBase::SplitType)), SLOT(on_createNewSession(Config, GuiBase::SplitType)));
     connect(settingsWindow, SIGNAL(signal_session_close()), SLOT(on_settingsWindowClose()));
     settingsWindow->loadDefaultSettings();
     settingsWindow->show();
@@ -246,10 +248,14 @@ bool GuiMainWindow::winEvent ( MSG * msg, long * result )
 
 void GuiMainWindow::currentChanged(int index)
 {
-    if (index!=-1 && tabArea->widget(index))
-        tabArea->widget(index)->setFocus();
-    //term_set_focus(tabArea->currentWidget()->term, TRUE);
-    //term_update(tabArea->currentWidget()->term);
+    if (index!=-1 && tabArea->widget(index)) {
+        QWidget *currWgt = tabArea->widget(index);
+        if (dynamic_cast<GuiSplitter*>(currWgt)) {
+            if (currWgt->focusWidget())
+                currWgt->focusWidget()->setFocus();
+        } else if (dynamic_cast<GuiTerminalWindow*>(currWgt))
+            currWgt->setFocus();
+    }
 }
 
 void GuiMainWindow::focusChanged ( QWidget * old, QWidget * now )
@@ -451,4 +457,39 @@ void GuiMainWindow::writeSettings()
     settings.setValue("WindowFlags", (int)windowFlags());
     settings.setValue("ShowMenuBar", menuBar()->isVisible());
     settings.endGroup();
+}
+
+int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType split)
+{
+    switch (split) {
+    case GuiBase::TYPE_LEAF:
+        newTerm->setParent(tabArea);
+        tabArea->addTab(newTerm, "");
+        terminalList.append(newTerm);
+        tabArea->setCurrentWidget(newTerm);
+        set_title(newTerm, APPNAME);
+        newTerm->setWindowState(newTerm->windowState() | Qt::WindowMaximized);
+        break;
+    case GuiBase::TYPE_HORIZONTAL:
+    case GuiBase::TYPE_VERTICAL:
+    {
+        GuiTerminalWindow *currTerm;
+        if (!(currTerm = dynamic_cast<GuiTerminalWindow*>
+              (tabArea->currentWidget()->focusWidget())))
+            goto err_exit;
+
+        if (currTerm)
+
+        currTerm->createSplitLayout(split, newTerm);
+        newTerm->setFocus();
+        break;
+    }
+    default:
+        assert(0);
+        return -1;
+    }
+    return 0;
+
+err_exit:
+    return -1;
 }

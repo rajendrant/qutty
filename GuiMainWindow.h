@@ -32,7 +32,7 @@ public:
     GuiMainWindow(QWidget *parent = 0);
     ~GuiMainWindow();
     GuiTerminalWindow *newTerminal();
-    void createNewTab(Config *cfg);
+    void createNewTab(Config *cfg, GuiBase::SplitType splittype=GuiBase::TYPE_LEAF);
     bool winEvent ( MSG * msg, long * result );
     void closeEvent ( QCloseEvent * event );
     GuiTerminalWindow *getCurrentTerminal();
@@ -41,6 +41,7 @@ public:
         assert(id > MENU_SEPARATOR && id <= MENU_SEPARATOR + MENU_MAX_MENU);
         return &menuCommonMenus[id - MENU_SEPARATOR - 1];
     }
+    int setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType split);
 
     QTabWidget *tabArea;
 private:
@@ -56,8 +57,11 @@ private:
 
 public slots:
     void on_openNewWindow();
-    void on_openNewTab();
-    void on_createNewTab(Config cfg);
+    void on_openNewSession(GuiBase::SplitType splittype);
+    void on_openNewTab() { on_openNewSession(GuiBase::TYPE_LEAF); }
+    void on_openNewSplitHorizontal() { on_openNewSession(GuiBase::TYPE_HORIZONTAL); }
+    void on_openNewSplitVertical() { on_openNewSession(GuiBase::TYPE_VERTICAL); }
+    void on_createNewSession(Config cfg, GuiBase::SplitType splittype);
     void on_settingsWindowClose();
     void on_changeSettingsTab(int tabIndex);
     void on_changeSettingsTabComplete(Config cfg, int tabIndex);
