@@ -845,8 +845,8 @@ void GuiTerminalWindow::createSplitLayout(GuiBase::SplitType split, GuiTerminalW
     if (!parentSplit || parentSplit->orientation() != orient) {
         int ind = -1;
         QList<int> listsizes;
-        int initsize = orient==Qt::Horizontal ? this->width() :
-                                                this->height();
+        int initsize = orient==Qt::Horizontal ? this->viewport()->width() :
+                                                this->viewport()->height();
         if (parentSplit) {
             ind = parentSplit->indexOf(this);
             listsizes = parentSplit->sizes();
@@ -875,7 +875,7 @@ void GuiTerminalWindow::createSplitLayout(GuiBase::SplitType split, GuiTerminalW
     }
 
     if (tabchg) {
-        mainWindow->tabArea->addTab(splitter, tr("Qutty"));
+        mainWindow->tabArea->addTab(splitter, tr(APPNAME));
         mainWindow->tabArea->setCurrentWidget(splitter);
     }
     newTerm->show();
