@@ -404,7 +404,8 @@ int TmuxGateway::createNewWindowPane(int id, const char *name, TmuxLayout &layou
     switch (layout.layoutType) {
       case TmuxLayout::TMUX_LAYOUT_TYPE_LEAF:
         if (_mapPanes.find(layout.paneid) == _mapPanes.end()) {
-            GuiTerminalWindow *newtermwnd = termGatewayWnd->getMainWindow()->newTerminal();
+            GuiTerminalWindow *newtermwnd = new GuiTerminalWindow(termGatewayWnd->getMainWindow()->tabArea,
+                                                                  termGatewayWnd->getMainWindow());
             newtermwnd->cfg = termGatewayWnd->cfg;
             TmuxWindowPane *tmuxPane = newtermwnd->
                     initTmuxClientTerminal(this, layout.paneid,

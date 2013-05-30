@@ -27,8 +27,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
     : QMainWindow(parent),
       settingsWindow(NULL),
       newTabToolButton(),
-      menuCookieTermWnd(NULL),
-      menuCookieTabIndex(-1)
+      menuCookieTermWnd(NULL)
 {
     memset(menuCommonActions, 0, sizeof(menuCommonActions));
 
@@ -43,7 +42,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
 
     connect(tabArea, SIGNAL(tabCloseRequested(int)), SLOT(tabCloseRequested(int)));
     connect(tabArea, SIGNAL(currentChanged(int)), SLOT(currentChanged(int)));
-    connect(tabArea, SIGNAL(sig_tabChangeSettings(int)), SLOT(on_changeSettingsTab(int)));
+    connect(tabArea, SIGNAL(sig_tabChangeSettings(GuiTerminalWindow*)), SLOT(on_changeSettingsTab(GuiTerminalWindow*)));
 
     initializeMenuSystem();
 
@@ -69,7 +68,7 @@ void GuiMainWindow::on_createNewSession(Config cfg, GuiBase::SplitType splittype
 void GuiMainWindow::createNewTab(Config *cfg, GuiBase::SplitType splittype)
 {
     int rc;
-    GuiTerminalWindow *newWnd = this->newTerminal();
+    GuiTerminalWindow *newWnd = new GuiTerminalWindow(tabArea, this);
     newWnd->cfg = *cfg;
 
     if ((rc=newWnd->initTerminal()))
@@ -82,12 +81,6 @@ void GuiMainWindow::createNewTab(Config *cfg, GuiBase::SplitType splittype)
 
 err_exit:
     delete newWnd;
-}
-
-GuiTerminalWindow *GuiMainWindow::newTerminal()
-{
-    GuiTerminalWindow *termWnd = new GuiTerminalWindow(tabArea, this);
-    return termWnd;
 }
 
 void GuiMainWindow::closeTerminal(int index)
@@ -163,26 +156,24 @@ void GuiMainWindow::on_openNewWindow()
     mainWindow->show();
 }
 
-void GuiMainWindow::on_changeSettingsTab(int tabIndex)
+void GuiMainWindow::on_changeSettingsTab(GuiTerminalWindow *termWnd)
 {
     if (settingsWindow) {
         QMessageBox::information(this, tr("Cannot open"), tr("Close the existing settings window"));
         return;
     }
-    GuiTerminalWindow *termWnd = (GuiTerminalWindow*)tabArea->widget(tabIndex);
-    assert(termWnd);
+    assert(terminalList.indexOf(termWnd) != -1);
     settingsWindow = new GuiSettingsWindow(this);
-    settingsWindow->enableModeChangeSettings(&termWnd->cfg, tabIndex);
-    connect(settingsWindow, SIGNAL(signal_session_change(Config, int)), SLOT(on_changeSettingsTabComplete(Config, int)));
+    settingsWindow->enableModeChangeSettings(&termWnd->cfg, termWnd);
+    connect(settingsWindow, SIGNAL(signal_session_change(Config, GuiTerminalWindow*)), SLOT(on_changeSettingsTabComplete(Config, GuiTerminalWindow*)));
     connect(settingsWindow, SIGNAL(signal_session_close()), SLOT(on_settingsWindowClose()));
     settingsWindow->show();
 }
 
-void GuiMainWindow::on_changeSettingsTabComplete(Config cfg, int tabIndex)
+void GuiMainWindow::on_changeSettingsTabComplete(Config cfg, GuiTerminalWindow *termWnd)
 {
     settingsWindow = NULL;
-    GuiTerminalWindow *termWnd = (GuiTerminalWindow*)tabArea->widget(tabIndex);
-    assert(termWnd);
+    assert(terminalList.indexOf(termWnd) != -1);
     termWnd->reconfigureTerminal(&cfg);
 }
 
@@ -416,14 +407,31 @@ void GuiMainWindow::tabPrev ()
 
 GuiTerminalWindow * GuiMainWindow::getCurrentTerminal()
 {
+    GuiTerminalWindow *termWindow;
     QWidget *widget = tabArea->currentWidget();
     if (!widget)
         return NULL;
-    GuiTerminalWindow *termWindow = static_cast<GuiTerminalWindow*>(widget);
-    if (terminalList.indexOf(termWindow) != -1)
-        return termWindow;
-    return NULL;
+    termWindow = dynamic_cast<GuiTerminalWindow*>(widget->focusWidget());
+    if (!termWindow || terminalList.indexOf(termWindow) == -1)
+        return NULL;
+    return termWindow;
 }
+
+GuiTerminalWindow *GuiMainWindow::getCurrentTerminalInTab(int tabIndex)
+{
+    GuiTerminalWindow *termWindow;
+    QWidget *widget = tabArea->widget(tabIndex);
+    if (!widget)
+        return NULL;
+    if ((termWindow = dynamic_cast<GuiTerminalWindow*>(widget)))
+        return termWindow;
+
+    termWindow = dynamic_cast<GuiTerminalWindow*>(widget->focusWidget());
+    if (!termWindow || terminalList.indexOf(termWindow) == -1)
+        return NULL;
+    return termWindow;
+}
+
 
 void GuiMainWindow::readSettings()
 {
@@ -461,6 +469,10 @@ void GuiMainWindow::writeSettings()
 
 int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType split)
 {
+    // fallback to create tab
+    if (tabArea->count() == 0)
+        split = GuiBase::TYPE_LEAF;
+
     switch (split) {
     case GuiBase::TYPE_LEAF:
         newTerm->setParent(tabArea);
@@ -474,14 +486,14 @@ int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType sp
     case GuiBase::TYPE_VERTICAL:
     {
         GuiTerminalWindow *currTerm;
-        if (!(currTerm = dynamic_cast<GuiTerminalWindow*>
-              (tabArea->currentWidget()->focusWidget())))
+        if (!(currTerm = getCurrentTerminal()))
             goto err_exit;
 
         if (currTerm)
 
         currTerm->createSplitLayout(split, newTerm);
         newTerm->setFocus();
+        terminalList.append(newTerm);
         break;
     }
     default:

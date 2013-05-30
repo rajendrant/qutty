@@ -145,7 +145,7 @@ void GuiSettingsWindow::on_rb_contype_ssh_clicked()
 void GuiSettingsWindow::on_buttonBox_accepted()
 {
     if (isChangeSettingsMode) {
-        emit signal_session_change(*getConfig(), tabIndex);
+        emit signal_session_change(*getConfig(), termWnd);
         goto cu0;
     }
 
@@ -433,10 +433,10 @@ void GuiSettingsWindow::loadDefaultSettings()
     }
 }
 
-void GuiSettingsWindow::enableModeChangeSettings(Config *cfg, int tabIndex)
+void GuiSettingsWindow::enableModeChangeSettings(Config *cfg, GuiTerminalWindow *termWnd)
 {
     isChangeSettingsMode = true;
-    this->tabIndex = tabIndex;
+    this->termWnd = termWnd;
     setConfig(cfg);
 
     ui->buttonBox->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);

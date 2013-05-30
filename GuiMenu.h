@@ -10,33 +10,30 @@
 #include <QString>
 #include <QKeySequence>
 
-#define QUTTY_MENU_ACTIONS \
-    QUTTY_ENTRY(MENU_NEW_SESSION,       "New Session",         "Ctrl+Shift+T",  on_openNewTab) \
-    QUTTY_ENTRY(MENU_RESTART_SESSION,   "Restart Session",     "",              contextMenuRestartSessionTriggered) \
-    QUTTY_ENTRY(MENU_DUPLICATE_SESSION, "Duplicate Session",   "",              contextMenuDuplicateSessionTriggered) \
-    QUTTY_ENTRY(MENU_CHANGE_SETTINGS,   "Change Settings",     "",              contextMenuChangeSettingsTriggered) \
-    QUTTY_ENTRY(MENU_PASTE,             "Paste",               "",              contextMenuPaste)\
-    QUTTY_ENTRY(MENU_NEW_TAB,           "New Tab",             "Ctrl+Shift+T",  on_openNewTab) \
-    QUTTY_ENTRY(MENU_NEW_WINDOW,        "New Window",          "",              on_openNewWindow) \
-    QUTTY_ENTRY(MENU_CLOSE_SESSION,     "Close",               "",              contextMenuCloseSessionTriggered) \
-    QUTTY_ENTRY(MENU_SPLIT_HORIZONTAL,  "Horizontally",        "Ctrl+Shift+H",  on_openNewSplitHorizontal) \
-    QUTTY_ENTRY(MENU_SPLIT_VERTICAL,    "Vertically",          "Ctrl+Shift+V",  on_openNewSplitVertical) \
-    QUTTY_ENTRY(MENU_SWITCH_LEFT_TAB,   "Switch to Left Tab",  "Shift+Left",    tabPrev) \
-    QUTTY_ENTRY(MENU_SWITCH_RIGHT_TAB,  "Switch to Right Tab", "Shift+Right",   tabNext) \
-    QUTTY_ENTRY(MENU_IMPORT_FILE,       "Import from File",    "",              "") \
-    QUTTY_ENTRY(MENU_IMPORT_REGISTRY,   "Import PuTTY sessions", "",            "") \
-    QUTTY_ENTRY(MENU_EXPORT_FILE,       "Export from File",    "",              "") \
-    QUTTY_ENTRY(MENU_EXIT,              "Exit",                "",              contextMenuCloseWindowTriggered) \
-    QUTTY_ENTRY(MENU_MENUBAR,           "Show Menubar",        "",              contextMenuMenuBar) \
-    QUTTY_ENTRY(MENU_FULLSCREEN,        "Fullscreen",          "",              contextMenuFullScreen) \
-    QUTTY_ENTRY(MENU_ALWAYSONTOP,       "Always on top",       "",              contextMenuAlwaysOnTop) \
-    QUTTY_ENTRY(MENU_PREFERENCES,       "Preferences",         "",              "")
-
 enum qutty_menu_id_t {
-#define QUTTY_ENTRY(id, str, key, slot) id,
-    QUTTY_MENU_ACTIONS
-#undef QUTTY_ENTRY
+    MENU_NEW_SESSION,
+    MENU_RESTART_SESSION,
+    MENU_DUPLICATE_SESSION,
+    MENU_CHANGE_SETTINGS,
+    MENU_PASTE,
+    MENU_NEW_TAB,
+    MENU_NEW_WINDOW,
+    MENU_CLOSE_SESSION,
+    MENU_SPLIT_HORIZONTAL,
+    MENU_SPLIT_VERTICAL,
+    MENU_SWITCH_LEFT_TAB,
+    MENU_SWITCH_RIGHT_TAB,
+    MENU_IMPORT_FILE,
+    MENU_IMPORT_REGISTRY,
+    MENU_EXPORT_FILE,
+    MENU_EXIT,
+    MENU_MENUBAR,
+    MENU_FULLSCREEN,
+    MENU_ALWAYSONTOP,
+    MENU_PREFERENCES,
+
     MENU_SEPARATOR,
+
     MENU_FILE,
     MENU_EDIT,
     MENU_VIEW,
@@ -44,17 +41,27 @@ enum qutty_menu_id_t {
     MENU_SAVED_SESSIONS,
     MENU_SPLIT_SESSION,
     MENU_TERM_WINDOW,
-    MENU_TAB_BAR
+    MENU_TAB_BAR,
+    MENU_ID_LAST
 };
 
-#define MENU_MAX_ACTION     20
-#define MENU_MAX_MENU       8
+#define MENU_MAX_ACTION     (MENU_SEPARATOR)
+#define MENU_MAX_MENU       (MENU_ID_LAST - MENU_SEPARATOR - 1)
+
+struct qutty_menu_actions_t {
+    const char *name;
+    const char *key;
+    const char *slot;
+    int opt;
+};
 
 struct qutty_menu_links_t {
     const char *name;
     int len;
     qutty_menu_id_t links[20];
 };
+
+extern qutty_menu_actions_t qutty_menu_actions[];
 extern qutty_menu_links_t qutty_menu_links[];
 
 #endif // GUIMENU_H

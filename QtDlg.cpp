@@ -12,8 +12,6 @@ extern "C" {
 #include <QMessageBox>
 #include <QtConfig.h>
 
-#define APPNAME "PuTTY"
-
 /*
  * Ask whether the selected algorithm is acceptable (since it was
  * below the configured 'warn' threshold).

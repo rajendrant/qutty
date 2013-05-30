@@ -21,13 +21,12 @@ void GuiTabWidget::showContextMenu(const QPoint &point)
     if (point.isNull())
         return;
 
-    QWidget *widget;
+    GuiTerminalWindow *termWindow;
     int menuTabIndex;
     if ( ((menuTabIndex = tabBar()->tabAt(point)) == -1) ||
-         (!(widget = this->widget(menuTabIndex))))
+         (!(termWindow = this->mainWindow->getCurrentTerminalInTab(menuTabIndex))))
         return;
 
-    GuiTerminalWindow *termWindow = static_cast<GuiTerminalWindow*>(widget);
     qutty_menu_id_t id;
     if (termWindow && !termWindow->isSockDisconnected) {
         id = MENU_RESTART_SESSION;
@@ -35,11 +34,9 @@ void GuiTabWidget::showContextMenu(const QPoint &point)
         id = MENU_DUPLICATE_SESSION;
     }
 
-    this->mainWindow->menuCookieTermWnd = NULL;
-    this->mainWindow->menuCookieTabIndex = menuTabIndex;
+    this->mainWindow->menuCookieTermWnd = termWindow;
     mainWindow->menuCommonActions[id]->setVisible(false);
     this->mainWindow->getMenuById(MENU_TERM_WINDOW)->exec(this->mapToGlobal(point));
     mainWindow->menuCommonActions[id]->setVisible(true);
     this->mainWindow->menuCookieTermWnd = NULL;
-    this->mainWindow->menuCookieTabIndex = -1;
 }

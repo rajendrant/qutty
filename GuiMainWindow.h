@@ -11,6 +11,7 @@
 #include <QMdiArea>
 #include <QMenu>
 #include <QToolButton>
+#include <QShortcut>
 #include "GuiMainWindow.h"
 #include "QtCommon.h"
 #include "GuiSettingsWindow.h"
@@ -26,16 +27,15 @@ public:
     QAction *menuCommonActions[MENU_MAX_ACTION];
     QMenu menuCommonMenus[MENU_MAX_MENU];
     GuiTerminalWindow *menuCookieTermWnd;
-    int menuCookieTabIndex;
     QMenu menuSavedSessions;
 
     GuiMainWindow(QWidget *parent = 0);
     ~GuiMainWindow();
-    GuiTerminalWindow *newTerminal();
     void createNewTab(Config *cfg, GuiBase::SplitType splittype=GuiBase::TYPE_LEAF);
     bool winEvent ( MSG * msg, long * result );
     void closeEvent ( QCloseEvent * event );
     GuiTerminalWindow *getCurrentTerminal();
+    GuiTerminalWindow *getCurrentTerminalInTab(int tabIndex);
 
     QMenu *getMenuById(qutty_menu_id_t id) {
         assert(id > MENU_SEPARATOR && id <= MENU_SEPARATOR + MENU_MAX_MENU);
@@ -63,8 +63,8 @@ public slots:
     void on_openNewSplitVertical() { on_openNewSession(GuiBase::TYPE_VERTICAL); }
     void on_createNewSession(Config cfg, GuiBase::SplitType splittype);
     void on_settingsWindowClose();
-    void on_changeSettingsTab(int tabIndex);
-    void on_changeSettingsTabComplete(Config cfg, int tabIndex);
+    void on_changeSettingsTab(GuiTerminalWindow *termWnd);
+    void on_changeSettingsTabComplete(Config cfg, GuiTerminalWindow *termWnd);
     void closeTerminal(int index);
     void closeTerminal(GuiTerminalWindow *termWnd);
     void tabCloseRequested (int index);

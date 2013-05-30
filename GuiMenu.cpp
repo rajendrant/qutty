@@ -12,6 +12,29 @@
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 
+qutty_menu_actions_t qutty_menu_actions[MENU_MAX_ACTION] = {
+    { "New Session",            "Ctrl+Shift+T",  SLOT( on_openNewTab() ) },
+    { "Restart Session",        "",              SLOT( contextMenuRestartSessionTriggered() ) },
+    { "Duplicate Session",      "",              SLOT( contextMenuDuplicateSessionTriggered() ) },
+    { "Change Settings",        "",              SLOT( contextMenuChangeSettingsTriggered() ) },
+    { "Paste",                  "",              SLOT( contextMenuPaste() ) },
+    { "New Tab",                "Ctrl+Shift+T",  SLOT( on_openNewTab() ) },
+    { "New Window",             "",              SLOT( on_openNewWindow() ) },
+    { "Close",                  "",              SLOT( contextMenuCloseSessionTriggered() ) },
+    { "Horizontally",           "Ctrl+Shift+H",  SLOT( on_openNewSplitHorizontal() ) },
+    { "Vertically",             "Ctrl+Shift+V",  SLOT( on_openNewSplitVertical() ) },
+    { "Switch to Left Tab",     "Shift+Left",    SLOT( tabPrev() ) },
+    { "Switch to Right Tab",    "Shift+Right",   SLOT( tabNext() ) },
+    { "Import from File",       "",              "" },
+    { "Import PuTTY sessions",  "",              "" },
+    { "Export from File",       "",              "" },
+    { "Exit",                   "",              SLOT( contextMenuCloseWindowTriggered() ) },
+    { "Show Menubar",           "",              SLOT( contextMenuMenuBar() ) },
+    { "Fullscreen",             "",              SLOT( contextMenuFullScreen() ) },
+    { "Always on top",          "",              SLOT( contextMenuAlwaysOnTop() ) },
+    { "Preferences",            "",              "" }
+};
+
 qutty_menu_links_t qutty_menu_links[MENU_MAX_MENU] = {
 { "File", 10, {MENU_NEW_TAB, MENU_NEW_WINDOW, MENU_SEPARATOR, MENU_SAVED_SESSIONS, MENU_SEPARATOR, MENU_SPLIT_SESSION, MENU_SEPARATOR, MENU_EXPORT_IMPORT, MENU_SEPARATOR, MENU_EXIT} },
 { "Edit", 0,  {} },
@@ -24,8 +47,8 @@ qutty_menu_links_t qutty_menu_links[MENU_MAX_MENU] = {
                                       MENU_SAVED_SESSIONS, MENU_SPLIT_SESSION, MENU_CHANGE_SETTINGS,
                                       MENU_SEPARATOR, MENU_CLOSE_SESSION} },
 { "Menu Tabbar",                10, { MENU_NEW_TAB, MENU_NEW_WINDOW, MENU_SEPARATOR,
-                                      MENU_SAVED_SESSIONS, MENU_SEPARATOR, MENU_EXPORT_IMPORT,
-                                      MENU_SEPARATOR, MENU_VIEW, MENU_SEPARATOR, MENU_EXIT } },
+                                      MENU_SAVED_SESSIONS, MENU_SEPARATOR, MENU_SPLIT_SESSION, MENU_SEPARATOR,
+                                      MENU_EXPORT_IMPORT, MENU_SEPARATOR, MENU_VIEW, MENU_SEPARATOR, MENU_EXIT } },
 };
 
 class MyStyle : public QProxyStyle
@@ -53,13 +76,11 @@ public:
 
 void GuiMainWindow::initializeMenuSystem()
 {
-#define QUTTY_ENTRY(id, str, key, slot) \
-        menuCommonActions[id] = new QAction(str, this); \
-        menuCommonActions[id]->setShortcut(QKeySequence(key)); \
-        connect(menuCommonActions[id], SIGNAL(triggered()), SLOT(slot()));
-        QUTTY_MENU_ACTIONS
-#undef QUTTY_ENTRY
-
+    for(int i=0; i<MENU_MAX_ACTION; i++) {
+        menuCommonActions[i] = new QAction(qutty_menu_actions[i].name, this);
+        menuCommonActions[i]->setShortcut(QKeySequence(qutty_menu_actions[i].key));
+        connect(menuCommonActions[i], SIGNAL(triggered()), this, qutty_menu_actions[i].slot);
+    }
     for(int i=0; i<MENU_MAX_MENU; i++) {
         menuCommonMenus[i].setTitle(qutty_menu_links[i].name);
         populateMenu(menuCommonMenus[i], qutty_menu_links[i].links, qutty_menu_links[i].len);
@@ -112,12 +133,10 @@ void GuiTerminalWindow::showContextMenu(QMouseEvent *e)
         id = MENU_RESTART_SESSION;
     }
     this->mainWindow->menuCookieTermWnd = this;
-    this->mainWindow->menuCookieTabIndex = -1;
     mainWindow->menuCommonActions[id]->setVisible(false);
     this->mainWindow->getMenuById(MENU_TERM_WINDOW)->exec(e->globalPos());
     mainWindow->menuCommonActions[id]->setVisible(true);
     this->mainWindow->menuCookieTermWnd = NULL;
-    this->mainWindow->menuCookieTabIndex = -1;
 }
 
 void GuiMainWindow::contextMenuSavedSessionsChanged()
@@ -151,10 +170,8 @@ void GuiMainWindow::contextMenuPaste()
     QAction *action = qobject_cast<QAction *>(sender());
     if (!action)
         return;
-    if (!menuCookieTermWnd && menuCookieTabIndex == -1)
-        return;
     if (!menuCookieTermWnd)
-        menuCookieTermWnd = (GuiTerminalWindow*)tabArea->widget(menuCookieTabIndex);
+        return;
     menuCookieTermWnd->requestPaste();
 }
 
@@ -163,10 +180,8 @@ void GuiMainWindow::contextMenuDuplicateSessionTriggered()
     QAction *action = qobject_cast<QAction *>(sender());
     if (!action)
         return;
-    if (!menuCookieTermWnd && menuCookieTabIndex == -1)
-        return;
     if (!menuCookieTermWnd)
-        menuCookieTermWnd = (GuiTerminalWindow*)tabArea->widget(menuCookieTabIndex);
+        return;
     this->createNewTab(&menuCookieTermWnd->cfg);
 }
 
@@ -175,10 +190,8 @@ void GuiMainWindow::contextMenuRestartSessionTriggered()
     QAction *action = qobject_cast<QAction *>(sender());
     if (!action)
         return;
-    if (!menuCookieTermWnd && menuCookieTabIndex == -1)
-        return;
     if (!menuCookieTermWnd)
-        menuCookieTermWnd = (GuiTerminalWindow*)tabArea->widget(menuCookieTabIndex);
+        return;
     menuCookieTermWnd->restartTerminal();
 }
 
@@ -187,12 +200,9 @@ void GuiMainWindow::contextMenuChangeSettingsTriggered()
     QAction *action = qobject_cast<QAction *>(sender());
     if (!action)
         return;
-    if (!menuCookieTermWnd && menuCookieTabIndex == -1)
+    if (!menuCookieTermWnd)
         return;
-    int index = (menuCookieTabIndex == -1) ?
-                    tabArea->indexOf(menuCookieTermWnd) : menuCookieTabIndex;
-    if (index != -1)
-        on_changeSettingsTab(index);
+    on_changeSettingsTab(menuCookieTermWnd);
 }
 
 void GuiMainWindow::contextMenuCloseSessionTriggered()
@@ -200,10 +210,10 @@ void GuiMainWindow::contextMenuCloseSessionTriggered()
     QAction *action = qobject_cast<QAction *>(sender());
     if (!action)
         return;
-    if (!menuCookieTermWnd && menuCookieTabIndex == -1)
+    if (!menuCookieTermWnd)
         return;
-    int index = (menuCookieTabIndex == -1) ?
-                    tabArea->indexOf(menuCookieTermWnd) : menuCookieTabIndex;
+    menuCookieTermWnd->close();
+    int index = tabArea->indexOf(menuCookieTermWnd);
     if (index != -1)
         tabCloseRequested(index);
 }

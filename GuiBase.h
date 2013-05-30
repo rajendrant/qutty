@@ -27,6 +27,7 @@ public:
     GuiSplitter *parentSplit;
 
     GuiBase();
+    virtual ~GuiBase() { }
 };
 
 #include "GuiSplitter.h"

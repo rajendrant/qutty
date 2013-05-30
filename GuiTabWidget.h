@@ -16,7 +16,7 @@ public slots:
     void showContextMenu(const QPoint &point);
 
 signals:
-    void sig_tabChangeSettings(int index);
+    void sig_tabChangeSettings(GuiTerminalWindow *termWnd);
 };
 
 

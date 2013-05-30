@@ -38,7 +38,7 @@ class GuiSettingsWindow : public QDialog
     // config that is loaded onto the settings window
     Config cfg;
     bool isChangeSettingsMode;
-    int tabIndex; // tab index for which 'change settings' happens
+    GuiTerminalWindow *termWnd; // terminal for which 'change settings' happens
     GuiBase::SplitType openMode;
 
 public:
@@ -51,11 +51,11 @@ public:
 
     void loadSessionNames();
     void loadDefaultSettings();
-    void enableModeChangeSettings(Config *cfg, int tabIndex);
+    void enableModeChangeSettings(Config *cfg, GuiTerminalWindow *termWnd);
 
 signals:
     void signal_session_open(Config cfg, GuiBase::SplitType splittype);
-    void signal_session_change(Config cfg, int tabIndex);
+    void signal_session_change(Config cfg, GuiTerminalWindow *termWnd);
     void signal_session_close();
 
 private slots:
