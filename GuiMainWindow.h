@@ -65,8 +65,7 @@ public slots:
     void on_settingsWindowClose();
     void on_changeSettingsTab(GuiTerminalWindow *termWnd);
     void on_changeSettingsTabComplete(Config cfg, GuiTerminalWindow *termWnd);
-    void closeTerminal(int index);
-    void closeTerminal(GuiTerminalWindow *termWnd);
+    void closeTab(GuiTerminalWindow *termWnd);
     void tabCloseRequested (int index);
     void currentChanged(int index);
     void focusChanged ( QWidget * old, QWidget * now );

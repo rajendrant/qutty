@@ -27,7 +27,7 @@ public:
     GuiSplitter *parentSplit;
 
     GuiBase();
-    virtual ~GuiBase() { }
+    virtual void reqCloseTerminal(bool userRequest) = 0;
 };
 
 #include "GuiSplitter.h"

@@ -455,7 +455,7 @@ void TmuxGateway::closeAllPanes()
 {
     map<int, TmuxWindowPane*>::const_iterator it;
     for ( it=_mapPanes.begin() ; it != _mapPanes.end(); it++ ) {
-        termGatewayWnd->getMainWindow()->closeTerminal(it->second->termWnd());
+        it->second->termWnd()->closeTerminal();
         delete it->second;
     }
     _mapPanes.clear();
@@ -465,7 +465,7 @@ void TmuxGateway::closePane(int paneid)
 {
     TmuxWindowPane *pane = _mapPanes[paneid];
     if (pane) {
-        termGatewayWnd->getMainWindow()->closeTerminal(pane->termWnd());
+        pane->termWnd()->closeTerminal();
         _mapPanes.erase(paneid);
         delete pane;
     }

@@ -10,6 +10,7 @@
 #include <QPainter>
 #include <QClipboard>
 #include <QScrollBar>
+#include <QMessageBox>
 extern "C" {
 #include "putty.h"
 }
@@ -832,54 +833,21 @@ void GuiTerminalWindow::sockDisconnected()
     (*as->plug)->closing(as->plug, errStr, as->qtsock->error(), 0);
 }
 
-void GuiTerminalWindow::createSplitLayout(GuiBase::SplitType split, GuiTerminalWindow *newTerm)
+void GuiTerminalWindow::closeTerminal()
 {
-    GuiSplitter *splitter, *oldparent = parentSplit;
-    Qt::Orientation orient = split==GuiBase::TYPE_HORIZONTAL ? Qt::Horizontal :
-                                                               Qt::Vertical;
-    this->_disableResize = newTerm->_disableResize = true;
-    bool tabchg = mainWindow->tabArea->currentWidget()==this;
-    if (tabchg)
-        mainWindow->tabArea->removeTab(mainWindow->tabArea->currentIndex());
+    mainWindow->closeTab(this);
+    this->close();
+    this->deleteLater();
+}
 
-    if (!parentSplit || parentSplit->orientation() != orient) {
-        int ind = -1;
-        QList<int> listsizes;
-        int initsize = orient==Qt::Horizontal ? this->viewport()->width() :
-                                                this->viewport()->height();
-        if (parentSplit) {
-            ind = parentSplit->indexOf(this);
-            listsizes = parentSplit->sizes();
-        }
-        splitter = new GuiSplitter(orient, parentSplit, parentSplit);
-        if (parentSplit) {
-            parentSplit->insertWidget(ind, splitter);
-            parentSplit->child.erase(
-                        std::remove(parentSplit->child.begin(),
-                                    parentSplit->child.end(),
-                                    this));
-        }
-
-        splitter->addTerminalConsecutive(this, newTerm);
-        if (oldparent)
-            oldparent->setSizes(listsizes);
-        listsizes = splitter->sizes();
-        assert(listsizes.length() == 2);
-        listsizes[0] = initsize - initsize/2;
-        listsizes[1] = initsize/2;
-        splitter->setSizes(listsizes);
-        this->show();
-    } else {
-        splitter = parentSplit;
-        splitter->addTerminalAfter(newTerm, this);
-    }
-
-    if (tabchg) {
-        mainWindow->tabArea->addTab(splitter, tr(APPNAME));
-        mainWindow->tabArea->setCurrentWidget(splitter);
-    }
-    newTerm->show();
-    this->_disableResize = newTerm->_disableResize = false;
-    newTerm->resizeEvent(NULL);
-    this->resizeEvent(NULL);
+void GuiTerminalWindow::reqCloseTerminal(bool userConfirm)
+{
+    userClosingTab = true;
+    if (!userConfirm && cfg.warn_on_close &&
+        !isSockDisconnected &&
+        QMessageBox::No == QMessageBox::question(this, "Exit Confirmation?",
+                              "Are you sure you want to close this session?",
+                              QMessageBox::Yes|QMessageBox::No))
+        return;
+    this->closeTerminal();
 }

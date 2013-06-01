@@ -96,9 +96,10 @@ void GuiMainWindow::initializeMenuSystem()
     menuBar()->addMenu(&menuCommonMenus[MENU_VIEW-MENU_SEPARATOR-1]);
     menuCommonActions[MENU_MENUBAR]->setChecked(true);
 
-    newTabToolButton.setText(tr("+"));
+    //newTabToolButton.setText(tr("+"));
+    //newTabToolButton.setIcon();
     newTabToolButton.setMenu(getMenuById(MENU_TAB_BAR));
-    newTabToolButton.setPopupMode(QToolButton::MenuButtonPopup);
+    newTabToolButton.setPopupMode(QToolButton::InstantPopup);
 
     connect(&newTabToolButton, SIGNAL(clicked()), SLOT(on_openNewTab()));
     tabArea->setCornerWidget(&newTabToolButton, Qt::TopRightCorner);
@@ -212,10 +213,7 @@ void GuiMainWindow::contextMenuCloseSessionTriggered()
         return;
     if (!menuCookieTermWnd)
         return;
-    menuCookieTermWnd->close();
-    int index = tabArea->indexOf(menuCookieTermWnd);
-    if (index != -1)
-        tabCloseRequested(index);
+    menuCookieTermWnd->reqCloseTerminal(false);
 }
 
 void GuiMainWindow::contextMenuCloseWindowTriggered()

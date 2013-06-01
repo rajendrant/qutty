@@ -83,18 +83,12 @@ err_exit:
     delete newWnd;
 }
 
-void GuiMainWindow::closeTerminal(int index)
-{
-    GuiTerminalWindow *termWnd = (GuiTerminalWindow*)tabArea->widget(index);
-    closeTerminal(termWnd);
-}
-
-void GuiMainWindow::closeTerminal(GuiTerminalWindow *termWnd)
+void GuiMainWindow::closeTab(GuiTerminalWindow *termWnd)
 {
     assert(termWnd);
     tabArea->removeTab(tabArea->indexOf(termWnd));
     terminalList.removeAll(termWnd);
-    termWnd->deleteLater();
+    //termWnd->deleteLater();
 }
 
 void GuiMainWindow::closeEvent ( QCloseEvent * event )
@@ -113,16 +107,21 @@ void GuiMainWindow::closeEvent ( QCloseEvent * event )
 void GuiMainWindow::tabCloseRequested (int index)
 {
     // user cloing the tab
-    GuiTerminalWindow *termWnd = (GuiTerminalWindow*)tabArea->widget(index);
-    assert(termWnd);
-    termWnd->userClosingTab = true;
-    if (termWnd->cfg.warn_on_close &&
-        !termWnd->isSockDisconnected &&
-        QMessageBox::No == QMessageBox::question(this, "Exit Confirmation?",
-                                  "Are you sure you want to close this session?",
-                                  QMessageBox::Yes|QMessageBox::No))
-        return;
-    closeTerminal(index);
+    GuiBase *base = dynamic_cast<GuiBase*>(tabArea->widget(index));
+    GuiTerminalWindow *termWnd = dynamic_cast<GuiTerminalWindow*>(base);
+    assert(base);
+    if (termWnd) {
+        // single terminal to close
+        termWnd->reqCloseTerminal(false);
+    } else if (base) {
+        // multiple terminals to close
+        if (QMessageBox::No == QMessageBox::question(this, "Exit Confirmation?",
+                                "Are you sure you want to close all session panes?",
+                                QMessageBox::Yes|QMessageBox::No))
+            return;
+        base->reqCloseTerminal(true);
+        tabArea->removeTab(index);
+    }
 }
 
 void GuiMainWindow::on_openNewSession(GuiBase::SplitType splittype)

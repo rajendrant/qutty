@@ -109,6 +109,9 @@ public:
     void startDetachTmuxControllerMode();
     TmuxGateway *tmuxGateway() { return _tmuxGateway; }
 
+    void closeTerminal();
+    void reqCloseTerminal(bool userConfirm);
+
 protected:
     void paintEvent ( QPaintEvent * e );
     void 	mouseDoubleClickEvent ( QMouseEvent * e );

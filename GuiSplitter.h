@@ -8,6 +8,7 @@
 #define GUISPLITTER_H
 
 class GuiBase;
+class GuiTerminalWindow;
 #include "GuiBase.h"
 #include "GuiTerminalWindow.h"
 
@@ -15,12 +16,15 @@ class GuiSplitter : public GuiBase, public QSplitter
 {
 public:
     vector<GuiBase*> child;
-    GuiSplitter(Qt::Orientation split, QWidget *parent=NULL, GuiSplitter *parentsplit=NULL);
+    GuiSplitter(Qt::Orientation split, GuiSplitter *parentsplit=NULL, int ind=-1);
 
-    void focusInEvent ( QFocusEvent * e );
-    void focusOutEvent ( QFocusEvent * e );
     void addTerminalConsecutive(GuiTerminalWindow *a, GuiTerminalWindow *b);
     void addTerminalAfter(GuiTerminalWindow *a, GuiTerminalWindow *after);
+    void createSplitLayout(Qt::Orientation orient, GuiTerminalWindow *oldTerm, GuiTerminalWindow *newTerm);
+    void reqCloseTerminal(bool userRequest);
+
+    void addTerminal(int ind, GuiTerminalWindow *term);
+    void removeTerminal(GuiTerminalWindow *term);
 };
 
 #endif // GUISPLITTER_H

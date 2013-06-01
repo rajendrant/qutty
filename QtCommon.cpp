@@ -400,7 +400,7 @@ void qutty_connection_fatal(void *frontend, char *msg)
     qt_critical_msgbox(frontend, msg, NULL);
 
     if (f->cfg.close_on_exit == FORCE_ON)
-        f->getMainWindow()->closeTerminal(f);
+        f->closeTerminal();
     qstring_to_char(winTitle, f->windowTitle(), sizeof(winTitle));
     strncat(winTitle, " (inactive)", sizeof(winTitle));
     set_title(frontend, winTitle);
@@ -417,7 +417,7 @@ void notify_remote_exit(void *frontend)
     if (exitcode >=0) {
         if (f->cfg.close_on_exit == FORCE_ON ||
             (f->cfg.close_on_exit == AUTO && exitcode != INT_MAX)) {
-            f->getMainWindow()->closeTerminal(f);
+            f->closeTerminal();
         } else {
             /* exitcode == INT_MAX indicates that the connection was closed
              * by a fatal error, so an error box will be coming our way and
