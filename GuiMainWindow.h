@@ -16,6 +16,7 @@
 #include "QtCommon.h"
 #include "GuiSettingsWindow.h"
 #include "GuiMenu.h"
+#include "GuiDrag.h"
 
 class GuiSettingsWindow;
 
@@ -28,6 +29,9 @@ public:
     QMenu menuCommonMenus[MENU_MAX_MENU];
     GuiTerminalWindow *menuCookieTermWnd;
     QMenu menuSavedSessions;
+
+    // members for drag-drop support
+    GuiDragDropSite dragDropSite;
 
     GuiMainWindow(QWidget *parent = 0);
     ~GuiMainWindow();
@@ -50,6 +54,7 @@ private:
     QToolButton newTabToolButton;   // shown in top right corner of tabbar
 
     void initializeMenuSystem();
+    void inittializeDragDropWidget();
     void populateMenu(QMenu &menu, qutty_menu_id_t menu_list[], int len);
 
     void readSettings();

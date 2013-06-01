@@ -15,6 +15,7 @@ extern "C" {
 #include "putty.h"
 }
 #include "GuiTerminalWindow.h"
+#include "GuiSplitter.h"
 
 GuiTerminalWindow::GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow) :
     QAbstractScrollArea(parent)
@@ -51,6 +52,9 @@ GuiTerminalWindow::GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow)
     _tmuxGateway = NULL;
 
     _disableResize = false;
+
+    // enable drag-drop
+    setAcceptDrops(true);
 }
 
 GuiTerminalWindow::~GuiTerminalWindow()
@@ -603,6 +607,14 @@ void 	GuiTerminalWindow::mouseMoveEvent ( QMouseEvent * e )
     noise_ultralight(e->x()<<16 | e->y());
     if (e->buttons()==Qt::NoButton || !term) return;
 
+    if (e->buttons() == Qt::LeftButton &&
+        ((e->modifiers() & Qt::ControlModifier) || (cfg.mouse_is_xterm == 2)) &&
+        (e->pos() - dragStartPos).manhattanLength() >= QApplication::startDragDistance()) {
+        // start of drag
+        this->dragStartEvent(e);
+        return;
+    }
+
     Mouse_Button button, bcooked;
     button = e->buttons()&Qt::LeftButton ? MBT_LEFT :
              e->buttons()&Qt::RightButton ? MBT_RIGHT :
@@ -622,6 +634,12 @@ void 	GuiTerminalWindow::mousePressEvent ( QMouseEvent * e )
 {
     noise_ultralight(e->x()<<16 | e->y());
     if (!term) return;
+
+    if(e->button()==Qt::LeftButton &&
+            ((e->modifiers() & Qt::ControlModifier) || (cfg.mouse_is_xterm == 2))) {
+        // possible start of drag
+        dragStartPos = e->pos();
+    }
 
     if(e->button()==Qt::RightButton &&
             ((e->modifiers() & Qt::ControlModifier) || (cfg.mouse_is_xterm == 2))) {

@@ -15,6 +15,7 @@
 #include "GuiTerminalWindow.h"
 #include "GuiSettingsWindow.h"
 #include "GuiTabWidget.h"
+#include "GuiSplitter.h"
 //#include "windows.h"
 extern "C" {
 #include "putty.h"
@@ -27,7 +28,8 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
     : QMainWindow(parent),
       settingsWindow(NULL),
       newTabToolButton(),
-      menuCookieTermWnd(NULL)
+      menuCookieTermWnd(NULL),
+      dragDropSite()
 {
     memset(menuCommonActions, 0, sizeof(menuCommonActions));
 
@@ -45,6 +47,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
     connect(tabArea, SIGNAL(sig_tabChangeSettings(GuiTerminalWindow*)), SLOT(on_changeSettingsTab(GuiTerminalWindow*)));
 
     initializeMenuSystem();
+    inittializeDragDropWidget();
 
     this->setCentralWidget(tabArea);
 
@@ -487,8 +490,6 @@ int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType sp
         GuiTerminalWindow *currTerm;
         if (!(currTerm = getCurrentTerminal()))
             goto err_exit;
-
-        if (currTerm)
 
         currTerm->createSplitLayout(split, newTerm);
         newTerm->setFocus();

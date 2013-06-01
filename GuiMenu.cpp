@@ -96,12 +96,10 @@ void GuiMainWindow::initializeMenuSystem()
     menuBar()->addMenu(&menuCommonMenus[MENU_VIEW-MENU_SEPARATOR-1]);
     menuCommonActions[MENU_MENUBAR]->setChecked(true);
 
-    //newTabToolButton.setText(tr("+"));
-    //newTabToolButton.setIcon();
+    newTabToolButton.setArrowType(Qt::DownArrow);
     newTabToolButton.setMenu(getMenuById(MENU_TAB_BAR));
     newTabToolButton.setPopupMode(QToolButton::InstantPopup);
 
-    connect(&newTabToolButton, SIGNAL(clicked()), SLOT(on_openNewTab()));
     tabArea->setCornerWidget(&newTabToolButton, Qt::TopRightCorner);
     tabArea->setStyle(new MyStyle(this));   // TODO MEMLEAK
 

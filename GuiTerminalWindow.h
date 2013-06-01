@@ -18,6 +18,7 @@
 #include "tmux/tmux.h"
 #include "tmux/TmuxGateway.h"
 #include "tmux/TmuxWindowPane.h"
+#include "GuiDrag.h"
 extern "C" {
 #include "terminal.h"
 #include "putty.h"
@@ -40,17 +41,11 @@ private:
 
     void showContextMenu(QMouseEvent *e);
 
-public:
     QFont _font;
     int fontWidth, fontHeight, fontAscent;
-    void *ldisc;
-    Terminal *term;
-    Backend *backend;
-    void *backhandle;
     struct unicode_data ucsdata;
     Actual_Socket as;
     QTcpSocket *qtsock;
-    Config cfg;
     bool _any_update;
     QRegion termrgn;
     QColor colours[NALLCOLOURS];
@@ -59,12 +54,23 @@ public:
     Mouse_Action mouseButtonAction;
     QElapsedTimer mouseClickTimer;
 
-    bool userClosingTab;
-    bool isSockDisconnected;
 
     enum {
         BOLD_COLOURS, BOLD_SHADOW, BOLD_FONT
     } bold_mode;
+
+    // members for drag-drop support
+    QPoint dragStartPos;
+
+public:
+    Config cfg;
+    Terminal *term;
+    Backend *backend;
+    void *backhandle;
+    void *ldisc;
+
+    bool userClosingTab;
+    bool isSockDisconnected;
 
     explicit GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow);
     ~GuiTerminalWindow();
@@ -111,6 +117,15 @@ public:
 
     void closeTerminal();
     void reqCloseTerminal(bool userConfirm);
+
+    QWidget *getWidget() { return this; }
+
+    // Needed functions for drag-drop support
+    void dragStartEvent (QMouseEvent *e);
+    void dragEnterEvent (QDragEnterEvent *e);
+    void dragLeaveEvent (QDragLeaveEvent *e);
+    void dragMoveEvent (QDragMoveEvent *e);
+    void dropEvent (QDropEvent *e);
 
 protected:
     void paintEvent ( QPaintEvent * e );

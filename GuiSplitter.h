@@ -10,7 +10,6 @@
 class GuiBase;
 class GuiTerminalWindow;
 #include "GuiBase.h"
-#include "GuiTerminalWindow.h"
 
 class GuiSplitter : public GuiBase, public QSplitter
 {
@@ -18,10 +17,12 @@ public:
     vector<GuiBase*> child;
     GuiSplitter(Qt::Orientation split, GuiSplitter *parentsplit=NULL, int ind=-1);
 
+    QWidget *getWidget() { return this; }
+
     void addBaseWidget(int ind, GuiBase *base);
     void removeBaseWidget(GuiBase *base);
 
-    void createSplitLayout(Qt::Orientation orient, GuiTerminalWindow *oldTerm, GuiTerminalWindow *newTerm);
+    void createSplitLayout(Qt::Orientation orient, SplitType split, GuiTerminalWindow *oldTerm, GuiTerminalWindow *newTerm);
     void reqCloseTerminal(bool userRequest);
     void removeSplitLayout(GuiTerminalWindow *term);
 };

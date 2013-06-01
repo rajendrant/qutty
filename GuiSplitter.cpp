@@ -5,6 +5,7 @@
  */
 
 #include "GuiSplitter.h"
+#include "GuiTerminalWindow.h"
 
 GuiSplitter::GuiSplitter(Qt::Orientation split, GuiSplitter *parentsplit, int ind) :
     QSplitter(split, parentsplit),
@@ -29,8 +30,8 @@ void GuiSplitter::reqCloseTerminal(bool userRequest)
 
 void GuiTerminalWindow::createSplitLayout(GuiBase::SplitType split, GuiTerminalWindow *newTerm)
 {
-    Qt::Orientation orient = split==GuiBase::TYPE_HORIZONTAL ? Qt::Vertical :
-                                                               Qt::Horizontal;
+    Qt::Orientation orient = (split==GuiBase::TYPE_HORIZONTAL || split==GuiBase::TYPE_UP)
+                                ? Qt::Vertical : Qt::Horizontal;
     this->_disableResize = newTerm->_disableResize = true;
 
     if (!parentSplit) {
@@ -41,8 +42,13 @@ void GuiTerminalWindow::createSplitLayout(GuiBase::SplitType split, GuiTerminalW
 
         mainWindow->tabArea->removeTab(tabind);
         GuiSplitter *splitter = new GuiSplitter(orient);
-        splitter->addBaseWidget(0, this);
-        splitter->addBaseWidget(1, newTerm);
+        if (split==GuiBase::TYPE_HORIZONTAL || split==GuiBase::TYPE_VERTICAL) {
+            splitter->addBaseWidget(0, this);
+            splitter->addBaseWidget(1, newTerm);
+        } else {
+            splitter->addBaseWidget(0, newTerm);
+            splitter->addBaseWidget(1, this);
+        }
 
         mainWindow->tabArea->insertTab(tabind, splitter, tr(APPNAME));
         mainWindow->tabArea->setCurrentIndex(tabind);
@@ -53,16 +59,17 @@ void GuiTerminalWindow::createSplitLayout(GuiBase::SplitType split, GuiTerminalW
         splitter->setSizes(listsizes);
         this->show();
     } else {
-        parentSplit->createSplitLayout(orient, this, newTerm);
+        parentSplit->createSplitLayout(orient, split, this, newTerm);
     }
 
     newTerm->show();
     this->_disableResize = newTerm->_disableResize = false;
-    newTerm->resizeEvent(NULL);
-    this->resizeEvent(NULL);
+    //newTerm->resizeEvent(NULL);
+    //this->resizeEvent(NULL);
 }
 
-void GuiSplitter::createSplitLayout(Qt::Orientation orient, GuiTerminalWindow *oldTerm, GuiTerminalWindow *newTerm)
+void GuiSplitter::createSplitLayout(Qt::Orientation orient, GuiBase::SplitType split,
+                                    GuiTerminalWindow *oldTerm, GuiTerminalWindow *newTerm)
 {
     QList<int> listsizes = sizes();
     int ind = indexOf(oldTerm);
@@ -74,8 +81,13 @@ void GuiSplitter::createSplitLayout(Qt::Orientation orient, GuiTerminalWindow *o
     if (orient != orientation()) {
         GuiSplitter *splitter = new GuiSplitter(orient, this, ind);
         this->removeBaseWidget(oldTerm);
-        splitter->addBaseWidget(0, oldTerm);
-        splitter->addBaseWidget(1, newTerm);
+        if (split==GuiBase::TYPE_HORIZONTAL || split==GuiBase::TYPE_VERTICAL) {
+            splitter->addBaseWidget(0, oldTerm);
+            splitter->addBaseWidget(1, newTerm);
+        } else {
+            splitter->addBaseWidget(0, newTerm);
+            splitter->addBaseWidget(1, oldTerm);
+        }
 
         // restore the sizes
         this->setSizes(listsizes);
@@ -85,7 +97,10 @@ void GuiSplitter::createSplitLayout(Qt::Orientation orient, GuiTerminalWindow *o
         splitter->setSizes(listsizes);
         this->show();
     } else {
-        this->addBaseWidget(ind+1, newTerm);
+        if (split==GuiBase::TYPE_HORIZONTAL || split==GuiBase::TYPE_VERTICAL)
+            this->addBaseWidget(ind+1, newTerm);
+        else
+            this->addBaseWidget(ind, newTerm);
         listsizes.insert(ind+1, listsizes[ind]/2);
         listsizes[ind] -= listsizes[ind]/2;
         this->setSizes(listsizes);
@@ -93,20 +108,16 @@ void GuiSplitter::createSplitLayout(Qt::Orientation orient, GuiTerminalWindow *o
 }
 
 void GuiSplitter::addBaseWidget(int ind, GuiBase *base) {
-    QWidget *w;
     child.push_back(base);
     base->parentSplit = this;
-    if ((w = dynamic_cast<QWidget*>(base)))
-        insertWidget(ind, w);
+    insertWidget(ind, base->getWidget());
 }
 
 void GuiSplitter::removeBaseWidget(GuiBase *base) {
-    QWidget *w;
     child.erase(std::remove(child.begin(), child.end(), base));
     base->parentSplit = NULL;
     //removeWidget(base);
-    if ((w = dynamic_cast<QWidget*>(base)))
-        w->setParent(NULL);
+    base->getWidget()->setParent(NULL);
 }
 
 void GuiSplitter::removeSplitLayout(GuiTerminalWindow *term)
@@ -117,7 +128,6 @@ void GuiSplitter::removeSplitLayout(GuiTerminalWindow *term)
         return;
 
     GuiBase *b = child[0];
-    QWidget *w;
     removeBaseWidget(b);
     if (parentSplit) {
         parentSplit->child.erase(std::remove(parentSplit->child.begin(),
@@ -125,10 +135,10 @@ void GuiSplitter::removeSplitLayout(GuiTerminalWindow *term)
                                              this));
         parentSplit->addBaseWidget(parentSplit->indexOf(this), b);
         parentSplit = NULL;
-    } else if ((w = dynamic_cast<QWidget*>(b))) {
+    } else {
         int tabind = term->getMainWindow()->tabArea->indexOf(this);
         term->getMainWindow()->tabArea->removeTab(tabind);
-        term->getMainWindow()->tabArea->insertTab(tabind, w, tr(APPNAME));
+        term->getMainWindow()->tabArea->insertTab(tabind, b->getWidget(), tr(APPNAME));
     }
     this->close();
     this->deleteLater();
