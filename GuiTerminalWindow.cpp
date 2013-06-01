@@ -835,7 +835,11 @@ void GuiTerminalWindow::sockDisconnected()
 
 void GuiTerminalWindow::closeTerminal()
 {
-    mainWindow->closeTab(this);
+    if (parentSplit) {
+        parentSplit->removeSplitLayout(this);
+    } else {
+        mainWindow->closeTab(this);
+    }
     this->close();
     this->deleteLater();
 }

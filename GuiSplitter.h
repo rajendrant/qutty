@@ -18,13 +18,12 @@ public:
     vector<GuiBase*> child;
     GuiSplitter(Qt::Orientation split, GuiSplitter *parentsplit=NULL, int ind=-1);
 
-    void addTerminalConsecutive(GuiTerminalWindow *a, GuiTerminalWindow *b);
-    void addTerminalAfter(GuiTerminalWindow *a, GuiTerminalWindow *after);
+    void addBaseWidget(int ind, GuiBase *base);
+    void removeBaseWidget(GuiBase *base);
+
     void createSplitLayout(Qt::Orientation orient, GuiTerminalWindow *oldTerm, GuiTerminalWindow *newTerm);
     void reqCloseTerminal(bool userRequest);
-
-    void addTerminal(int ind, GuiTerminalWindow *term);
-    void removeTerminal(GuiTerminalWindow *term);
+    void removeSplitLayout(GuiTerminalWindow *term);
 };
 
 #endif // GUISPLITTER_H
