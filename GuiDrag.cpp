@@ -21,13 +21,13 @@ GuiDragDropSite::GuiDragDropSite(QWidget *parent)
       drop_mode(GuiBase::TYPE_NONE)
 {
     setAttribute(Qt::WA_TransparentForMouseEvents);
-    btn[GuiBase::TYPE_UP].setText(QString::fromUtf8("\u25B2"));
+    btn[GuiBase::TYPE_UP].setText(QString::fromUtf8("\xe2\x96\xb2"));
     layout.addWidget(&btn[GuiBase::TYPE_UP], 1, 2);
-    btn[GuiBase::TYPE_LEFT].setText(QString::fromUtf8("\u25C0"));
+    btn[GuiBase::TYPE_LEFT].setText(QString::fromUtf8("\xe2\x97\x80"));
     layout.addWidget(&btn[GuiBase::TYPE_LEFT], 2, 1);
-    btn[GuiBase::TYPE_RIGHT].setText(QString::fromUtf8("\u25B6"));
+    btn[GuiBase::TYPE_RIGHT].setText(QString::fromUtf8("\xe2\x96\xb6"));
     layout.addWidget(&btn[GuiBase::TYPE_RIGHT], 2, 3);
-    btn[GuiBase::TYPE_DOWN].setText(QString::fromUtf8("\u25BC"));
+    btn[GuiBase::TYPE_DOWN].setText(QString::fromUtf8("\xe2\x96\xbc"));
     layout.addWidget(&btn[GuiBase::TYPE_DOWN], 3, 2);
 
     layout.setColumnStretch(0, 1);
@@ -168,14 +168,10 @@ void GuiTerminalWindow::dropEvent (QDropEvent *e)
     }
     qDebug()<<__FUNCTION__<<dropped->cfg.host<<dst->cfg.host<<split;
 
-    dropped->_disableResize = dst->_disableResize = true;
     if (dropped->parentSplit) {
         dropped->parentSplit->removeSplitLayout(dropped);
     }
     dst->createSplitLayout(split, dropped);
-    dropped->_disableResize = dst->_disableResize = false;
-    dropped->resizeEvent(NULL);
-    dst->resizeEvent(NULL);
 
 cu0:
     mainWindow->dragDropSite.clearDropMode();

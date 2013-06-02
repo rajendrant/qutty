@@ -51,8 +51,6 @@ GuiTerminalWindow::GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow)
     _tmuxMode = TMUX_MODE_NONE;
     _tmuxGateway = NULL;
 
-    _disableResize = false;
-
     // enable drag-drop
     setAcceptDrops(true);
 }
@@ -726,11 +724,12 @@ void GuiTerminalWindow::writeClip(wchar_t * data, int *attr, int len, int must_d
 
 void 	GuiTerminalWindow::resizeEvent ( QResizeEvent * e )
 {
-    qDebug()<<"resize"<<term<<viewport()->size();
-    if (_disableResize) {
-        qDebug()<<"_disableResize set"<<term;
+    if (viewport()->height() == 0 || viewport()->width() == 0) {
+        // skip the spurious resizes during split-pane create/delete/drag-drop
+        // we are not missing anything by not resizing, since height/width is 0
         return;
     }
+
     if (_tmuxMode==TMUX_MODE_CLIENT) {
         wchar_t cmd_resize[128];
         int cmd_resize_len = wsprintf(cmd_resize, L"control set-client-size %d,%d\n",

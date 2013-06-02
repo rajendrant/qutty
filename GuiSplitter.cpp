@@ -32,7 +32,6 @@ void GuiTerminalWindow::createSplitLayout(GuiBase::SplitType split, GuiTerminalW
 {
     Qt::Orientation orient = (split==GuiBase::TYPE_HORIZONTAL || split==GuiBase::TYPE_UP)
                                 ? Qt::Vertical : Qt::Horizontal;
-    this->_disableResize = newTerm->_disableResize = true;
 
     if (!parentSplit) {
         int tabind = mainWindow->tabArea->indexOf(this);
@@ -63,9 +62,6 @@ void GuiTerminalWindow::createSplitLayout(GuiBase::SplitType split, GuiTerminalW
     }
 
     newTerm->show();
-    this->_disableResize = newTerm->_disableResize = false;
-    //newTerm->resizeEvent(NULL);
-    //this->resizeEvent(NULL);
 }
 
 void GuiSplitter::createSplitLayout(Qt::Orientation orient, GuiBase::SplitType split,
@@ -136,9 +132,12 @@ void GuiSplitter::removeSplitLayout(GuiTerminalWindow *term)
         parentSplit->addBaseWidget(parentSplit->indexOf(this), b);
         parentSplit = NULL;
     } else {
+        int currtab = term->getMainWindow()->tabArea->currentIndex();
         int tabind = term->getMainWindow()->tabArea->indexOf(this);
         term->getMainWindow()->tabArea->removeTab(tabind);
         term->getMainWindow()->tabArea->insertTab(tabind, b->getWidget(), tr(APPNAME));
+        if (currtab == tabind)
+            term->getMainWindow()->tabArea->setCurrentIndex(tabind);
     }
     this->close();
     this->deleteLater();

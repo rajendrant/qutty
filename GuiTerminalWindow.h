@@ -37,8 +37,6 @@ private:
     TmuxGateway *_tmuxGateway;
     GuiMainWindow *mainWindow;
 
-    bool _disableResize;        // for temporarily disabling resize
-
     void showContextMenu(QMouseEvent *e);
 
     QFont _font;
