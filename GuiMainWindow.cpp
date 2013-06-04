@@ -49,6 +49,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
 
     initializeMenuSystem();
     inittializeDragDropWidget();
+    toolBarTerminalTop.initializeToolbarTerminalTop(this);
 
     this->setCentralWidget(tabArea);
 

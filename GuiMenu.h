@@ -36,8 +36,6 @@ enum qutty_menu_id_t {
     MENU_FULLSCREEN,
     MENU_ALWAYSONTOP,
     MENU_PREFERENCES,
-    MENU_TERM_TOP_CLOSE_PANE,
-    MENU_TERM_TOP_DRAG_START,
 
     MENU_SEPARATOR,
 
@@ -73,7 +71,7 @@ extern qutty_menu_actions_t qutty_menu_actions[];
 extern qutty_menu_links_t qutty_menu_links[];
 
 
-class GuiToolbarTerminalTop : QToolBar {
+class GuiToolbarTerminalTop : public QToolBar {
     QToolButton btns[3];
     bool menuVisible;
     bool initSizes;
@@ -81,7 +79,7 @@ class GuiToolbarTerminalTop : QToolBar {
     int totalHeight;
 public:
     GuiToolbarTerminalTop(GuiMainWindow *p);
-
+    void initializeToolbarTerminalTop(GuiMainWindow *p);
     void processMouseMoveTerminalTop(GuiTerminalWindow *term, QMouseEvent *e);
 };
 

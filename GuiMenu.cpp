@@ -53,10 +53,6 @@ qutty_menu_actions_t qutty_menu_actions[MENU_MAX_ACTION] = {
       ""},
     { "Preferences",            "",              "",
       ""},
-    { "Clo",                  "",              SLOT( contextMenuCloseSessionTriggered() ),
-      "Close this pane"},
-    { "Dra",                  "",              SLOT( contextMenuDragPaneTriggered() ),
-      "Click and start dragging this pane to some other pane"},
 };
 
 qutty_menu_links_t qutty_menu_links[MENU_MAX_MENU] = {
@@ -229,12 +225,25 @@ void GuiMainWindow::contextMenuChangeSettingsTriggered()
     on_changeSettingsTab(menuCookieTermWnd);
 }
 
+void GuiMainWindow::contextMenuTermTopCloseTriggered()
+{
+    if (!menuCookieTermWnd)
+        return;
+    if (terminalList.indexOf(menuCookieTermWnd) == -1)
+        return;
+    toolBarTerminalTop.setParent(NULL);
+    toolBarTerminalTop.hide();
+    menuCookieTermWnd->reqCloseTerminal(false);
+}
+
 void GuiMainWindow::contextMenuCloseSessionTriggered()
 {
     QAction *action = qobject_cast<QAction *>(sender());
     if (!action)
         return;
     if (!menuCookieTermWnd)
+        return;
+    if (terminalList.indexOf(menuCookieTermWnd) == -1)
         return;
     menuCookieTermWnd->reqCloseTerminal(false);
 }
@@ -272,8 +281,15 @@ void GuiMainWindow::contextMenuAlwaysOnTop()
     this->show();
 }
 
-void GuiMainWindow::contextMenuDragPaneTriggered()
+void GuiMainWindow::contextMenuTermTopDragPaneTriggered()
 {
+    if (!menuCookieTermWnd)
+        return;
+    if (terminalList.indexOf(menuCookieTermWnd) == -1)
+        return;
+    toolBarTerminalTop.setParent(NULL);
+    toolBarTerminalTop.hide();
+    menuCookieTermWnd->dragStartEvent(NULL);
 }
 
 GuiToolbarTerminalTop::GuiToolbarTerminalTop(GuiMainWindow *p)
@@ -281,14 +297,23 @@ GuiToolbarTerminalTop::GuiToolbarTerminalTop(GuiMainWindow *p)
         initSizes(false),
         QToolBar(p)
 {
+}
+
+void GuiToolbarTerminalTop::initializeToolbarTerminalTop(GuiMainWindow *p)
+{
     btns[0].setIcon(QIcon(":/images/cog_alt_16x16.png"));
     btns[1].setIcon(QIcon(":/images/move_16x16.png"));
     btns[2].setIcon(QIcon(":/images/x_14x14.png"));
-    btns[0].setMenu(p->getMenuById(MENU_TAB_BAR));
+    btns[0].setMenu(p->getMenuById(MENU_TERM_WINDOW));
     btns[0].setPopupMode(QToolButton::InstantPopup);
+
     addWidget(&btns[0]);
     addWidget(&btns[1]);
     addWidget(&btns[2]);
+
+    connect(&btns[1], SIGNAL(pressed()), p, SLOT(contextMenuTermTopDragPaneTriggered()));
+    connect(&btns[2], SIGNAL(clicked()), p, SLOT(contextMenuTermTopCloseTriggered()));
+
     setParent(NULL);
     setIconSize(QSize(16, 16));
     setAutoFillBackground(true);
@@ -298,7 +323,7 @@ GuiToolbarTerminalTop::GuiToolbarTerminalTop(GuiMainWindow *p)
 
 void GuiToolbarTerminalTop::processMouseMoveTerminalTop(GuiTerminalWindow *term, QMouseEvent *e)
 {
-    if ( (e->y() > totalHeight ||
+    if ( !term->parentSplit || (e->y() > totalHeight ||
           (e->x() < term->viewport()->width() - totalWidth)) &&
          !menuVisible)
         return;     // fast return

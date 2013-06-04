@@ -1,5 +1,8 @@
 <RCC>
     <qresource prefix="/">
         <file>qutty.ico</file>
+        <file>images/cog_alt_16x16.png</file>
+        <file>images/move_16x16.png</file>
+        <file>images/x_14x14.png</file>
     </qresource>
 </RCC>

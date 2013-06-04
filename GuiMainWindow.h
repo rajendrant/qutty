@@ -90,7 +90,8 @@ public slots:
     void contextMenuMenuBar();
     void contextMenuFullScreen();
     void contextMenuAlwaysOnTop();
-    void contextMenuDragPaneTriggered();
+    void contextMenuTermTopDragPaneTriggered();
+    void contextMenuTermTopCloseTriggered();
 };
 
 #endif // MAINWINDOW_H
