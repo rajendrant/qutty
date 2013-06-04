@@ -13,26 +13,50 @@
 #include "GuiTerminalWindow.h"
 
 qutty_menu_actions_t qutty_menu_actions[MENU_MAX_ACTION] = {
-    { "New Session",            "Ctrl+Shift+T",  SLOT( on_openNewTab() ) },
-    { "Restart Session",        "",              SLOT( contextMenuRestartSessionTriggered() ) },
-    { "Duplicate Session",      "",              SLOT( contextMenuDuplicateSessionTriggered() ) },
-    { "Change Settings",        "",              SLOT( contextMenuChangeSettingsTriggered() ) },
-    { "Paste",                  "",              SLOT( contextMenuPaste() ) },
-    { "New Tab",                "Ctrl+Shift+T",  SLOT( on_openNewTab() ) },
-    { "New Window",             "",              SLOT( on_openNewWindow() ) },
-    { "Close",                  "",              SLOT( contextMenuCloseSessionTriggered() ) },
-    { "Horizontally",           "Ctrl+Shift+H",  SLOT( on_openNewSplitHorizontal() ) },
-    { "Vertically",             "Ctrl+Shift+V",  SLOT( on_openNewSplitVertical() ) },
-    { "Switch to Left Tab",     "Shift+Left",    SLOT( tabPrev() ) },
-    { "Switch to Right Tab",    "Shift+Right",   SLOT( tabNext() ) },
-    { "Import from File",       "",              "" },
-    { "Import PuTTY sessions",  "",              "" },
-    { "Export from File",       "",              "" },
-    { "Exit",                   "",              SLOT( contextMenuCloseWindowTriggered() ) },
-    { "Show Menubar",           "",              SLOT( contextMenuMenuBar() ) },
-    { "Fullscreen",             "",              SLOT( contextMenuFullScreen() ) },
-    { "Always on top",          "",              SLOT( contextMenuAlwaysOnTop() ) },
-    { "Preferences",            "",              "" }
+    { "New Session",            "Ctrl+Shift+T",  SLOT( on_openNewTab() ),
+      ""},
+    { "Restart Session",        "",              SLOT( contextMenuRestartSessionTriggered() ),
+      ""},
+    { "Duplicate Session",      "",              SLOT( contextMenuDuplicateSessionTriggered() ),
+      ""},
+    { "Change Settings",        "",              SLOT( contextMenuChangeSettingsTriggered() ),
+      ""},
+    { "Paste",                  "",              SLOT( contextMenuPaste() ),
+      ""},
+    { "New Tab",                "Ctrl+Shift+T",  SLOT( on_openNewTab() ),
+      ""},
+    { "New Window",             "",              SLOT( on_openNewWindow() ),
+      ""},
+    { "Close",                  "",              SLOT( contextMenuCloseSessionTriggered() ),
+      "Close currently active session/pane"},
+    { "Horizontally",           "Ctrl+Shift+H",  SLOT( on_openNewSplitHorizontal() ),
+      ""},
+    { "Vertically",             "Ctrl+Shift+V",  SLOT( on_openNewSplitVertical() ),
+      ""},
+    { "Switch to Left Tab",     "Shift+Left",    SLOT( tabPrev() ),
+      ""},
+    { "Switch to Right Tab",    "Shift+Right",   SLOT( tabNext() ),
+      ""},
+    { "Import from File",       "",              "",
+      ""},
+    { "Import PuTTY sessions",  "",              "",
+      ""},
+    { "Export from File",       "",              "",
+      ""},
+    { "Exit",                   "",              SLOT( contextMenuCloseWindowTriggered() ),
+      ""},
+    { "Show Menubar",           "",              SLOT( contextMenuMenuBar() ),
+      ""},
+    { "Fullscreen",             "",              SLOT( contextMenuFullScreen() ),
+      ""},
+    { "Always on top",          "",              SLOT( contextMenuAlwaysOnTop() ),
+      ""},
+    { "Preferences",            "",              "",
+      ""},
+    { "Clo",                  "",              SLOT( contextMenuCloseSessionTriggered() ),
+      "Close this pane"},
+    { "Dra",                  "",              SLOT( contextMenuDragPaneTriggered() ),
+      "Click and start dragging this pane to some other pane"},
 };
 
 qutty_menu_links_t qutty_menu_links[MENU_MAX_MENU] = {
@@ -79,6 +103,7 @@ void GuiMainWindow::initializeMenuSystem()
     for(int i=0; i<MENU_MAX_ACTION; i++) {
         menuCommonActions[i] = new QAction(qutty_menu_actions[i].name, this);
         menuCommonActions[i]->setShortcut(QKeySequence(qutty_menu_actions[i].key));
+        menuCommonActions[i]->setToolTip(qutty_menu_actions[i].tooltip);
         connect(menuCommonActions[i], SIGNAL(triggered()), this, qutty_menu_actions[i].slot);
     }
     for(int i=0; i<MENU_MAX_MENU; i++) {
@@ -245,4 +270,64 @@ void GuiMainWindow::contextMenuAlwaysOnTop()
         setWindowFlags(windowFlags() ^ Qt::WindowStaysOnTopHint);
     }
     this->show();
+}
+
+void GuiMainWindow::contextMenuDragPaneTriggered()
+{
+}
+
+GuiToolbarTerminalTop::GuiToolbarTerminalTop(GuiMainWindow *p)
+      : menuVisible(false),
+        initSizes(false),
+        QToolBar(p)
+{
+    btns[0].setIcon(QIcon(":/images/cog_alt_16x16.png"));
+    btns[1].setIcon(QIcon(":/images/move_16x16.png"));
+    btns[2].setIcon(QIcon(":/images/x_14x14.png"));
+    btns[0].setMenu(p->getMenuById(MENU_TAB_BAR));
+    btns[0].setPopupMode(QToolButton::InstantPopup);
+    addWidget(&btns[0]);
+    addWidget(&btns[1]);
+    addWidget(&btns[2]);
+    setParent(NULL);
+    setIconSize(QSize(16, 16));
+    setAutoFillBackground(true);
+    totalWidth = INT_MAX;
+    totalHeight = INT_MAX;
+}
+
+void GuiToolbarTerminalTop::processMouseMoveTerminalTop(GuiTerminalWindow *term, QMouseEvent *e)
+{
+    if ( (e->y() > totalHeight ||
+          (e->x() < term->viewport()->width() - totalWidth)) &&
+         !menuVisible)
+        return;     // fast return
+
+    if (!initSizes) {
+        // need to update width/height
+        setParent(term);
+        show();
+        move(0, 0);
+        totalWidth = width();
+        totalHeight = height();
+        qDebug() << size() << minimumSize() << minimumSizeHint();
+        initSizes = true;
+        hide();
+    }
+    bool toShow = (e->x() >= term->viewport()->width() - totalWidth) &&
+                  (e->y() <= totalHeight);
+    if (toShow && !menuVisible) {
+        term->getMainWindow()->menuCookieTermWnd = term;
+        setParent(term);
+        show();
+        move(term->viewport()->width() - totalWidth, 0);
+        totalWidth = width();
+        totalHeight = height();
+        menuVisible = true;
+    } else if (!toShow && menuVisible) {
+        setParent(NULL);
+        hide();
+        menuVisible = false;
+        term->getMainWindow()->menuCookieTermWnd = NULL;
+    }
 }

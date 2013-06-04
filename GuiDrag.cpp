@@ -29,6 +29,10 @@ GuiDragDropSite::GuiDragDropSite(QWidget *parent)
     layout.addWidget(&btn[GuiBase::TYPE_RIGHT], 2, 3);
     btn[GuiBase::TYPE_DOWN].setText(QString::fromUtf8("\xe2\x96\xbc"));
     layout.addWidget(&btn[GuiBase::TYPE_DOWN], 3, 2);
+    btn[GuiBase::TYPE_UP].setProperty("qutty_GuiDropSite_btn_drop_type", GuiBase::TYPE_UP);
+    btn[GuiBase::TYPE_LEFT].setProperty("qutty_GuiDropSite_btn_drop_type", GuiBase::TYPE_LEFT);
+    btn[GuiBase::TYPE_RIGHT].setProperty("qutty_GuiDropSite_btn_drop_type", GuiBase::TYPE_RIGHT);
+    btn[GuiBase::TYPE_DOWN].setProperty("qutty_GuiDropSite_btn_drop_type", GuiBase::TYPE_DOWN);
 
     layout.setColumnStretch(0, 1);
     layout.setColumnStretch(4, 1);
@@ -61,22 +65,22 @@ void GuiDragDropSite::paintEvent(QPaintEvent *e)
 
 GuiBase::SplitType GuiDragDropSite::updateDropMode(const QPoint &pos)
 {
-    QToolButton *b;
+    QWidget *w;
     if (!geometry().contains(pos))
         goto cu0;
 
-    b = dynamic_cast<QToolButton*>(childAt(mapFromParent(pos)));
-    for (GuiBase::SplitType i=GuiBase::TYPE_UP;
-         i <= GuiBase::TYPE_RIGHT;
-         i = (GuiBase::SplitType) (((int)i)+1)) {
-        if (b == btn+i) {
-            if (i != drop_mode) {
-                drop_mode = i;
-                repaint();
-            }
-            return drop_mode;
+    w = childAt(mapFromParent(pos));
+    if (w) {
+        QVariant v = w->property("qutty_GuiDropSite_btn_drop_type");
+        GuiBase::SplitType split;
+        if (v.type() == QVariant::Int &&
+            (split=(GuiBase::SplitType)(v.toInt())) != drop_mode) {
+            drop_mode = split;
+            repaint();
         }
+        return drop_mode;
     }
+
 
 cu0:
     if (drop_mode != GuiBase::TYPE_NONE) {
@@ -95,7 +99,7 @@ void GuiDragDropSite::clearDropMode()
 
 void GuiTerminalWindow::dragStartEvent (QMouseEvent *e)
 {
-    QPixmap pixmap = QPixmap("qutty.ico");
+    QPixmap pixmap = QPixmap(":/qutty.ico");
 
     QMimeData *mimeData = new QMimeData;
     mimeData->setData("qutty-terminal-drag-drop-action", "application/tab-detach");

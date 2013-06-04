@@ -29,6 +29,7 @@ public:
     QMenu menuCommonMenus[MENU_MAX_MENU];
     GuiTerminalWindow *menuCookieTermWnd;
     QMenu menuSavedSessions;
+    GuiToolbarTerminalTop toolBarTerminalTop;    // top-right of terminal in split-mode
 
     // members for drag-drop support
     GuiDragDropSite dragDropSite;
@@ -89,6 +90,7 @@ public slots:
     void contextMenuMenuBar();
     void contextMenuFullScreen();
     void contextMenuAlwaysOnTop();
+    void contextMenuDragPaneTriggered();
 };
 
 #endif // MAINWINDOW_H

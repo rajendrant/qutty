@@ -128,3 +128,6 @@ OTHER_FILES += \
     qutty.ico
 
 RC_FILE = qutty.rc
+
+RESOURCES += \
+    QuTTY.qrc

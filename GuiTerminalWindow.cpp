@@ -603,7 +603,11 @@ void 	GuiTerminalWindow::mouseDoubleClickEvent ( QMouseEvent * e )
 void 	GuiTerminalWindow::mouseMoveEvent ( QMouseEvent * e )
 {
     noise_ultralight(e->x()<<16 | e->y());
-    if (e->buttons()==Qt::NoButton || !term) return;
+    if (e->buttons() == Qt::NoButton) {
+        mainWindow->toolBarTerminalTop.processMouseMoveTerminalTop(this, e);
+        return;
+    }
+    if (!term) return;
 
     if (e->buttons() == Qt::LeftButton &&
         ((e->modifiers() & Qt::ControlModifier) || (cfg.mouse_is_xterm == 2)) &&

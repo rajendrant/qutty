@@ -29,7 +29,8 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
       settingsWindow(NULL),
       newTabToolButton(),
       menuCookieTermWnd(NULL),
-      dragDropSite()
+      dragDropSite(),
+      toolBarTerminalTop(this)
 {
     memset(menuCommonActions, 0, sizeof(menuCommonActions));
 
