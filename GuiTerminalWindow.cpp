@@ -16,6 +16,7 @@ extern "C" {
 }
 #include "GuiTerminalWindow.h"
 #include "GuiSplitter.h"
+#include "GuiMenu.h"
 
 GuiTerminalWindow::GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow) :
     QAbstractScrollArea(parent)
@@ -856,6 +857,8 @@ void GuiTerminalWindow::sockDisconnected()
 
 void GuiTerminalWindow::closeTerminal()
 {
+    // be sure to hide the top-right menu
+    this->getMainWindow()->toolBarTerminalTop.hideMe();
     if (parentSplit) {
         parentSplit->removeSplitLayout(this);
     } else {

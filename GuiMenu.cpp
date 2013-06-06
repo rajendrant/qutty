@@ -231,8 +231,7 @@ void GuiMainWindow::contextMenuTermTopCloseTriggered()
         return;
     if (terminalList.indexOf(menuCookieTermWnd) == -1)
         return;
-    toolBarTerminalTop.setParent(NULL);
-    toolBarTerminalTop.hide();
+    toolBarTerminalTop.hideMe();
     menuCookieTermWnd->reqCloseTerminal(false);
 }
 
@@ -287,9 +286,14 @@ void GuiMainWindow::contextMenuTermTopDragPaneTriggered()
         return;
     if (terminalList.indexOf(menuCookieTermWnd) == -1)
         return;
-    toolBarTerminalTop.setParent(NULL);
-    toolBarTerminalTop.hide();
-    menuCookieTermWnd->dragStartEvent(NULL);
+    // the toolbutton stays in up/clicked state if we start dragging
+    // trick to perform a complete click, so that the image goes to normal
+    GuiTerminalWindow *term = menuCookieTermWnd;
+    menuCookieTermWnd = NULL;
+    toolBarTerminalTop.btns[1].animateClick(0);
+
+    toolBarTerminalTop.hideMe();
+    term->dragStartEvent(NULL);
 }
 
 GuiToolbarTerminalTop::GuiToolbarTerminalTop(GuiMainWindow *p)
@@ -321,6 +325,13 @@ void GuiToolbarTerminalTop::initializeToolbarTerminalTop(GuiMainWindow *p)
     totalHeight = INT_MAX;
 }
 
+void GuiToolbarTerminalTop::hideMe()
+{
+    setParent(NULL);
+    hide();
+    menuVisible = false;
+}
+
 void GuiToolbarTerminalTop::processMouseMoveTerminalTop(GuiTerminalWindow *term, QMouseEvent *e)
 {
     if ( !term->parentSplit || (e->y() > totalHeight ||
@@ -337,7 +348,8 @@ void GuiToolbarTerminalTop::processMouseMoveTerminalTop(GuiTerminalWindow *term,
         totalHeight = height();
         qDebug() << size() << minimumSize() << minimumSizeHint();
         initSizes = true;
-        hide();
+        // be sure to remove parent from terminal
+        hideMe();
     }
     bool toShow = (e->x() >= term->viewport()->width() - totalWidth) &&
                   (e->y() <= totalHeight);
@@ -350,9 +362,7 @@ void GuiToolbarTerminalTop::processMouseMoveTerminalTop(GuiTerminalWindow *term,
         totalHeight = height();
         menuVisible = true;
     } else if (!toShow && menuVisible) {
-        setParent(NULL);
-        hide();
-        menuVisible = false;
         term->getMainWindow()->menuCookieTermWnd = NULL;
+        hideMe();
     }
 }

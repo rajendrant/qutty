@@ -71,7 +71,7 @@ public:
     bool isSockDisconnected;
 
     explicit GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow);
-    ~GuiTerminalWindow();
+    virtual ~GuiTerminalWindow();
 
     GuiMainWindow *getMainWindow() {
         return mainWindow;

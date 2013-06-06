@@ -21,8 +21,10 @@ GuiSplitter::GuiSplitter(Qt::Orientation split, GuiSplitter *parentsplit, int in
 
 void GuiSplitter::reqCloseTerminal(bool userRequest)
 {
-    for(vector<GuiBase*>::iterator it = child.begin() ; it != child.end(); ++it)
+    vector<GuiBase*> copy(child);
+    for(vector<GuiBase*>::iterator it = copy.begin() ; it != copy.end(); ++it)
         (*it)->reqCloseTerminal(userRequest);
+    assert(child.size() == 0);
     child.clear();
     this->close();
     this->deleteLater();

@@ -31,6 +31,7 @@ public:
     GuiSplitter *parentSplit;
 
     GuiBase();
+    virtual ~GuiBase() { };
     virtual void reqCloseTerminal(bool userRequest) = 0;
     virtual QWidget *getWidget() = 0;
 };

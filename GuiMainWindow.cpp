@@ -125,7 +125,6 @@ void GuiMainWindow::tabCloseRequested (int index)
                                 QMessageBox::Yes|QMessageBox::No))
             return;
         base->reqCloseTerminal(true);
-        tabArea->removeTab(index);
     }
 }
 

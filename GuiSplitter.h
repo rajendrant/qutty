@@ -16,6 +16,7 @@ class GuiSplitter : public GuiBase, public QSplitter
 public:
     vector<GuiBase*> child;
     GuiSplitter(Qt::Orientation split, GuiSplitter *parentsplit=NULL, int ind=-1);
+    virtual ~GuiSplitter() { };
 
     QWidget *getWidget() { return this; }
 
