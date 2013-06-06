@@ -99,7 +99,7 @@ void GuiDragDropSite::clearDropMode()
 
 void GuiTerminalWindow::dragStartEvent (QMouseEvent *e)
 {
-    QPixmap pixmap = QPixmap(":/qutty.ico");
+    QPixmap pixmap = QPixmap(":/images/drag.png");
 
     QMimeData *mimeData = new QMimeData;
     mimeData->setData("qutty-terminal-drag-drop-action", "application/tab-detach");
