@@ -60,6 +60,10 @@ private:
     // members for drag-drop support
     QPoint dragStartPos;
 
+    // support for clipboard paste
+    wchar_t *clipboard_contents;
+    int clipboard_length;
+
 public:
     Config cfg;
     Terminal *term;
