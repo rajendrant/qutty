@@ -305,18 +305,21 @@ GuiToolbarTerminalTop::GuiToolbarTerminalTop(GuiMainWindow *p)
 
 void GuiToolbarTerminalTop::initializeToolbarTerminalTop(GuiMainWindow *p)
 {
-    btns[0].setIcon(QIcon(":/images/cog_alt_16x16.png"));
-    btns[1].setIcon(QIcon(":/images/move_16x16.png"));
-    btns[2].setIcon(QIcon(":/images/x_14x14.png"));
-    btns[0].setMenu(p->getMenuById(MENU_TERM_WINDOW));
-    btns[0].setPopupMode(QToolButton::InstantPopup);
+    btns[MENU_TERMTOP_MENU].setIcon(QIcon(":/images/cog_alt_16x16.png"));
+    btns[MENU_TERMTOP_MOVE].setIcon(QIcon(":/images/move_16x16.png"));
+    btns[MENU_TERMTOP_CLOSE].setIcon(QIcon(":/images/x_14x14.png"));
+    btns[MENU_TERMTOP_MENU].setMenu(p->getMenuById(MENU_TERM_WINDOW));
+    btns[MENU_TERMTOP_MENU].setPopupMode(QToolButton::InstantPopup);
+    btns[MENU_TERMTOP_MENU].setToolTip(tr("Menu"));
+    btns[MENU_TERMTOP_MOVE].setToolTip(tr("Click and start dragging this pane to some other pane"));
+    btns[MENU_TERMTOP_CLOSE].setToolTip(tr("Close this pane"));
 
-    addWidget(&btns[0]);
-    addWidget(&btns[1]);
-    addWidget(&btns[2]);
+    addWidget(&btns[MENU_TERMTOP_MENU]);
+    addWidget(&btns[MENU_TERMTOP_MOVE]);
+    addWidget(&btns[MENU_TERMTOP_CLOSE]);
 
-    connect(&btns[1], SIGNAL(pressed()), p, SLOT(contextMenuTermTopDragPaneTriggered()));
-    connect(&btns[2], SIGNAL(clicked()), p, SLOT(contextMenuTermTopCloseTriggered()));
+    connect(&btns[MENU_TERMTOP_MOVE], SIGNAL(pressed()), p, SLOT(contextMenuTermTopDragPaneTriggered()));
+    connect(&btns[MENU_TERMTOP_CLOSE], SIGNAL(clicked()), p, SLOT(contextMenuTermTopCloseTriggered()));
 
     setParent(NULL);
     setIconSize(QSize(16, 16));

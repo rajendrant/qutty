@@ -72,12 +72,18 @@ extern qutty_menu_links_t qutty_menu_links[];
 
 
 class GuiToolbarTerminalTop : public QToolBar {
+    enum {
+        MENU_TERMTOP_MENU,
+        MENU_TERMTOP_MOVE,
+        MENU_TERMTOP_CLOSE,
+        MENU_TERMTOP_MAX_SIZE
+    };
     bool menuVisible;
     bool initSizes;
     int totalWidth;
     int totalHeight;
 public:
-    QToolButton btns[3];
+    QToolButton btns[MENU_TERMTOP_MAX_SIZE];
     GuiToolbarTerminalTop(GuiMainWindow *p);
     void hideMe();
     void initializeToolbarTerminalTop(GuiMainWindow *p);

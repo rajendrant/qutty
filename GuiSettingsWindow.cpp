@@ -125,6 +125,9 @@ GuiSettingsWindow::GuiSettingsWindow(QWidget *parent, GuiBase::SplitType openmod
     this->resize(0, 0);
 
     this->connect(this, SIGNAL(rejected()), SLOT(slot_GuiSettingsWindow_rejected()));
+
+    // set focus to hostname/ipaddress
+    this->ui->le_hostname->setFocus();
 }
 
 GuiSettingsWindow::~GuiSettingsWindow()

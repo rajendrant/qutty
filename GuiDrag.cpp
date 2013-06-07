@@ -177,6 +177,9 @@ void GuiTerminalWindow::dropEvent (QDropEvent *e)
     }
     dst->createSplitLayout(split, dropped);
 
+    // set the focus to the dropped terminal
+    dropped->setFocus();
+
 cu0:
     mainWindow->dragDropSite.clearDropMode();
 }
