@@ -19,7 +19,9 @@ extern "C" {
 #include "GuiMenu.h"
 
 GuiTerminalWindow::GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow) :
-    QAbstractScrollArea(parent)
+    QAbstractScrollArea(parent),
+    clipboard_contents(NULL),
+    clipboard_length(0)
 {
     this->mainWindow = mainWindow;
 
@@ -694,8 +696,6 @@ void 	GuiTerminalWindow::mouseReleaseEvent ( QMouseEvent * e )
 
 void GuiTerminalWindow::getClip(wchar_t **p, int *len)
 {
-    static wchar_t *clipboard_contents = NULL;
-    static int clipboard_length = 0;
     if (p && len) {
         if (clipboard_contents) delete clipboard_contents;
         QString s = QApplication::clipboard()->text();
@@ -707,8 +707,18 @@ void GuiTerminalWindow::getClip(wchar_t **p, int *len)
         *len = clipboard_length;
     } else {
         // synchronous paste operation
-        if (term_paste_pending(term))
-            term_paste(term);
+        while (term_paste_pending(term)) {
+            int pending = term->paste_pos;
+            do {
+                term_paste(term);
+            } while (term_paste_pending(term) && term->paste_pos - pending < 256);
+            if (!term_paste_pending(term))
+                break;
+
+            // QT suggests using processEvents is a bad design
+            // but hopefully it would fit our purpose
+            QCoreApplication::processEvents();
+        }
         if (clipboard_contents) delete clipboard_contents;
         clipboard_contents = NULL;
         clipboard_length = 0;
