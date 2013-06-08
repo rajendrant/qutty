@@ -30,7 +30,8 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
       newTabToolButton(),
       menuCookieTermWnd(NULL),
       dragDropSite(),
-      toolBarTerminalTop(this)
+      toolBarTerminalTop(this),
+      findToolBar(NULL)
 {
     memset(menuCommonActions, 0, sizeof(menuCommonActions));
 
@@ -53,6 +54,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
 
     this->setCentralWidget(tabArea);
 
+    resize(800, 600);   // initial size
     // read & restore the settings
     readSettings();
 }
@@ -442,8 +444,8 @@ void GuiMainWindow::readSettings()
     QSettings settings(QSettings::IniFormat, QSettings::UserScope, APPNAME, APPNAME);
 
     settings.beginGroup("GuiMainWindow");
-    resize(settings.value("Size", QSize(400, 400)).toSize());
-    move(settings.value("Position", QPoint(200, 200)).toPoint());
+    resize(settings.value("Size", size()).toSize());
+    move(settings.value("Position", pos()).toPoint());
     setWindowState((Qt::WindowState)settings.value("WindowState", (int)windowState()).toInt());
     setWindowFlags((Qt::WindowFlags)settings.value("WindowFlags", (int)windowFlags()).toInt());
     menuBarVisible = settings.value("ShowMenuBar", true).toBool();
@@ -462,11 +464,13 @@ void GuiMainWindow::writeSettings()
     QSettings settings(QSettings::IniFormat, QSettings::UserScope, APPNAME, APPNAME);
 
     settings.beginGroup("GuiMainWindow");
-    settings.setValue("Size", size());
-    settings.setValue("Position", pos());
     settings.setValue("WindowState", (int)windowState());
     settings.setValue("WindowFlags", (int)windowFlags());
     settings.setValue("ShowMenuBar", menuBar()->isVisible());
+    if (!isMaximized()) {
+        settings.setValue("Size", size());
+        settings.setValue("Position", pos());
+    }
     settings.endGroup();
 }
 
@@ -484,6 +488,16 @@ int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType sp
         tabArea->setCurrentWidget(newTerm);
         set_title(newTerm, APPNAME);
         newTerm->setWindowState(newTerm->windowState() | Qt::WindowMaximized);
+
+        // resize according to config if window is smaller
+        if ( !(windowState() & Qt::WindowMaximized) &&
+              (tabArea->count()==1) /* only for 1st window */ &&
+             ( newTerm->viewport()->width() < newTerm->cfg.width*newTerm->getFontWidth() ||
+                newTerm->viewport()->height() < newTerm->cfg.height*newTerm->getFontHeight())) {
+            this->resize(newTerm->cfg.width*newTerm->getFontWidth() + width() - newTerm->viewport()->width(),
+                         newTerm->cfg.height*newTerm->getFontHeight() + height() - newTerm->viewport()->height());
+            term_size(newTerm->term, newTerm->cfg.height, newTerm->cfg.width, newTerm->cfg.savelines);
+        }
         break;
     case GuiBase::TYPE_HORIZONTAL:
     case GuiBase::TYPE_VERTICAL:

@@ -13,52 +13,43 @@
 #include "GuiTerminalWindow.h"
 
 qutty_menu_actions_t qutty_menu_actions[MENU_MAX_ACTION] = {
-    { "New Session",            "Ctrl+Shift+T",  SLOT( on_openNewTab() ),
-      ""},
-    { "Restart Session",        "",              SLOT( contextMenuRestartSessionTriggered() ),
-      ""},
-    { "Duplicate Session",      "",              SLOT( contextMenuDuplicateSessionTriggered() ),
-      ""},
-    { "Change Settings",        "",              SLOT( contextMenuChangeSettingsTriggered() ),
-      ""},
-    { "Paste",                  "",              SLOT( contextMenuPaste() ),
-      ""},
-    { "New Tab",                "Ctrl+Shift+T",  SLOT( on_openNewTab() ),
-      ""},
-    { "New Window",             "",              SLOT( on_openNewWindow() ),
-      ""},
+    { "New Session",            "Ctrl+Shift+T",  SLOT( on_openNewTab() ),                        ""},
+    { "Restart Session",        "",              SLOT( contextMenuRestartSessionTriggered() ),   ""},
+    { "Duplicate Session",      "",              SLOT( contextMenuDuplicateSessionTriggered() ), ""},
+    { "Change Settings",        "",              SLOT( contextMenuChangeSettingsTriggered() ),   ""},
+    { "Paste",                  "",              SLOT( contextMenuPaste() ),                     ""},
+    { "New Tab",                "Ctrl+Shift+T",  SLOT( on_openNewTab() ),                        ""},
+    { "New Window",             "",              SLOT( on_openNewWindow() ),                     ""},
     { "Close",                  "",              SLOT( contextMenuCloseSessionTriggered() ),
       "Close currently active session/pane"},
-    { "Horizontally",           "Ctrl+Shift+H",  SLOT( on_openNewSplitHorizontal() ),
-      ""},
-    { "Vertically",             "Ctrl+Shift+V",  SLOT( on_openNewSplitVertical() ),
-      ""},
-    { "Switch to Left Tab",     "Shift+Left",    SLOT( tabPrev() ),
-      ""},
-    { "Switch to Right Tab",    "Shift+Right",   SLOT( tabNext() ),
-      ""},
-    { "Import from File",       "",              "",
-      ""},
-    { "Import PuTTY sessions",  "",              "",
-      ""},
-    { "Export from File",       "",              "",
-      ""},
-    { "Exit",                   "",              SLOT( contextMenuCloseWindowTriggered() ),
-      ""},
-    { "Show Menubar",           "",              SLOT( contextMenuMenuBar() ),
-      ""},
-    { "Fullscreen",             "",              SLOT( contextMenuFullScreen() ),
-      ""},
-    { "Always on top",          "",              SLOT( contextMenuAlwaysOnTop() ),
-      ""},
-    { "Preferences",            "",              "",
-      ""},
+    { "Horizontally",           "Ctrl+Shift+H",  SLOT( on_openNewSplitHorizontal() ),            ""},
+    { "Vertically",             "Ctrl+Shift+V",  SLOT( on_openNewSplitVertical() ),              ""},
+    { "Switch to Left Tab",     "Shift+Left",    SLOT( tabPrev() ),                              ""},
+    { "Switch to Right Tab",    "Shift+Right",   SLOT( tabNext() ),                              ""},
+    { "Import from File",       "",              "",                                             ""},
+    { "Import PuTTY sessions",  "",              "",                                             ""},
+    { "Export from File",       "",              "",                                             ""},
+    { "Exit",                   "",              SLOT( contextMenuCloseWindowTriggered() ),      ""},
+    { "Show Menubar",           "",              SLOT( contextMenuMenuBar() ),                   ""},
+    { "Fullscreen",             "",              SLOT( contextMenuFullScreen() ),                ""},
+    { "Always on top",          "",              SLOT( contextMenuAlwaysOnTop() ),               ""},
+    { "Preferences",            "",              SLOT( contextMenuPreferences() ),               ""},
+    { "Rename Tab",             "",              SLOT( contextMenuRenameTab() ),                 ""},
+    { "Find",                   "Ctrl+Shift+F",  SLOT( contextMenuFind() ),                      ""},
+    { "Find Next",              "F3",            SLOT( contextMenuFindNext() ),                  ""},
+    { "Find Previous",          "Shift+F3",      SLOT( contextMenuFindPrevious() ),              ""},
+    { "Case sensitive",         "",              "",                                             ""},
+    { "Match regular expression","",             "",                                             ""},
+    { "Highlight all matches",  "",              "",                                             ""},
 };
 
 qutty_menu_links_t qutty_menu_links[MENU_MAX_MENU] = {
-{ "File", 10, {MENU_NEW_TAB, MENU_NEW_WINDOW, MENU_SEPARATOR, MENU_SAVED_SESSIONS, MENU_SEPARATOR, MENU_SPLIT_SESSION, MENU_SEPARATOR, MENU_EXPORT_IMPORT, MENU_SEPARATOR, MENU_EXIT} },
-{ "Edit", 0,  {} },
-{ "View", 6,  { MENU_SWITCH_LEFT_TAB, MENU_SWITCH_RIGHT_TAB, MENU_SEPARATOR, MENU_MENUBAR, MENU_ALWAYSONTOP, MENU_FULLSCREEN } },
+{ "File", 10, {MENU_NEW_TAB, MENU_NEW_WINDOW, MENU_SEPARATOR, MENU_SAVED_SESSIONS, MENU_SEPARATOR,
+               MENU_SPLIT_SESSION, MENU_SEPARATOR, MENU_EXPORT_IMPORT, MENU_SEPARATOR, MENU_EXIT} },
+{ "Edit", 7,  {MENU_PASTE, MENU_SEPARATOR, MENU_RENAME_TAB, MENU_SEPARATOR,
+               MENU_FIND, MENU_FIND_NEXT, MENU_FIND_PREVIOUS} },
+{ "View", 6,  { MENU_SWITCH_LEFT_TAB, MENU_SWITCH_RIGHT_TAB, MENU_SEPARATOR,
+                MENU_MENUBAR, MENU_ALWAYSONTOP, MENU_FULLSCREEN } },
 { "Export/Import Settings",     3,  { MENU_IMPORT_FILE, MENU_IMPORT_REGISTRY, MENU_EXPORT_FILE} },
 { "Saved Sessions",             0,  {} },
 { "Split Session",              2,  { MENU_SPLIT_HORIZONTAL, MENU_SPLIT_VERTICAL } },
@@ -66,9 +57,11 @@ qutty_menu_links_t qutty_menu_links[MENU_MAX_MENU] = {
                                       MENU_NEW_SESSION, MENU_RESTART_SESSION, MENU_DUPLICATE_SESSION,
                                       MENU_SAVED_SESSIONS, MENU_SPLIT_SESSION, MENU_CHANGE_SETTINGS,
                                       MENU_SEPARATOR, MENU_CLOSE_SESSION} },
-{ "Menu Tabbar",                10, { MENU_NEW_TAB, MENU_NEW_WINDOW, MENU_SEPARATOR,
+{ "Menu Tabbar",                12, { MENU_NEW_TAB, MENU_NEW_WINDOW, MENU_SEPARATOR,
                                       MENU_SAVED_SESSIONS, MENU_SEPARATOR, MENU_SPLIT_SESSION, MENU_SEPARATOR,
-                                      MENU_EXPORT_IMPORT, MENU_SEPARATOR, MENU_VIEW, MENU_SEPARATOR, MENU_EXIT } },
+                                      MENU_EXPORT_IMPORT, MENU_SEPARATOR, MENU_VIEW, MENU_SEPARATOR,
+                                      MENU_EDIT, MENU_SEPARATOR, MENU_EXIT } },
+{ "Find Options",               3,  { MENU_FIND_CASE_INSENSITIVE, MENU_FIND_REGEX, MENU_FIND_HIGHLIGHT } },
 };
 
 class MyStyle : public QProxyStyle
@@ -126,6 +119,13 @@ void GuiMainWindow::initializeMenuSystem()
 
     connect(&qutty_config, SIGNAL(savedSessionsChanged()), this, SLOT(contextMenuSavedSessionsChanged()));
     this->contextMenuSavedSessionsChanged();
+
+    // find-next, find-previous are disabled by default
+    menuCommonActions[MENU_FIND_NEXT]->setEnabled(false);
+    menuCommonActions[MENU_FIND_PREVIOUS]->setEnabled(false);
+    menuCommonActions[MENU_FIND_CASE_INSENSITIVE]->setCheckable(true);
+    menuCommonActions[MENU_FIND_HIGHLIGHT]->setCheckable(true);
+    menuCommonActions[MENU_FIND_REGEX]->setCheckable(true);
 }
 
 void GuiMainWindow::populateMenu(QMenu &menu, qutty_menu_id_t menu_list[], int len)
@@ -369,3 +369,26 @@ void GuiToolbarTerminalTop::processMouseMoveTerminalTop(GuiTerminalWindow *term,
         hideMe();
     }
 }
+
+void GuiMainWindow::contextMenuPreferences()
+{
+    QAction *action = qobject_cast<QAction *>(sender());
+    if (!action)
+        return;
+    if (!menuCookieTermWnd)
+        return;
+    if (terminalList.indexOf(menuCookieTermWnd) == -1)
+        return;
+}
+
+void GuiMainWindow::contextMenuRenameTab()
+{
+    QAction *action = qobject_cast<QAction *>(sender());
+    if (!action)
+        return;
+    if (!menuCookieTermWnd)
+        return;
+    if (terminalList.indexOf(menuCookieTermWnd) == -1)
+        return;
+}
+

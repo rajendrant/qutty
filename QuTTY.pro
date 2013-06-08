@@ -80,7 +80,8 @@ SOURCES +=  \
     tmux/TmuxBackend.cpp \
     tmux/TmuxGateway.cpp \
     tmux/TmuxWindowPane.cpp \
-    tmux/TmuxLayout.cpp
+    tmux/TmuxLayout.cpp \
+    GuiFindToolBar.cpp
 
 HEADERS +=  \
     GuiMainWindow.h \
@@ -116,7 +117,8 @@ HEADERS +=  \
     tmux/tmux.h \
     tmux/TmuxGateway.h \
     tmux/TmuxWindowPane.h \
-    tmux/TmuxLayout.h
+    tmux/TmuxLayout.h \
+    GuiFindToolBar.h
 
 INCLUDEPATH += ./ puttysrc/
 

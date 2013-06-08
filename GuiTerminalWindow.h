@@ -120,6 +120,9 @@ public:
     void closeTerminal();
     void reqCloseTerminal(bool userConfirm);
 
+    int getFontWidth() { return fontWidth; };
+    int getFontHeight() { return fontHeight; };
+
     QWidget *getWidget() { return this; }
 
     // Needed functions for drag-drop support

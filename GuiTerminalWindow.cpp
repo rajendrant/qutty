@@ -115,19 +115,10 @@ int GuiTerminalWindow::initTerminal()
     term = term_init(&cfg, &ucsdata, this);
     logctx = log_init(NULL, &cfg);
     term_provide_logctx(term, logctx);
-    // resize according to config if window is smaller
-    if ( !(mainWindow->windowState() & Qt::WindowMaximized) &&
-          (mainWindow->tabArea->count()==1) /* only for 1st window */ &&
-          ( viewport()->width() < cfg.width*fontWidth ||
-            viewport()->height() < cfg.height*fontHeight)) {
-        mainWindow->resize(cfg.width*fontWidth + (mainWindow->width() - viewport()->width()),
-                           cfg.height*fontHeight + (mainWindow->height() - viewport()->height()));
-        term_size(term, cfg.height, cfg.width, cfg.savelines);
-    } else {
-        term_size(term,
-                  this->viewport()->height()/fontHeight,
-                  this->viewport()->width()/fontWidth, cfg.savelines);
-    }
+
+    term_size(term,
+              this->viewport()->height()/fontHeight,
+              this->viewport()->width()/fontWidth, cfg.savelines);
 
     switch(cfg.protocol) {
     case PROT_TELNET:
@@ -367,10 +358,10 @@ void GuiTerminalWindow::paintEvent (QPaintEvent *e)
         int colend = (r.right()+1)/fontWidth;
         for(; row<rowend && row<term->rows; row++) {
             for(int col=colstart; col<colend && col<term->cols; ) {
-                uint attr = term->dispstr_attr[row][col];
+                uint attr = term->dispstr_attr[row*term->cols + col];
                 int coldiff = col+1;
-                for(;attr==term->dispstr_attr[row][coldiff]; coldiff++);
-                QString str = QString::fromWCharArray(&term->dispstr[row][col], coldiff-col);
+                for(;attr==term->dispstr_attr[row*term->cols + coldiff]; coldiff++);
+                QString str = QString::fromWCharArray(&term->dispstr[row*term->cols + col], coldiff-col);
                 paintText(painter, row, col, str, attr);
 
                 // paint cursor

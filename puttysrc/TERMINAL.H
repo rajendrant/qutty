@@ -280,8 +280,8 @@ struct terminal_tag {
     int bidi_cache_size;
 
 //    QChar **dispstr;
-    wchar_t dispstr[100][500];
-    unsigned long dispstr_attr[100][500];
+    wchar_t *dispstr;
+    unsigned long *dispstr_attr;
 };
 
 #define in_utf(term) ((term)->utf || (term)->ucsdata->line_codepage==CP_UTF8)

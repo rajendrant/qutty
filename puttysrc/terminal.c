@@ -1499,6 +1499,8 @@ Terminal *term_init(Config *mycfg, struct unicode_data *ucsdata,
     term->basic_erase_char.cc_next = 0;
     term->erase_char = term->basic_erase_char;
 
+    term->dispstr = term->dispstr_attr = NULL;
+
     return term;
 }
 
@@ -1545,6 +1547,10 @@ void term_free(Terminal *term)
 
     expire_timer_context(term);
 
+    if (term->dispstr) sfree(term->dispstr);
+    if (term->dispstr_attr) sfree(term->dispstr_attr);
+    term->dispstr = term->dispstr_attr = NULL;
+
     sfree(term);
 }
 
@@ -1579,7 +1585,14 @@ void term_size(Terminal *term, int newrows, int newcols, int newsavelines)
 	term->screen = newtree234(NULL);
 	term->tempsblines = 0;
 	term->rows = 0;
+    term->dispstr = term->dispstr_attr = NULL;
     }
+
+    if (term->dispstr) sfree(term->dispstr);
+    if (term->dispstr_attr) sfree(term->dispstr_attr);
+    // temporary precaution to not crash for combining chars
+    term->dispstr = snewn((newrows+2) * newcols, wchar_t);
+    term->dispstr_attr = snewn((newrows+2) * newcols, unsigned long);
 
     /*
      * Resize the screen and scrollback. We only need to shift
@@ -5032,8 +5045,8 @@ static void do_paint(Terminal *term, Context ctx, int may_optimise)
 		ch = sresize(ch, chlen, wchar_t);
 	    }
 	    ch[ccount++] = (wchar_t) tchar;
-        term->dispstr[i][j] = (tchar);
-        term->dispstr_attr[i][j] = tattr;
+        term->dispstr[i*term->cols + j] = (tchar);
+        term->dispstr_attr[i*term->cols + j] = tattr;
 
 	    if (d->cc_next) {
 		termchar *dd = d;

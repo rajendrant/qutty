@@ -19,6 +19,7 @@
 #include "GuiDrag.h"
 
 class GuiSettingsWindow;
+class GuiFindToolBar;
 
 class GuiMainWindow : public QMainWindow
 {
@@ -34,6 +35,17 @@ public:
     // members for drag-drop support
     GuiDragDropSite dragDropSite;
 
+    // find window
+    GuiFindToolBar *findToolBar;
+
+    QTabWidget *tabArea;
+
+private:
+    GuiSettingsWindow *settingsWindow;
+    QList<GuiTerminalWindow *> terminalList;
+    QToolButton newTabToolButton;   // shown in top right corner of tabbar
+
+public:
     GuiMainWindow(QWidget *parent = 0);
     ~GuiMainWindow();
     void createNewTab(Config *cfg, GuiBase::SplitType splittype=GuiBase::TYPE_LEAF);
@@ -48,12 +60,7 @@ public:
     }
     int setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType split);
 
-    QTabWidget *tabArea;
 private:
-    GuiSettingsWindow *settingsWindow;
-    QList<GuiTerminalWindow *> terminalList;
-    QToolButton newTabToolButton;   // shown in top right corner of tabbar
-
     void initializeMenuSystem();
     void inittializeDragDropWidget();
     void populateMenu(QMenu &menu, qutty_menu_id_t menu_list[], int len);
@@ -92,6 +99,11 @@ public slots:
     void contextMenuAlwaysOnTop();
     void contextMenuTermTopDragPaneTriggered();
     void contextMenuTermTopCloseTriggered();
+    void contextMenuPreferences();
+    void contextMenuRenameTab();
+    void contextMenuFind();
+    void contextMenuFindNext();
+    void contextMenuFindPrevious();
 };
 
 #endif // MAINWINDOW_H
