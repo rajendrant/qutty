@@ -106,6 +106,14 @@ void GuiMainWindow::closeEvent ( QCloseEvent * event )
                                   "Are you sure you want to close all the sessions?",
                                   QMessageBox::Yes|QMessageBox::No))
     {
+        // at least close the open sessions
+        GuiTerminalWindow *t;
+        QList<GuiTerminalWindow*> child(terminalList);
+        for (QList<GuiTerminalWindow*>::const_iterator it = child.begin();
+             it != child.end(); it++) {
+            (*it)->reqCloseTerminal(true);
+        }
+        terminalList.clear();
         writeSettings();
         event->accept();
     }
@@ -474,7 +482,7 @@ void GuiMainWindow::writeSettings()
     settings.endGroup();
 }
 
-int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType split)
+int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType split, int tabind)
 {
     // fallback to create tab
     if (tabArea->count() == 0)
@@ -483,7 +491,7 @@ int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType sp
     switch (split) {
     case GuiBase::TYPE_LEAF:
         newTerm->setParent(tabArea);
-        tabArea->addTab(newTerm, "");
+        tabArea->insertTab(tabind, newTerm, "");
         terminalList.append(newTerm);
         tabArea->setCurrentWidget(newTerm);
         set_title(newTerm, APPNAME);

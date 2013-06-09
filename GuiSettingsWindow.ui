@@ -2230,7 +2230,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="comboBox_2">
+             <widget class="QComboBox" name="cb_codepage">
               <property name="editable">
                <bool>true</bool>
               </property>
@@ -5378,7 +5378,7 @@
   <tabstop>chb_behaviour_altalone</tabstop>
   <tabstop>chb_behaviour_top</tabstop>
   <tabstop>chb_behaviour_alt_enter</tabstop>
-  <tabstop>comboBox_2</tabstop>
+  <tabstop>cb_codepage</tabstop>
   <tabstop>checkBox_39</tabstop>
   <tabstop>checkBox_40</tabstop>
   <tabstop>rb_translation_useunicode</tabstop>

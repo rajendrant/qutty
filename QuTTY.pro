@@ -35,6 +35,7 @@ SOURCES +=  \
     GuiBase.cpp \
     GuiSplitter.cpp \
     GuiDrag.cpp \
+    GuiFindToolBar.cpp \
     puttysrc/WINDOWS/winnoise.c \
     puttysrc/WINDOWS/winstore.c \
     puttysrc/WINDOWS/windefs.c \
@@ -80,8 +81,7 @@ SOURCES +=  \
     tmux/TmuxBackend.cpp \
     tmux/TmuxGateway.cpp \
     tmux/TmuxWindowPane.cpp \
-    tmux/TmuxLayout.cpp \
-    GuiFindToolBar.cpp
+    tmux/TmuxLayout.cpp
 
 HEADERS +=  \
     GuiMainWindow.h \
@@ -97,6 +97,8 @@ HEADERS +=  \
     GuiBase.h \
     GuiSplitter.h \
     GuiDrag.h \
+    GuiFindToolBar.h \
+    GuiTabBar.h \
     puttysrc/WINDOWS/STORAGE.H \
     puttysrc/TREE234.H \
     puttysrc/TERMINAL.H \
@@ -117,8 +119,8 @@ HEADERS +=  \
     tmux/tmux.h \
     tmux/TmuxGateway.h \
     tmux/TmuxWindowPane.h \
-    tmux/TmuxLayout.h \
-    GuiFindToolBar.h
+    tmux/TmuxLayout.h
+
 
 INCLUDEPATH += ./ puttysrc/
 
@@ -134,4 +136,4 @@ RC_FILE = qutty.rc
 RESOURCES += \
     QuTTY.qrc
 
-win32:LIBS += user32.lib advapi32.lib
+#win32:LIBS += user32.lib advapi32.lib

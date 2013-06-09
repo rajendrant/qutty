@@ -862,9 +862,8 @@ void GuiTerminalWindow::closeTerminal()
     this->getMainWindow()->toolBarTerminalTop.hideMe();
     if (parentSplit) {
         parentSplit->removeSplitLayout(this);
-    } else {
-        mainWindow->closeTab(this);
     }
+    mainWindow->closeTab(this);
     this->close();
     this->deleteLater();
 }

@@ -58,7 +58,7 @@ public:
         assert(id > MENU_SEPARATOR && id <= MENU_SEPARATOR + MENU_MAX_MENU);
         return &menuCommonMenus[id - MENU_SEPARATOR - 1];
     }
-    int setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType split);
+    int setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType split, int tabind = -1);
 
 private:
     void initializeMenuSystem();

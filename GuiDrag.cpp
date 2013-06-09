@@ -9,6 +9,8 @@
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include "GuiSplitter.h"
+#include "GuiTabWidget.h"
+#include "GuiTabBar.h"
 
 void GuiMainWindow::inittializeDragDropWidget()
 {
@@ -18,7 +20,9 @@ void GuiMainWindow::inittializeDragDropWidget()
 GuiDragDropSite::GuiDragDropSite(QWidget *parent)
     : QWidget(parent),
       layout(this),
-      drop_mode(GuiBase::TYPE_NONE)
+      drop_loc(GuiDragDropSite::DRAG_DROP_NONE),
+      drop_mode(GuiBase::TYPE_NONE),
+      tabind(-1)
 {
     setAttribute(Qt::WA_TransparentForMouseEvents);
     btn[GuiBase::TYPE_UP].setText(QString::fromUtf8("\xe2\x96\xb2"));
@@ -29,20 +33,34 @@ GuiDragDropSite::GuiDragDropSite(QWidget *parent)
     layout.addWidget(&btn[GuiBase::TYPE_RIGHT], 2, 3);
     btn[GuiBase::TYPE_DOWN].setText(QString::fromUtf8("\xe2\x96\xbc"));
     layout.addWidget(&btn[GuiBase::TYPE_DOWN], 3, 2);
+    btn[4].setText(QString::fromUtf8("\xe2\x96\xbc"));
+    layout.addWidget(&btn[4], 2, 2);
     btn[GuiBase::TYPE_UP].setProperty("qutty_GuiDropSite_btn_drop_type", GuiBase::TYPE_UP);
     btn[GuiBase::TYPE_LEFT].setProperty("qutty_GuiDropSite_btn_drop_type", GuiBase::TYPE_LEFT);
     btn[GuiBase::TYPE_RIGHT].setProperty("qutty_GuiDropSite_btn_drop_type", GuiBase::TYPE_RIGHT);
     btn[GuiBase::TYPE_DOWN].setProperty("qutty_GuiDropSite_btn_drop_type", GuiBase::TYPE_DOWN);
+    btn[4].setProperty("qutty_GuiDropSite_btn_drop_type", GuiBase::TYPE_LEAF);
 
     layout.setColumnStretch(0, 1);
     layout.setColumnStretch(4, 1);
     layout.setRowStretch(0, 1);
     layout.setRowStretch(4, 1);
     layout.setAlignment(Qt::AlignCenter);
+    layout.setContentsMargins(QMargins(0,0,0,0));
 }
 
 void GuiDragDropSite::paintEvent(QPaintEvent *e)
 {
+    if (drop_loc == GuiDragDropSite::DRAG_DROP_ON_TABBAR) {
+        btn[GuiBase::TYPE_UP].setVisible(false);
+        btn[GuiBase::TYPE_DOWN].setVisible(false);
+        btn[4].setVisible(true);
+    } else {
+        btn[GuiBase::TYPE_UP].setVisible(true);
+        btn[GuiBase::TYPE_DOWN].setVisible(true);
+        btn[4].setVisible(false);
+    }
+
     QWidget::paintEvent(e);
 
     QPainter painter(this);
@@ -90,8 +108,47 @@ cu0:
     return drop_mode;
 }
 
+int GuiDragDropSite::updateDropOnTabBar(const QPoint &pos, GuiTabBar *tab)
+{
+    QWidget *w;
+    int newind = tab->tabAt(pos);
+    if (newind == -1 || !tab)
+        return -1;
+
+    if (newind != tabind) {
+        drop_loc = GuiDragDropSite::DRAG_DROP_ON_TABBAR;
+        tabind = newind;
+        setParent(tab);
+        show();
+        move(tab->tabRect(tabind).topLeft());
+        resize(tab->tabRect(tabind).size());
+    }
+
+    if (!geometry().contains(pos)) {
+        clearDropMode();
+        return -1;
+    }
+
+    w = childAt(mapFromParent(pos));
+    if (w) {
+        QVariant v = w->property("qutty_GuiDropSite_btn_drop_type");
+        GuiBase::SplitType split;
+        if (v.type() == QVariant::Int &&
+            (split=(GuiBase::SplitType)(v.toInt())) != drop_mode) {
+            drop_mode = split;
+            if (drop_mode == GuiBase::TYPE_LEAF)
+                tab->setCurrentIndex(tabind);
+            repaint();
+        }
+    }
+
+    return 0;
+}
+
 void GuiDragDropSite::clearDropMode()
 {
+    drop_loc = GuiDragDropSite::DRAG_DROP_NONE;
+    tabind = -1;
     drop_mode = GuiBase::TYPE_NONE;
     this->setParent(NULL);
     this->hide();
@@ -179,6 +236,80 @@ void GuiTerminalWindow::dropEvent (QDropEvent *e)
 
     // set the focus to the dropped terminal
     dropped->setFocus();
+
+cu0:
+    mainWindow->dragDropSite.clearDropMode();
+}
+
+
+void GuiTabBar::dragEnterEvent (QDragEnterEvent *e)
+{
+    if (e->source() == this ||
+        !e->mimeData()->hasFormat("qutty-terminal-drag-drop-action")) {
+        e->ignore();
+        return;
+    }
+    mainWindow->dragDropSite.clearDropMode();
+
+    e->acceptProposedAction();
+}
+
+
+void GuiTabBar::dragLeaveEvent (QDragLeaveEvent *e)
+{
+    mainWindow->dragDropSite.clearDropMode();
+}
+
+
+void GuiTabBar::dragMoveEvent (QDragMoveEvent *e)
+{
+    if (e->source() == this ||
+        !e->mimeData()->hasFormat("qutty-terminal-drag-drop-action")) {
+        e->ignore();
+        return;
+    }
+
+    if (mainWindow->dragDropSite.updateDropOnTabBar(e->pos(), this) == -1) {
+        e->ignore();
+        return;
+    }
+    e->acceptProposedAction();
+}
+
+
+void GuiTabBar::dropEvent (QDropEvent *e)
+{
+    if (e->source() == this ||
+        !e->mimeData()->hasFormat("qutty-terminal-drag-drop-action")) {
+        e->ignore();
+        return;
+    }
+    GuiBase::SplitType split = mainWindow->dragDropSite.drop_mode;
+    int tabind = mainWindow->dragDropSite.get_tabind();
+
+    if ( mainWindow->dragDropSite.get_drop_loc() != GuiDragDropSite::DRAG_DROP_ON_TABBAR ||
+         split != GuiBase::TYPE_LEFT && split != GuiBase::TYPE_RIGHT ||
+         tabind == -1)
+        goto cu0;
+
+    GuiTerminalWindow *dropped;
+    dropped = dynamic_cast<GuiTerminalWindow*>(e->source());
+    if (!dropped)
+        goto cu0;
+
+    if (dropped->getMainWindow() != this->mainWindow) {
+        // window-to-window drag-drop
+        // TODO
+        goto cu0;
+    }
+
+    qDebug()<<__FUNCTION__<<dropped->cfg.host<<tabind<<split;
+
+    if (dropped->parentSplit) {
+        dropped->parentSplit->removeSplitLayout(dropped);
+    }
+    mainWindow->setupLayout(dropped, GuiBase::TYPE_LEAF,
+                            split == GuiBase::TYPE_LEFT ? tabind : tabind+1);
 
 cu0:
     mainWindow->dragDropSite.clearDropMode();

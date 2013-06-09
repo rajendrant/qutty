@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2013 Rajendran Thirupugalsamy
+ * See LICENSE for full copyright and license information.
+ * See COPYING for distribution information.
+ */
+
 #include <QTabBar>
 #include <QMenu>
 #include "GuiTabWidget.h"
@@ -5,14 +11,23 @@
 #include "QtConfig.h"
 #include "GuiSettingsWindow.h"
 #include "GuiMenu.h"
+#include "GuiTabBar.h"
 
 GuiTabWidget::GuiTabWidget(GuiMainWindow * parent) :
     QTabWidget(parent),
     mainWindow(parent)
 {
+    this->setTabBar(new GuiTabBar(this, parent));
     this->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, SIGNAL(customContextMenuRequested(QPoint)),
             SLOT(showContextMenu(QPoint)));
+}
+
+GuiTabBar::GuiTabBar(GuiTabWidget *t, GuiMainWindow *main)
+    : QTabBar(t),
+      mainWindow(main)
+{
+    setAcceptDrops(true);
 }
 
 void GuiTabWidget::showContextMenu(const QPoint &point)

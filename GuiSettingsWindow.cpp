@@ -187,6 +187,8 @@ void GuiSettingsWindow::slot_GuiSettingsWindow_rejected()
 
 void GuiSettingsWindow::setConfig(Config *_cfg)
 {
+    int ind;
+
     this->cfg = *_cfg;
 
     // update the ui with the given settings
@@ -267,6 +269,9 @@ void GuiSettingsWindow::setConfig(Config *_cfg)
                                   cfg.font.isbold ? "Bold, " : "",
                                   QString::number(cfg.font.height)));
     ui->chb_behaviour_warn->setChecked(cfg.warn_on_close);
+    ind = ui->cb_codepage->findText(cfg.line_codepage);
+    if (ind == -1) ind = 0;
+    ui->cb_codepage->setCurrentIndex(ind);
 
     /* connection options */
     ui->le_ping_interval->setText(QString::number(cfg.ping_interval));
@@ -367,6 +372,7 @@ Config *GuiSettingsWindow::getConfig()
     cfg->blink_cur = ui->chb_curblink->isChecked();
     cfg->font_quality = ui->gp_fontquality->checkedId();
     cfg->warn_on_close = ui->chb_behaviour_warn->isChecked();
+    qstring_to_char(cfg->line_codepage, ui->cb_codepage->currentText(), sizeof(cfg->line_codepage));
 
     /* connection options */
     cfg->ping_interval = ui->le_ping_interval->text().toInt();
