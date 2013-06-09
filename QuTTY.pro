@@ -136,4 +136,6 @@ RC_FILE = qutty.rc
 RESOURCES += \
     QuTTY.qrc
 
-#win32:LIBS += user32.lib advapi32.lib
+win32-msvc*:contains(QMAKE_TARGET.arch, x86_64) : {
+    LIBS += user32.lib advapi32.lib
+}
