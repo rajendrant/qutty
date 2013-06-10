@@ -104,6 +104,10 @@ public slots:
     void contextMenuFind();
     void contextMenuFindNext();
     void contextMenuFindPrevious();
+    void contextMenuPaneUp();
+    void contextMenuPaneDown();
+    void contextMenuPaneLeft();
+    void contextMenuPaneRight();
 };
 
 #endif // MAINWINDOW_H

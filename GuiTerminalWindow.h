@@ -19,6 +19,7 @@
 #include "tmux/TmuxGateway.h"
 #include "tmux/TmuxWindowPane.h"
 #include "GuiDrag.h"
+#include "GuiBase.h"
 extern "C" {
 #include "terminal.h"
 #include "putty.h"
@@ -32,6 +33,7 @@ extern "C" {
 class GuiTerminalWindow : public QAbstractScrollArea, public GuiBase
 {
     Q_OBJECT
+
 private:
     enum tmux_mode_t _tmuxMode;
     TmuxGateway *_tmuxGateway;

@@ -254,10 +254,10 @@ void GuiMainWindow::currentChanged(int index)
 {
     if (index!=-1 && tabArea->widget(index)) {
         QWidget *currWgt = tabArea->widget(index);
-        if (dynamic_cast<GuiSplitter*>(currWgt)) {
+        if (qobject_cast<GuiSplitter*>(currWgt)) {
             if (currWgt->focusWidget())
                 currWgt->focusWidget()->setFocus();
-        } else if (dynamic_cast<GuiTerminalWindow*>(currWgt))
+        } else if (qobject_cast<GuiTerminalWindow*>(currWgt))
             currWgt->setFocus();
     }
 }

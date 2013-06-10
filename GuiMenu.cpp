@@ -11,9 +11,10 @@
 #include <QMenuBar>
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
+#include "GuiSplitter.h"
 
 qutty_menu_actions_t qutty_menu_actions[MENU_MAX_ACTION] = {
-    { "New Session",            "Ctrl+Shift+T",  SLOT( on_openNewTab() ),                        ""},
+    //{ "New Session",            "Ctrl+Shift+T",  SLOT( on_openNewTab() ),                        ""},
     { "Restart Session",        "",              SLOT( contextMenuRestartSessionTriggered() ),   ""},
     { "Duplicate Session",      "",              SLOT( contextMenuDuplicateSessionTriggered() ), ""},
     { "Change Settings",        "",              SLOT( contextMenuChangeSettingsTriggered() ),   ""},
@@ -26,6 +27,10 @@ qutty_menu_actions_t qutty_menu_actions[MENU_MAX_ACTION] = {
     { "Vertically",             "Ctrl+Shift+V",  SLOT( on_openNewSplitVertical() ),              ""},
     { "Switch to Left Tab",     "Shift+Left",    SLOT( tabPrev() ),                              ""},
     { "Switch to Right Tab",    "Shift+Right",   SLOT( tabNext() ),                              ""},
+    { "Switch to Top Pane",     "Ctrl+Shift+Up", SLOT( contextMenuPaneUp() ),                    ""},
+    { "Switch to Bottom Pane",  "Ctrl+Shift+Down",SLOT( contextMenuPaneDown() ),                 ""},
+    { "Switch to Left Pane",    "Ctrl+Shift+Left",SLOT( contextMenuPaneLeft() ),                 ""},
+    { "Switch to Right Pane",   "Ctrl+Shift+Right",SLOT( contextMenuPaneRight() ),               ""},
     { "Import from File",       "",              "",                                             ""},
     { "Import PuTTY sessions",  "",              "",                                             ""},
     { "Export from File",       "",              "",                                             ""},
@@ -48,15 +53,16 @@ qutty_menu_links_t qutty_menu_links[MENU_MAX_MENU] = {
                MENU_SPLIT_SESSION, MENU_SEPARATOR, MENU_EXPORT_IMPORT, MENU_SEPARATOR, MENU_EXIT} },
 { "Edit", 7,  {MENU_PASTE, MENU_SEPARATOR, MENU_RENAME_TAB, MENU_SEPARATOR,
                MENU_FIND, MENU_FIND_NEXT, MENU_FIND_PREVIOUS} },
-{ "View", 6,  { MENU_SWITCH_LEFT_TAB, MENU_SWITCH_RIGHT_TAB, MENU_SEPARATOR,
+{ "View", 9,  { MENU_SWITCH_LEFT_TAB, MENU_SWITCH_RIGHT_TAB, MENU_SEPARATOR,
+                MENU_SWITCH_UP_PANE, MENU_SWITCH_BOTTOM_PANE, MENU_SEPARATOR,
                 MENU_MENUBAR, MENU_ALWAYSONTOP, MENU_FULLSCREEN } },
 { "Export/Import Settings",     3,  { MENU_IMPORT_FILE, MENU_IMPORT_REGISTRY, MENU_EXPORT_FILE} },
 { "Saved Sessions",             0,  {} },
 { "Split Session",              2,  { MENU_SPLIT_HORIZONTAL, MENU_SPLIT_VERTICAL } },
 { "Menu Term Window",           10, { MENU_PASTE, MENU_SEPARATOR,
-                                      MENU_NEW_SESSION, MENU_RESTART_SESSION, MENU_DUPLICATE_SESSION,
+                                      MENU_NEW_TAB, MENU_RESTART_SESSION, MENU_DUPLICATE_SESSION,
                                       MENU_SAVED_SESSIONS, MENU_SPLIT_SESSION, MENU_CHANGE_SETTINGS,
-                                      MENU_SEPARATOR, MENU_CLOSE_SESSION} },
+                                      MENU_SEPARATOR, MENU_RENAME_TAB, MENU_SEPARATOR, MENU_CLOSE_SESSION} },
 { "Menu Tabbar",                12, { MENU_NEW_TAB, MENU_NEW_WINDOW, MENU_SEPARATOR,
                                       MENU_SAVED_SESSIONS, MENU_SEPARATOR, MENU_SPLIT_SESSION, MENU_SEPARATOR,
                                       MENU_EXPORT_IMPORT, MENU_SEPARATOR, MENU_VIEW, MENU_SEPARATOR,
@@ -93,7 +99,12 @@ void GuiMainWindow::initializeMenuSystem()
         menuCommonActions[i] = new QAction(qutty_menu_actions[i].name, this);
         menuCommonActions[i]->setShortcut(QKeySequence(qutty_menu_actions[i].key));
         menuCommonActions[i]->setToolTip(qutty_menu_actions[i].tooltip);
+        menuCommonActions[i]->setShortcutContext(Qt::WidgetShortcut);
         connect(menuCommonActions[i], SIGNAL(triggered()), this, qutty_menu_actions[i].slot);
+
+        QShortcut *shortcut = new QShortcut(QKeySequence(qutty_menu_actions[i].key), this);
+        shortcut->setContext(Qt::ApplicationShortcut);
+        connect(shortcut, SIGNAL(activated()), this, qutty_menu_actions[i].slot);
     }
     for(int i=0; i<MENU_MAX_MENU; i++) {
         menuCommonMenus[i].setTitle(qutty_menu_links[i].name);
@@ -392,3 +403,34 @@ void GuiMainWindow::contextMenuRenameTab()
         return;
 }
 
+void GuiMainWindow::contextMenuPaneUp()
+{
+    GuiTerminalWindow *term = getCurrentTerminal();
+    if (!term || !term->parentSplit)
+        return;
+    term->parentSplit->navigatePane(Qt::Key_Up, term);
+}
+
+void GuiMainWindow::contextMenuPaneDown()
+{
+    GuiTerminalWindow *term = getCurrentTerminal();
+    if (!term || !term->parentSplit)
+        return;
+    term->parentSplit->navigatePane(Qt::Key_Down, term);
+}
+
+void GuiMainWindow::contextMenuPaneLeft()
+{
+    GuiTerminalWindow *term = getCurrentTerminal();
+    if (!term || !term->parentSplit)
+        return;
+    term->parentSplit->navigatePane(Qt::Key_Left, term);
+}
+
+void GuiMainWindow::contextMenuPaneRight()
+{
+    GuiTerminalWindow *term = getCurrentTerminal();
+    if (!term || !term->parentSplit)
+        return;
+    term->parentSplit->navigatePane(Qt::Key_Right, term);
+}

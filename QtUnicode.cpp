@@ -51,6 +51,8 @@ void init_ucs(Config *cfg, struct unicode_data *ucsdata)
         assert(0);
     } else {
         ucsdata->line_codepage = CS_QTEXTCODEC;
+        if (!strcmp(cfg->line_codepage, "UTF-8"))
+            ucsdata->line_codepage = CP_UTF8;
     }
 
     /*

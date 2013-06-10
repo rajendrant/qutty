@@ -16,7 +16,6 @@ class GuiSplitter;
 
 class GuiBase
 {
-
 public:
     enum SplitType {
         TYPE_NONE       = -1,
@@ -35,5 +34,8 @@ public:
     virtual void reqCloseTerminal(bool userRequest) = 0;
     virtual QWidget *getWidget() = 0;
 };
+
+//http://stackoverflow.com/questions/3726716/qt-interfaces-or-abstract-classes-and-qobject-cast
+Q_DECLARE_INTERFACE(GuiBase, "QuTTY/GuiBase/1.0");
 
 #endif // GUILAYOUT_H

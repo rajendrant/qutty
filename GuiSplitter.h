@@ -11,8 +11,10 @@ class GuiBase;
 class GuiTerminalWindow;
 #include "GuiBase.h"
 
-class GuiSplitter : public GuiBase, public QSplitter
+class GuiSplitter : public QSplitter, public GuiBase
 {
+    Q_OBJECT
+
 public:
     vector<GuiBase*> child;
     GuiSplitter(Qt::Orientation split, GuiSplitter *parentsplit=NULL, int ind=-1);
@@ -26,6 +28,8 @@ public:
     void createSplitLayout(Qt::Orientation orient, SplitType split, GuiTerminalWindow *oldTerm, GuiTerminalWindow *newTerm);
     void reqCloseTerminal(bool userRequest);
     void removeSplitLayout(GuiTerminalWindow *term);
+
+    GuiTerminalWindow* navigatePane(Qt::Key key, GuiTerminalWindow *tofind);
 };
 
 #endif // GUISPLITTER_H
