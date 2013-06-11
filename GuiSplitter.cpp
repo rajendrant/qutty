@@ -145,18 +145,20 @@ void GuiSplitter::removeSplitLayout(GuiTerminalWindow *term)
     this->deleteLater();
 }
 
-GuiTerminalWindow* GuiSplitter::navigatePane(Qt::Key key, GuiTerminalWindow *tofind)
+GuiTerminalWindow* GuiSplitter::navigatePane(Qt::Key key, GuiTerminalWindow *tofind, int splitind)
 {
     if (orientation() == Qt::Horizontal && (key == Qt::Key_Down || key == Qt::Key_Up))
-        return parentSplit ? parentSplit->navigatePane(key, tofind) : NULL;
+        return parentSplit ? parentSplit->navigatePane(key, tofind,
+                                                       parentSplit->indexOf(this)) : NULL;
     if (orientation() == Qt::Vertical && (key == Qt::Key_Left || key == Qt::Key_Right))
-        return parentSplit ? parentSplit->navigatePane(key, tofind) : NULL;
+        return parentSplit ? parentSplit->navigatePane(key, tofind,
+                                                       parentSplit->indexOf(this)) : NULL;
 
     QWidget *w;
     GuiBase *base;
     int ind = indexOf(tofind);
     int nextind;
-    if (ind == -1)
+    if (ind == -1 && (ind=splitind)==-1)
         return NULL;
     nextind = ind + ((key == Qt::Key_Up || key == Qt::Key_Left) ? -1 : +1);
     if (!(w = widget(nextind)))

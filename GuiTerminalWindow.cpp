@@ -756,8 +756,18 @@ bool GuiTerminalWindow::event(QEvent *event)
     if (event->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
         if (keyEvent->key() == Qt::Key_Tab) {
-            if (keyEvent->modifiers() == Qt::ControlModifier) {
-                qDebug() << "ctrl tab";
+            // ctrl + tab
+            if (keyEvent->modifiers() & Qt::ControlModifier) {
+                mainWindow->tabNavigate.navigateToTabNext();
+                return true;
+            }
+            keyPressEvent(keyEvent);
+            qDebug() << "key" <<keyEvent;
+            return true;
+        } else if (keyEvent->key() == Qt::Key_Backtab) {
+            // ctrl + shift + tab
+            if (keyEvent->modifiers() & Qt::ControlModifier) {
+                mainWindow->tabNavigate.navigateToTabPrev();
                 return true;
             }
             keyPressEvent(keyEvent);
@@ -770,6 +780,7 @@ bool GuiTerminalWindow::event(QEvent *event)
 
 void GuiTerminalWindow::focusInEvent ( QFocusEvent * e )
 {
+    mainWindow->tabNavigate.terminalFocusIn(this);
     if (!term) return;
     term_set_focus(term, TRUE);
     term_update(term);

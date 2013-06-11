@@ -29,7 +29,7 @@ public:
     void reqCloseTerminal(bool userRequest);
     void removeSplitLayout(GuiTerminalWindow *term);
 
-    GuiTerminalWindow* navigatePane(Qt::Key key, GuiTerminalWindow *tofind);
+    GuiTerminalWindow* navigatePane(Qt::Key key, GuiTerminalWindow *tofind, int splitind=-1);
 };
 
 #endif // GUISPLITTER_H

@@ -36,6 +36,7 @@ SOURCES +=  \
     GuiSplitter.cpp \
     GuiDrag.cpp \
     GuiFindToolBar.cpp \
+    GuiNavigation.cpp \
     puttysrc/WINDOWS/winnoise.c \
     puttysrc/WINDOWS/winstore.c \
     puttysrc/WINDOWS/windefs.c \
@@ -99,6 +100,7 @@ HEADERS +=  \
     GuiDrag.h \
     GuiFindToolBar.h \
     GuiTabBar.h \
+    GuiNavigation.h \
     puttysrc/WINDOWS/STORAGE.H \
     puttysrc/TREE234.H \
     puttysrc/TERMINAL.H \

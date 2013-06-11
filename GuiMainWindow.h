@@ -17,6 +17,7 @@
 #include "GuiSettingsWindow.h"
 #include "GuiMenu.h"
 #include "GuiDrag.h"
+#include "GuiNavigation.h"
 
 class GuiSettingsWindow;
 class GuiFindToolBar;
@@ -37,6 +38,9 @@ public:
 
     // find window
     GuiFindToolBar *findToolBar;
+
+    // tab order-of-usage navigation window
+    GuiTabNavigation tabNavigate;
 
     QTabWidget *tabArea;
 

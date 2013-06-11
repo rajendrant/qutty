@@ -31,7 +31,8 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
       menuCookieTermWnd(NULL),
       dragDropSite(),
       toolBarTerminalTop(this),
-      findToolBar(NULL)
+      findToolBar(NULL),
+      tabNavigate(this)
 {
     memset(menuCommonActions, 0, sizeof(menuCommonActions));
 
@@ -400,22 +401,6 @@ int initConfigDefaults(Config *cfg)
         cfg->wordness[i] = cfg_wordness_defaults[i];
 
     return 0;
-}
-
-void GuiMainWindow::tabNext ()
-{
-    if (tabArea->currentIndex() != tabArea->count()-1)
-        tabArea->setCurrentIndex(tabArea->currentIndex()+1);
-    else
-        tabArea->setCurrentIndex(0);
-}
-
-void GuiMainWindow::tabPrev ()
-{
-    if (tabArea->currentIndex() != 0)
-        tabArea->setCurrentIndex(tabArea->currentIndex()-1);
-    else
-        tabArea->setCurrentIndex(tabArea->count()-1);
 }
 
 GuiTerminalWindow * GuiMainWindow::getCurrentTerminal()
