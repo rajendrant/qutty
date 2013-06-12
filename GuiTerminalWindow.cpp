@@ -757,19 +757,11 @@ bool GuiTerminalWindow::event(QEvent *event)
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
         if (keyEvent->key() == Qt::Key_Tab) {
             // ctrl + tab
-            if (keyEvent->modifiers() & Qt::ControlModifier) {
-                mainWindow->tabNavigate.navigateToTabNext();
-                return true;
-            }
             keyPressEvent(keyEvent);
             qDebug() << "key" <<keyEvent;
             return true;
         } else if (keyEvent->key() == Qt::Key_Backtab) {
             // ctrl + shift + tab
-            if (keyEvent->modifiers() & Qt::ControlModifier) {
-                mainWindow->tabNavigate.navigateToTabPrev();
-                return true;
-            }
             keyPressEvent(keyEvent);
             qDebug() << "key" <<keyEvent;
             return true;
@@ -874,7 +866,7 @@ void GuiTerminalWindow::closeTerminal()
     if (parentSplit) {
         parentSplit->removeSplitLayout(this);
     }
-    mainWindow->closeTab(this);
+    mainWindow->closeTerminal(this);
     this->close();
     this->deleteLater();
 }

@@ -31,6 +31,8 @@ qutty_menu_actions_t qutty_menu_actions[MENU_MAX_ACTION] = {
     { "Switch to Bottom Pane",  "Ctrl+Shift+Down",SLOT( contextMenuPaneDown() ),                 ""},
     { "Switch to Left Pane",    "Ctrl+Shift+Left",SLOT( contextMenuPaneLeft() ),                 ""},
     { "Switch to Right Pane",   "Ctrl+Shift+Right",SLOT( contextMenuPaneRight() ),               ""},
+    { "Switch to MRU Pane",     "Ctrl+Tab",      SLOT( contextMenuMRUPane() )  ,                 ""},
+    { "Switch to LRU Pane",     "Ctrl+Shift+tab",  SLOT( contextMenuLRUPane() ),                   ""},
     { "Import from File",       "",              "",                                             ""},
     { "Import PuTTY sessions",  "",              "",                                             ""},
     { "Export from File",       "",              "",                                             ""},

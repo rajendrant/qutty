@@ -22,6 +22,7 @@ class GuiTabNavigation : public QListWidget
 public:
     GuiTabNavigation(GuiMainWindow *p);
     void terminalFocusIn(GuiTerminalWindow *term);
+    void tabClosing(int tabid);
 
     void activateTabNavigateGUI();
     void navigateToTabNext();

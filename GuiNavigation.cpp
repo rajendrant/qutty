@@ -25,20 +25,32 @@ void GuiTabNavigation::terminalFocusIn(GuiTerminalWindow *term)
     if (!tablist.isEmpty() && tablist[0] == ind)
         return;
     int oldind = tablist.indexOf(ind);
-    if (oldind == -1) {
-        this->insertItem(0, QString::number(ind+1));
-    } else {
-        QListWidgetItem *tmp = takeItem(oldind);
-        this->insertItem(0, tmp);
+    if (oldind != -1) {
         tablist.removeOne(ind);
     }
     tablist.insert(0, ind);
+}
+
+void GuiTabNavigation::tabClosing(int tabid)
+{
+    int ind = tablist.indexOf(tabid);
+    if (ind != -1) {
+        tablist.removeAt(ind);
+    }
+    for (tabid++; tabid <= tablist.size(); tabid++)
+        tablist[tablist.indexOf(tabid)] = tabid - 1;
 }
 
 void GuiTabNavigation::activateTabNavigateGUI()
 {
     if (is_active)
         return;
+    QStringList strlist;
+    strlist.reserve(tablist.size());
+    for(int i=0; i< tablist.size(); i++) {
+        strlist.append(mainWindow->tabArea->tabText(tablist[i]));
+    }
+    this->addItems(strlist);
     move((mainWindow->width()-width())/2,
               (mainWindow->height()-height())/2);
     show();
@@ -58,6 +70,7 @@ void GuiTabNavigation::deactivateTabNavigateGUI()
         mainWindow->tabArea->setCurrentIndex(tablist[sel]);
     }
     mainWindow->currentChanged(mainWindow->tabArea->currentIndex());
+    this->clear();
     hide();
     is_active = false;
     accept_sel = false;
@@ -143,4 +156,14 @@ void GuiMainWindow::tabPrev ()
         tabArea->setCurrentIndex(tabArea->currentIndex()-1);
     else
         tabArea->setCurrentIndex(tabArea->count()-1);
+}
+
+void GuiMainWindow::contextMenuMRUPane()
+{
+    tabNavigate.navigateToTabNext();
+}
+
+void GuiMainWindow::contextMenuLRUPane()
+{
+    tabNavigate.navigateToTabPrev();
 }

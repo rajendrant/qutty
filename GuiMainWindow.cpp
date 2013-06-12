@@ -47,7 +47,6 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
 
     connect(tabArea, SIGNAL(tabCloseRequested(int)), SLOT(tabCloseRequested(int)));
     connect(tabArea, SIGNAL(currentChanged(int)), SLOT(currentChanged(int)));
-    connect(tabArea, SIGNAL(sig_tabChangeSettings(GuiTerminalWindow*)), SLOT(on_changeSettingsTab(GuiTerminalWindow*)));
 
     initializeMenuSystem();
     inittializeDragDropWidget();
@@ -91,12 +90,24 @@ err_exit:
     delete newWnd;
 }
 
-void GuiMainWindow::closeTab(GuiTerminalWindow *termWnd)
+void GuiMainWindow::tabInsert(int tabind, QWidget *w, const QString &title)
+{
+    tabArea->insertTab(tabind, w, title);
+}
+
+void GuiMainWindow::tabRemove(int tabind)
+{
+    tabArea->removeTab(tabind);
+    tabNavigate.tabClosing(tabind);
+}
+
+void GuiMainWindow::closeTerminal(GuiTerminalWindow *termWnd)
 {
     assert(termWnd);
-    tabArea->removeTab(tabArea->indexOf(termWnd));
+    int ind = tabArea->indexOf(termWnd);
     terminalList.removeAll(termWnd);
-    //termWnd->deleteLater();
+    if (ind != -1)
+        tabRemove(ind);
 }
 
 void GuiMainWindow::closeEvent ( QCloseEvent * event )
@@ -476,7 +487,7 @@ int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType sp
     switch (split) {
     case GuiBase::TYPE_LEAF:
         newTerm->setParent(tabArea);
-        tabArea->insertTab(tabind, newTerm, "");
+        this->tabInsert(tabind, newTerm, "");
         terminalList.append(newTerm);
         tabArea->setCurrentWidget(newTerm);
         set_title(newTerm, APPNAME);

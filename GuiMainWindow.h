@@ -62,6 +62,9 @@ public:
         assert(id > MENU_SEPARATOR && id <= MENU_SEPARATOR + MENU_MAX_MENU);
         return &menuCommonMenus[id - MENU_SEPARATOR - 1];
     }
+
+    void tabInsert(int tabind, QWidget *w, const QString &title);
+    void tabRemove(int tabind);
     int setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType split, int tabind = -1);
 
 private:
@@ -82,7 +85,7 @@ public slots:
     void on_settingsWindowClose();
     void on_changeSettingsTab(GuiTerminalWindow *termWnd);
     void on_changeSettingsTabComplete(Config cfg, GuiTerminalWindow *termWnd);
-    void closeTab(GuiTerminalWindow *termWnd);
+    void closeTerminal(GuiTerminalWindow *termWnd);
     void tabCloseRequested (int index);
     void currentChanged(int index);
     void focusChanged ( QWidget * old, QWidget * now );
@@ -112,6 +115,8 @@ public slots:
     void contextMenuPaneDown();
     void contextMenuPaneLeft();
     void contextMenuPaneRight();
+    void contextMenuMRUPane();
+    void contextMenuLRUPane();
 };
 
 #endif // MAINWINDOW_H

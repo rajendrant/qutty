@@ -21,9 +21,6 @@ public:
 
 public slots:
     void showContextMenu(const QPoint &point);
-
-signals:
-    void sig_tabChangeSettings(GuiTerminalWindow *termWnd);
 };
 
 #endif // GUITABWIDGET_H

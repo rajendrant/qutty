@@ -41,7 +41,7 @@ void GuiTerminalWindow::createSplitLayout(GuiBase::SplitType split, GuiTerminalW
                                               viewport()->height();
         assert(tabind != -1);
 
-        mainWindow->tabArea->removeTab(tabind);
+        mainWindow->tabRemove(tabind);
         GuiSplitter *splitter = new GuiSplitter(orient);
         if (split==GuiBase::TYPE_HORIZONTAL || split==GuiBase::TYPE_VERTICAL) {
             splitter->addBaseWidget(0, this);
@@ -51,7 +51,7 @@ void GuiTerminalWindow::createSplitLayout(GuiBase::SplitType split, GuiTerminalW
             splitter->addBaseWidget(1, this);
         }
 
-        mainWindow->tabArea->insertTab(tabind, splitter, tr(APPNAME));
+        mainWindow->tabInsert(tabind, splitter, tr(APPNAME));
         mainWindow->tabArea->setCurrentIndex(tabind);
 
         QList<int> listsizes = splitter->sizes();
@@ -136,8 +136,8 @@ void GuiSplitter::removeSplitLayout(GuiTerminalWindow *term)
     } else {
         int currtab = term->getMainWindow()->tabArea->currentIndex();
         int tabind = term->getMainWindow()->tabArea->indexOf(this);
-        term->getMainWindow()->tabArea->removeTab(tabind);
-        term->getMainWindow()->tabArea->insertTab(tabind, b->getWidget(), tr(APPNAME));
+        term->getMainWindow()->tabRemove(tabind);
+        term->getMainWindow()->tabInsert(tabind, b->getWidget(), tr(APPNAME));
         if (currtab == tabind)
             term->getMainWindow()->tabArea->setCurrentIndex(tabind);
     }
