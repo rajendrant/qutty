@@ -76,6 +76,9 @@ public:
     bool userClosingTab;
     bool isSockDisconnected;
 
+    // order-of-usage
+    uint32_t mru_count;
+
     explicit GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow);
     virtual ~GuiTerminalWindow();
 
@@ -133,6 +136,10 @@ public:
     void dragLeaveEvent (QDragLeaveEvent *e);
     void dragMoveEvent (QDragMoveEvent *e);
     void dropEvent (QDropEvent *e);
+
+    void populateAllTerminals(vector<GuiTerminalWindow*> *list) {
+        list->push_back(this);
+    }
 
 protected:
     void paintEvent ( QPaintEvent * e );

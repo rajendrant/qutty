@@ -161,8 +161,12 @@ GuiTerminalWindow* GuiSplitter::navigatePane(Qt::Key key, GuiTerminalWindow *tof
     if (ind == -1 && (ind=splitind)==-1)
         return NULL;
     nextind = ind + ((key == Qt::Key_Up || key == Qt::Key_Left) ? -1 : +1);
-    if (!(w = widget(nextind)))
+    if (!(w = widget(nextind))) {
+        if (parentSplit && parentSplit->parentSplit)
+            return parentSplit->parentSplit->navigatePane(key, tofind,
+                                        parentSplit->parentSplit->indexOf(parentSplit));
         return NULL;
+    }
 
 
     if (qobject_cast<GuiSplitter*>(w)) {

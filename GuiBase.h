@@ -33,6 +33,7 @@ public:
     virtual ~GuiBase() { };
     virtual void reqCloseTerminal(bool userRequest) = 0;
     virtual QWidget *getWidget() = 0;
+    virtual void populateAllTerminals(vector<GuiTerminalWindow*> *list) = 0;
 };
 
 //http://stackoverflow.com/questions/3726716/qt-interfaces-or-abstract-classes-and-qobject-cast

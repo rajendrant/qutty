@@ -29,6 +29,11 @@ public:
     void reqCloseTerminal(bool userRequest);
     void removeSplitLayout(GuiTerminalWindow *term);
 
+    void populateAllTerminals(vector<GuiTerminalWindow*> *list) {
+        for(auto it=child.begin(); it != child.end(); it++)
+            (*it)->populateAllTerminals(list);
+    }
+
     GuiTerminalWindow* navigatePane(Qt::Key key, GuiTerminalWindow *tofind, int splitind=-1);
 };
 

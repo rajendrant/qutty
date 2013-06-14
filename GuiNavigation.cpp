@@ -13,72 +13,48 @@ GuiTabNavigation::GuiTabNavigation(GuiMainWindow *p)
     : QListWidget(p),
       mainWindow(p)
 {
-    hide();
-    setFixedHeight(200);
-    is_active = false;
-    accept_sel = false;
-}
-
-void GuiTabNavigation::terminalFocusIn(GuiTerminalWindow *term)
-{
-    int ind = mainWindow->tabArea->currentIndex();
-    if (!tablist.isEmpty() && tablist[0] == ind)
-        return;
-    int oldind = tablist.indexOf(ind);
-    if (oldind != -1) {
-        tablist.removeOne(ind);
+    std::map<int,uint32_t> mrumap;
+    auto termlist = mainWindow->getTerminalList();
+    for(auto term=termlist->begin(); term != termlist->end(); term++) {
+        GuiSplitter *split = (*term)->parentSplit;
+        int tabid;
+        if (split) {
+            while(split->parentSplit) split = split->parentSplit;
+            tabid = mainWindow->tabArea->indexOf(split);
+        } else
+            tabid = mainWindow->tabArea->indexOf(*term);
+        assert(tabid != -1);
+        if (mrumap.find(tabid) == mrumap.end())
+            mrumap.insert(std::pair<int,uint32_t>(tabid, (*term)->mru_count));
+        else
+            mrumap[tabid] = std::max(mrumap[tabid], (*term)->mru_count);
     }
-    tablist.insert(0, ind);
-}
-
-void GuiTabNavigation::tabClosing(int tabid)
-{
-    int ind = tablist.indexOf(tabid);
-    if (ind != -1) {
-        tablist.removeAt(ind);
+    std::multimap<uint32_t,int> mrumaptab;
+    for(auto it = mrumap.begin(); it != mrumap.end(); ++it)
+        mrumaptab.insert(std::pair<uint32_t,int>(it->second, it->first));
+    for(auto it = mrumaptab.rbegin(); it != mrumaptab.rend(); ++it) {
+        QListWidgetItem *w = new QListWidgetItem(mainWindow->tabArea->tabText(it->second), this);
+        w->setData(Qt::UserRole, it->second);
     }
-    for (tabid++; tabid <= tablist.size(); tabid++)
-        tablist[tablist.indexOf(tabid)] = tabid - 1;
-}
-
-void GuiTabNavigation::activateTabNavigateGUI()
-{
-    if (is_active)
-        return;
-    QStringList strlist;
-    strlist.reserve(tablist.size());
-    for(int i=0; i< tablist.size(); i++) {
-        strlist.append(mainWindow->tabArea->tabText(tablist[i]));
-    }
-    this->addItems(strlist);
+    adjustSize();
     move((mainWindow->width()-width())/2,
               (mainWindow->height()-height())/2);
     show();
     raise();
     setCurrentRow(0);
     setFocus();
-    is_active = true;
-    accept_sel = false;
 }
 
-void GuiTabNavigation::deactivateTabNavigateGUI()
+void GuiTabNavigation::acceptNavigation()
 {
-    if (!is_active)
-        return;
     int sel;
     if ((sel = currentRow()) != -1) {
-        mainWindow->tabArea->setCurrentIndex(tablist[sel]);
+        mainWindow->tabArea->setCurrentIndex(currentItem()->data(Qt::UserRole).toInt());
     }
-    mainWindow->currentChanged(mainWindow->tabArea->currentIndex());
-    this->clear();
-    hide();
-    is_active = false;
-    accept_sel = false;
 }
 
 void GuiTabNavigation::navigateToTabNext()
 {
-    activateTabNavigateGUI();
     if (currentRow() == count()-1)
         setCurrentRow(0);
     else
@@ -87,7 +63,6 @@ void GuiTabNavigation::navigateToTabNext()
 
 void GuiTabNavigation::navigateToTabPrev()
 {
-    activateTabNavigateGUI();
     if (currentRow() == 0)
         setCurrentRow(count()-1);
     else
@@ -96,26 +71,16 @@ void GuiTabNavigation::navigateToTabPrev()
 
 void GuiTabNavigation::focusOutEvent ( QFocusEvent * e )
 {
-    this->deactivateTabNavigateGUI();
-}
-
-void GuiTabNavigation::keyPressEvent ( QKeyEvent * e )
-{
-    if (e->key() == Qt::Key_Tab && e->modifiers() & Qt::ControlModifier) {
-        if (e->modifiers() & Qt::ShiftModifier)
-            navigateToTabPrev();
-        else
-            navigateToTabNext();
-        return;
-    }
-    QListWidget::keyReleaseEvent(e);
+    mainWindow->tabNavigate = NULL;
+    mainWindow->currentChanged(mainWindow->tabArea->currentIndex());
+    this->deleteLater();
 }
 
 void GuiTabNavigation::keyReleaseEvent ( QKeyEvent * e )
 {
     if (e->key() == Qt::Key_Control) {
-        accept_sel = true;
-        this->deactivateTabNavigateGUI();
+        this->acceptNavigation();
+        this->close();
     }
     QListWidget::keyReleaseEvent(e);
 }
@@ -124,15 +89,7 @@ bool GuiTabNavigation::event ( QEvent * e )
 {
     if (e->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(e);
-        if (keyEvent->key() == Qt::Key_Tab) {
-            // ctrl + tab
-            if (keyEvent->modifiers() & Qt::ControlModifier)
-                navigateToTabNext();
-        } else if (keyEvent->key() == Qt::Key_Backtab) {
-            // ctrl + shift + tab
-            if (keyEvent->modifiers() & Qt::ControlModifier)
-                navigateToTabPrev();
-        } else if (keyEvent->key() == Qt::Key_Up) {
+        if (keyEvent->key() == Qt::Key_Up) {
             navigateToTabPrev();
         } else if (keyEvent->key() == Qt::Key_Down) {
             navigateToTabNext();
@@ -140,6 +97,51 @@ bool GuiTabNavigation::event ( QEvent * e )
         return true;
     }
     return QListWidget::event(e);
+}
+
+GuiPaneNavigation::GuiPaneNavigation(GuiMainWindow *p)
+    : QWidget(p),
+      mainWindow(p)
+{
+    GuiBase *base;
+    vector<GuiTerminalWindow*> list;
+    if(!(base=qobject_cast<GuiTerminalWindow*>(mainWindow->tabArea->currentWidget())))
+        return;
+    base->populateAllTerminals(&list);
+
+    move(0, 0);
+    resize(100, 100);
+    show();
+    raise();
+    setFocus();
+    setAutoFillBackground(true);
+}
+
+void GuiPaneNavigation::acceptNavigation()
+{
+}
+
+void GuiPaneNavigation::navigateToPaneNext()
+{
+}
+
+void GuiPaneNavigation::navigateToPanePrev()
+{
+}
+
+void GuiPaneNavigation::focusOutEvent(QFocusEvent *e)
+{
+    mainWindow->paneNavigate = NULL;
+    mainWindow->currentChanged(mainWindow->tabArea->currentIndex());
+    this->deleteLater();
+}
+
+void GuiPaneNavigation::keyReleaseEvent(QKeyEvent *e)
+{
+    if (e->key() == Qt::Key_Control) {
+        this->acceptNavigation();
+        this->close();
+    }
 }
 
 void GuiMainWindow::tabNext ()
@@ -158,12 +160,30 @@ void GuiMainWindow::tabPrev ()
         tabArea->setCurrentIndex(tabArea->count()-1);
 }
 
+void GuiMainWindow::contextMenuMRUTab()
+{
+    if (!tabNavigate)
+        tabNavigate = new GuiTabNavigation(this);
+    tabNavigate->navigateToTabNext();
+}
+
+void GuiMainWindow::contextMenuLRUTab()
+{
+    if (!tabNavigate)
+        tabNavigate = new GuiTabNavigation(this);
+    tabNavigate->navigateToTabPrev();
+}
+
 void GuiMainWindow::contextMenuMRUPane()
 {
-    tabNavigate.navigateToTabNext();
+    if (!paneNavigate)
+        paneNavigate = new GuiPaneNavigation(this);
+    paneNavigate->navigateToPaneNext();
 }
 
 void GuiMainWindow::contextMenuLRUPane()
 {
-    tabNavigate.navigateToTabPrev();
+    if (!paneNavigate)
+        paneNavigate = new GuiPaneNavigation(this);
+    paneNavigate->navigateToPanePrev();
 }

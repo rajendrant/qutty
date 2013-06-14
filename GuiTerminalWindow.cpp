@@ -21,7 +21,8 @@ extern "C" {
 GuiTerminalWindow::GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow) :
     QAbstractScrollArea(parent),
     clipboard_contents(NULL),
-    clipboard_length(0)
+    clipboard_length(0),
+    mru_count(0)
 {
     this->mainWindow = mainWindow;
 
@@ -772,7 +773,7 @@ bool GuiTerminalWindow::event(QEvent *event)
 
 void GuiTerminalWindow::focusInEvent ( QFocusEvent * e )
 {
-    mainWindow->tabNavigate.terminalFocusIn(this);
+    this->mru_count = ++mainWindow->mru_count_last;
     if (!term) return;
     term_set_focus(term, TRUE);
     term_update(term);

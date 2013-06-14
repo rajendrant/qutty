@@ -32,7 +32,9 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
       dragDropSite(),
       toolBarTerminalTop(this),
       findToolBar(NULL),
-      tabNavigate(this)
+      tabNavigate(NULL),
+      paneNavigate(NULL),
+      mru_count_last(0)
 {
     memset(menuCommonActions, 0, sizeof(menuCommonActions));
 
@@ -98,7 +100,6 @@ void GuiMainWindow::tabInsert(int tabind, QWidget *w, const QString &title)
 void GuiMainWindow::tabRemove(int tabind)
 {
     tabArea->removeTab(tabind);
-    tabNavigate.tabClosing(tabind);
 }
 
 void GuiMainWindow::closeTerminal(GuiTerminalWindow *termWnd)

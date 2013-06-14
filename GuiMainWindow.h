@@ -40,7 +40,9 @@ public:
     GuiFindToolBar *findToolBar;
 
     // tab order-of-usage navigation window
-    GuiTabNavigation tabNavigate;
+    uint32_t mru_count_last;
+    GuiTabNavigation *tabNavigate;
+    GuiPaneNavigation *paneNavigate;
 
     QTabWidget *tabArea;
 
@@ -67,6 +69,7 @@ public:
     void tabRemove(int tabind);
     int setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType split, int tabind = -1);
 
+    const QList<GuiTerminalWindow*> *getTerminalList() { return &terminalList; }
 private:
     void initializeMenuSystem();
     void inittializeDragDropWidget();
@@ -115,6 +118,8 @@ public slots:
     void contextMenuPaneDown();
     void contextMenuPaneLeft();
     void contextMenuPaneRight();
+    void contextMenuMRUTab();
+    void contextMenuLRUTab();
     void contextMenuMRUPane();
     void contextMenuLRUPane();
 };

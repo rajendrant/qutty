@@ -7,6 +7,7 @@
 #ifndef GUINAVIGATION_H
 #define GUINAVIGATION_H
 
+#include <stdint.h>
 #include <QListWidget>
 
 class GuiMainWindow;
@@ -15,25 +16,35 @@ class GuiTerminalWindow;
 class GuiTabNavigation : public QListWidget
 {
     GuiMainWindow *mainWindow;
-    QList<int> tablist;
-    bool is_active;
-    bool accept_sel;
 
 public:
     GuiTabNavigation(GuiMainWindow *p);
-    void terminalFocusIn(GuiTerminalWindow *term);
-    void tabClosing(int tabid);
 
-    void activateTabNavigateGUI();
     void navigateToTabNext();
     void navigateToTabPrev();
-    void deactivateTabNavigateGUI();
+    void acceptNavigation();
 
 protected:
     void focusOutEvent ( QFocusEvent * e );
-    void keyPressEvent ( QKeyEvent * e );
     void keyReleaseEvent ( QKeyEvent * e );
     bool event( QEvent * e );
+};
+
+class GuiPaneNavigation : public QWidget
+{
+    GuiMainWindow *mainWindow;
+
+public:
+    GuiPaneNavigation(GuiMainWindow *p);
+
+    void navigateToPaneNext();
+    void navigateToPanePrev();
+    void acceptNavigation();
+
+protected:
+    void focusOutEvent ( QFocusEvent * e );
+    void keyReleaseEvent ( QKeyEvent * e );
+    //bool event( QEvent * e );
 };
 
 #endif // GUINAVIGATION_H
