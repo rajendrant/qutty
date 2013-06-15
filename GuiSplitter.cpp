@@ -154,6 +154,7 @@ GuiTerminalWindow* GuiSplitter::navigatePane(Qt::Key key, GuiTerminalWindow *tof
         return parentSplit ? parentSplit->navigatePane(key, tofind,
                                                        parentSplit->indexOf(this)) : NULL;
 
+    GuiTerminalWindow *term = NULL;
     QWidget *w;
     GuiBase *base;
     int ind = indexOf(tofind);
@@ -170,10 +171,10 @@ GuiTerminalWindow* GuiSplitter::navigatePane(Qt::Key key, GuiTerminalWindow *tof
 
 
     if (qobject_cast<GuiSplitter*>(w)) {
-        if (w->focusWidget())
-            w->focusWidget()->setFocus();
-    } else if (qobject_cast<GuiTerminalWindow*>(w))
-        w->setFocus();
+        if ((term = qobject_cast<GuiTerminalWindow*>(w->focusWidget())))
+            return term;
+    } else if ((term = qobject_cast<GuiTerminalWindow*>(w)))
+        return term;
 
-    return NULL;
+    return term;
 }

@@ -33,8 +33,8 @@ qutty_menu_actions_t qutty_menu_actions[MENU_MAX_ACTION] = {
     { "Switch to Right Pane",   "Ctrl+Shift+Right",SLOT( contextMenuPaneRight() ),               ""},
     { "Switch to MRU Tab",      "Ctrl+Tab",      SLOT( contextMenuMRUTab() ),                    ""},
     { "Switch to LRU Tab",      "Ctrl+Shift+tab",  SLOT( contextMenuLRUTab() ),                  ""},
-    { "Switch to MRU Pane",     "Ctrl+[",        SLOT( contextMenuMRUPane() ),                   ""},
-    { "Switch to LRU Pane",     "Ctrl+]",        SLOT( contextMenuLRUPane() ),                   ""},
+    { "Switch to MRU Pane",     "Ctrl+Shift+[",  SLOT( contextMenuMRUPane() ),                   ""},
+    { "Switch to LRU Pane",     "Ctrl+Shift+]",  SLOT( contextMenuLRUPane() ),                   ""},
     { "Import from File",       "",              "",                                             ""},
     { "Import PuTTY sessions",  "",              "",                                             ""},
     { "Export from File",       "",              "",                                             ""},
@@ -405,36 +405,4 @@ void GuiMainWindow::contextMenuRenameTab()
         return;
     if (terminalList.indexOf(menuCookieTermWnd) == -1)
         return;
-}
-
-void GuiMainWindow::contextMenuPaneUp()
-{
-    GuiTerminalWindow *term = getCurrentTerminal();
-    if (!term || !term->parentSplit)
-        return;
-    term->parentSplit->navigatePane(Qt::Key_Up, term);
-}
-
-void GuiMainWindow::contextMenuPaneDown()
-{
-    GuiTerminalWindow *term = getCurrentTerminal();
-    if (!term || !term->parentSplit)
-        return;
-    term->parentSplit->navigatePane(Qt::Key_Down, term);
-}
-
-void GuiMainWindow::contextMenuPaneLeft()
-{
-    GuiTerminalWindow *term = getCurrentTerminal();
-    if (!term || !term->parentSplit)
-        return;
-    term->parentSplit->navigatePane(Qt::Key_Left, term);
-}
-
-void GuiMainWindow::contextMenuPaneRight()
-{
-    GuiTerminalWindow *term = getCurrentTerminal();
-    if (!term || !term->parentSplit)
-        return;
-    term->parentSplit->navigatePane(Qt::Key_Right, term);
 }

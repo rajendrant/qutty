@@ -4,6 +4,7 @@
  * See COPYING for distribution information.
  */
 
+#include <QGraphicsColorizeEffect>
 #include "GuiNavigation.h"
 #include "GuiBase.h"
 #include "GuiTerminalWindow.h"
@@ -76,6 +77,16 @@ void GuiTabNavigation::focusOutEvent ( QFocusEvent * e )
     this->deleteLater();
 }
 
+void GuiTabNavigation::keyPressEvent ( QKeyEvent * e )
+{
+    if (e->key() == Qt::Key_Up) {
+        navigateToTabPrev();
+    } else if (e->key() == Qt::Key_Down) {
+        navigateToTabNext();
+    }
+    QListWidget::keyPressEvent(e);
+}
+
 void GuiTabNavigation::keyReleaseEvent ( QKeyEvent * e )
 {
     if (e->key() == Qt::Key_Control) {
@@ -85,55 +96,115 @@ void GuiTabNavigation::keyReleaseEvent ( QKeyEvent * e )
     QListWidget::keyReleaseEvent(e);
 }
 
-bool GuiTabNavigation::event ( QEvent * e )
-{
-    if (e->type() == QEvent::KeyPress) {
-        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(e);
-        if (keyEvent->key() == Qt::Key_Up) {
-            navigateToTabPrev();
-        } else if (keyEvent->key() == Qt::Key_Down) {
-            navigateToTabNext();
-        }
-        return true;
-    }
-    return QListWidget::event(e);
-}
-
-GuiPaneNavigation::GuiPaneNavigation(GuiMainWindow *p)
+GuiPaneNavigation::GuiPaneNavigation(GuiMainWindow *p, bool is_direction_mode)
     : QWidget(p),
-      mainWindow(p)
+      mainWindow(p),
+      curr_sel(-1)
 {
-    GuiBase *base;
+    GuiSplitter *base;
     vector<GuiTerminalWindow*> list;
-    if(!(base=qobject_cast<GuiTerminalWindow*>(mainWindow->tabArea->currentWidget())))
-        return;
+    if(!(base=qobject_cast<GuiSplitter*>(mainWindow->tabArea->currentWidget())))
+        goto cu0;
     base->populateAllTerminals(&list);
+    for(auto it=list.begin(); it != list.end(); ++it)
+        mrupanemap.insert(std::pair<uint32_t, GuiTerminalWindow*>((*it)->mru_count, (*it)));
 
+    curr_sel = mrupanemap.rbegin()->first;
+    if (is_direction_mode) {
+        auto term = mainWindow->getCurrentTerminal();
+        if (term) {
+            auto it = std::find_if(mrupanemap.begin(), mrupanemap.end(),
+                                   [term](map<uint32_t, GuiTerminalWindow*>::value_type v)
+                                   {return term == v.second;});
+            if (it != mrupanemap.end())
+                curr_sel = it->first;
+        }
+    }
+
+cu0:
     move(0, 0);
-    resize(100, 100);
+    resize(0, 0);
     show();
     raise();
     setFocus();
-    setAutoFillBackground(true);
 }
 
 void GuiPaneNavigation::acceptNavigation()
 {
+    if (mrupanemap.size() <= 1)
+        return;
+    auto it = mrupanemap.find(curr_sel);
+    if (it == mrupanemap.end())
+        return;
+    it->second->setFocus();
 }
 
-void GuiPaneNavigation::navigateToPaneNext()
+void GuiPaneNavigation::navigateToMRUPane()
 {
+    if (mrupanemap.size() <= 1)
+        return;
+    auto it = mrupanemap.find(curr_sel);
+    if (it == mrupanemap.end())
+        return;
+    it->second->viewport()->setGraphicsEffect(NULL);
+    ++it;
+    if (it == mrupanemap.end())
+        it = mrupanemap.begin();
+    curr_sel = it->first;
+    it->second->viewport()->setGraphicsEffect(new QGraphicsColorizeEffect);
 }
 
-void GuiPaneNavigation::navigateToPanePrev()
+void GuiPaneNavigation::navigateToLRUPane()
 {
+    if (mrupanemap.size() <= 1)
+        return;
+    auto it = mrupanemap.find(curr_sel);
+    if (it == mrupanemap.end())
+        return;
+    it->second->viewport()->setGraphicsEffect(NULL);
+    if (it == mrupanemap.begin())
+        it = mrupanemap.end();
+    --it;
+    curr_sel = it->first;
+    it->second->viewport()->setGraphicsEffect(new QGraphicsColorizeEffect);
 }
 
 void GuiPaneNavigation::focusOutEvent(QFocusEvent *e)
 {
     mainWindow->paneNavigate = NULL;
     mainWindow->currentChanged(mainWindow->tabArea->currentIndex());
+
+    auto it = mrupanemap.find(curr_sel);
+    if (mrupanemap.size() <= 1)
+        goto cu0;
+    if (it == mrupanemap.end())
+        goto cu0;
+    it->second->viewport()->setGraphicsEffect(NULL);
+
+cu0:
     this->deleteLater();
+}
+
+void GuiPaneNavigation::navigateToDirectionPane(Qt::Key key)
+{
+    if (mrupanemap.size() <= 1)
+        return;
+    auto it = mrupanemap.find(curr_sel);
+    if (it == mrupanemap.end())
+        return;
+    auto term = it->second;
+    if (!term || !term->parentSplit)
+        return;
+    term = term->parentSplit->navigatePane(key, term);
+    if (term) {
+        it->second->viewport()->setGraphicsEffect(NULL);
+        auto it = std::find_if(mrupanemap.begin(), mrupanemap.end(),
+                               [term](map<uint32_t, GuiTerminalWindow*>::value_type v)
+                               {return term == v.second;});
+        if (it != mrupanemap.end())
+            curr_sel = it->first;
+        term->viewport()->setGraphicsEffect(new QGraphicsColorizeEffect);
+    }
 }
 
 void GuiPaneNavigation::keyReleaseEvent(QKeyEvent *e)
@@ -178,12 +249,40 @@ void GuiMainWindow::contextMenuMRUPane()
 {
     if (!paneNavigate)
         paneNavigate = new GuiPaneNavigation(this);
-    paneNavigate->navigateToPaneNext();
+    paneNavigate->navigateToMRUPane();
 }
 
 void GuiMainWindow::contextMenuLRUPane()
 {
     if (!paneNavigate)
         paneNavigate = new GuiPaneNavigation(this);
-    paneNavigate->navigateToPanePrev();
+    paneNavigate->navigateToLRUPane();
+}
+
+void GuiMainWindow::contextMenuPaneUp()
+{
+    if (!paneNavigate)
+        paneNavigate = new GuiPaneNavigation(this, true);
+    paneNavigate->navigateToDirectionPane(Qt::Key_Up);
+}
+
+void GuiMainWindow::contextMenuPaneDown()
+{
+    if (!paneNavigate)
+        paneNavigate = new GuiPaneNavigation(this, true);
+    paneNavigate->navigateToDirectionPane(Qt::Key_Down);
+}
+
+void GuiMainWindow::contextMenuPaneLeft()
+{
+    if (!paneNavigate)
+        paneNavigate = new GuiPaneNavigation(this, true);
+    paneNavigate->navigateToDirectionPane(Qt::Key_Left);
+}
+
+void GuiMainWindow::contextMenuPaneRight()
+{
+    if (!paneNavigate)
+        paneNavigate = new GuiPaneNavigation(this, true);
+    paneNavigate->navigateToDirectionPane(Qt::Key_Right);
 }

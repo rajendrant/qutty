@@ -7,8 +7,11 @@
 #ifndef GUINAVIGATION_H
 #define GUINAVIGATION_H
 
+#include <map>
 #include <stdint.h>
 #include <QListWidget>
+
+using namespace std;
 
 class GuiMainWindow;
 class GuiTerminalWindow;
@@ -26,25 +29,27 @@ public:
 
 protected:
     void focusOutEvent ( QFocusEvent * e );
+    void keyPressEvent ( QKeyEvent * e );
     void keyReleaseEvent ( QKeyEvent * e );
-    bool event( QEvent * e );
 };
 
 class GuiPaneNavigation : public QWidget
 {
     GuiMainWindow *mainWindow;
+    map<uint32_t,GuiTerminalWindow*> mrupanemap;
+    uint32_t curr_sel;
 
 public:
-    GuiPaneNavigation(GuiMainWindow *p);
+    GuiPaneNavigation(GuiMainWindow *p, bool is_direction_mode=false);
 
-    void navigateToPaneNext();
-    void navigateToPanePrev();
+    void navigateToDirectionPane(Qt::Key key);
+    void navigateToMRUPane();
+    void navigateToLRUPane();
     void acceptNavigation();
 
 protected:
     void focusOutEvent ( QFocusEvent * e );
     void keyReleaseEvent ( QKeyEvent * e );
-    //bool event( QEvent * e );
 };
 
 #endif // GUINAVIGATION_H
