@@ -66,6 +66,11 @@ private:
     wchar_t *clipboard_contents;
     int clipboard_length;
 
+    // session title
+    QString runtime_title;  // given by terminal/shell
+    QString custom_title;   // given by user
+    QString temp_title;
+
 public:
     Config cfg;
     Terminal *term;
@@ -141,6 +146,17 @@ public:
         list->push_back(this);
     }
 
+    QString getSessionTitle() { return runtime_title; }
+    QString getCustomSessionTitle() { return custom_title; }
+    void setSessionTitle(QString t) {
+        runtime_title = t;
+        on_sessionTitleChange();
+    }
+    void setCustomSessionTitle(QString t) {
+        custom_title = t;
+        on_sessionTitleChange();
+    }
+
 protected:
     void paintEvent ( QPaintEvent * e );
     void 	mouseDoubleClickEvent ( QMouseEvent * e );
@@ -159,6 +175,7 @@ public slots:
     void detachTmuxControllerMode();
     void sockError(QAbstractSocket::SocketError socketError);
     void sockDisconnected();
+    void on_sessionTitleChange();
 
 };
 

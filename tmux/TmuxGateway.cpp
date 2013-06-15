@@ -236,7 +236,7 @@ int TmuxGateway::cmd_hdlr_window_renamed(const char *command, int len)
         goto cu0;
     }
     iresp>>wndtitle;
-    set_title(_mapPanes[paneid]->termWnd(), (char*)wndtitle.c_str());
+    _mapPanes[paneid]->termWnd()->setSessionTitle(QString::fromAscii(wndtitle.c_str()));
     return 0;
 cu0:
     qDebug("TMUX malformed command %s %.*s", fail_reason, len, command);

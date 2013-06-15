@@ -28,10 +28,7 @@ void set_title(void *frontend, const char *title)
 {
     assert(frontend);
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
-    f->setWindowTitle(QString::fromAscii(title));
-    if (f->getMainWindow()->tabArea->indexOf(f) >= 0)
-        f->getMainWindow()->tabArea->setTabText(f->getMainWindow()->tabArea->indexOf(f),
-                                    QString::fromAscii(title));
+    f->setSessionTitle(QString::fromAscii(title));
 }
 
 
@@ -40,7 +37,6 @@ void set_sbar(void *frontend, int total, int start, int page)
 {
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
     f->setScrollBar(total, start, page);
-    //qDebug()<<__FUNCTION__<<total<<start<<page;
 }
 
 Context get_ctx(void *frontend)
@@ -107,21 +103,18 @@ void move_window(void *frontend, int x, int y){}
 void write_clip(void *frontend, wchar_t * data, int *attr, int len, int must_deselect)
 {
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
-    qDebug()<<__FUNCTION__;
     f->writeClip(data, attr, len, must_deselect);
 }
 
 void get_clip(void *frontend, wchar_t **p, int *len)
 {
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
-    qDebug()<<__FUNCTION__;
     f->getClip(p, len);
 }
 
 void request_paste(void *frontend)
 {
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
-    qDebug()<<__FUNCTION__;
     f->requestPaste();
 }
 
@@ -130,7 +123,6 @@ void sys_cursor(void *frontend, int x, int y){}
 void refresh_window(void *frontend)
 {
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
-    qDebug()<<"refresh_window";
     f->repaint();
 }
 

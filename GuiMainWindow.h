@@ -69,6 +69,8 @@ public:
     void tabRemove(int tabind);
     int setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType split, int tabind = -1);
 
+    int getTerminalTabInd(GuiTerminalWindow *term);
+
     const QList<GuiTerminalWindow*> *getTerminalList() { return &terminalList; }
 private:
     void initializeMenuSystem();

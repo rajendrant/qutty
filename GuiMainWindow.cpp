@@ -491,7 +491,7 @@ int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType sp
         this->tabInsert(tabind, newTerm, "");
         terminalList.append(newTerm);
         tabArea->setCurrentWidget(newTerm);
-        set_title(newTerm, APPNAME);
+        set_title(newTerm, newTerm->cfg.host);
         newTerm->setWindowState(newTerm->windowState() | Qt::WindowMaximized);
 
         // resize according to config if window is smaller
@@ -524,4 +524,17 @@ int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType sp
 
 err_exit:
     return -1;
+}
+
+int GuiMainWindow::getTerminalTabInd(GuiTerminalWindow *term)
+{
+    GuiSplitter *split = term->parentSplit;
+    int tabid;
+    if (split) {
+        while(split->parentSplit) split = split->parentSplit;
+        tabid = this->tabArea->indexOf(split);
+    } else
+        tabid = this->tabArea->indexOf(term);
+    assert(tabid != -1);
+    return tabid;
 }

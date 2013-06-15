@@ -22,7 +22,9 @@ GuiTerminalWindow::GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow)
     QAbstractScrollArea(parent),
     clipboard_contents(NULL),
     clipboard_length(0),
-    mru_count(0)
+    mru_count(0),
+    custom_title(""),
+    runtime_title("")
 {
     this->mainWindow = mainWindow;
 
@@ -176,7 +178,7 @@ int GuiTerminalWindow::restartTerminal()
         qtsock = NULL;
     }
     isSockDisconnected = false;
-    set_title(this, APPNAME);
+    set_title(this, cfg.host);
     return initTerminal();
 }
 
@@ -777,6 +779,9 @@ void GuiTerminalWindow::focusInEvent ( QFocusEvent * e )
     if (!term) return;
     term_set_focus(term, TRUE);
     term_update(term);
+    if (parentSplit)
+        mainWindow->tabArea->setTabText(mainWindow->tabArea->currentIndex(),
+                                        temp_title);
 }
 
 void GuiTerminalWindow::focusOutEvent ( QFocusEvent * e )
@@ -882,4 +887,19 @@ void GuiTerminalWindow::reqCloseTerminal(bool userConfirm)
                               QMessageBox::Yes|QMessageBox::No))
         return;
     this->closeTerminal();
+}
+
+void GuiTerminalWindow::on_sessionTitleChange()
+{
+    int tabind = mainWindow->getTerminalTabInd(this);
+    temp_title = "";
+    temp_title += QString::number(tabind + 1) + ". ";
+    if (!custom_title.isEmpty() && !runtime_title.isEmpty())
+        temp_title += custom_title + " - " +runtime_title;
+    else if (!custom_title.isEmpty())
+        temp_title += custom_title;
+    else if (!runtime_title.isEmpty())
+        temp_title += runtime_title;
+    if (!parentSplit)
+        mainWindow->tabArea->setTabText(tabind, temp_title);
 }

@@ -17,14 +17,7 @@ GuiTabNavigation::GuiTabNavigation(GuiMainWindow *p)
     std::map<int,uint32_t> mrumap;
     auto termlist = mainWindow->getTerminalList();
     for(auto term=termlist->begin(); term != termlist->end(); term++) {
-        GuiSplitter *split = (*term)->parentSplit;
-        int tabid;
-        if (split) {
-            while(split->parentSplit) split = split->parentSplit;
-            tabid = mainWindow->tabArea->indexOf(split);
-        } else
-            tabid = mainWindow->tabArea->indexOf(*term);
-        assert(tabid != -1);
+        int tabid = mainWindow->getTerminalTabInd(*term);
         if (mrumap.find(tabid) == mrumap.end())
             mrumap.insert(std::pair<int,uint32_t>(tabid, (*term)->mru_count));
         else

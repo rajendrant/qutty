@@ -157,6 +157,7 @@ GuiTerminalWindow* GuiSplitter::navigatePane(Qt::Key key, GuiTerminalWindow *tof
     GuiTerminalWindow *term = NULL;
     QWidget *w;
     GuiBase *base;
+    GuiSplitter *split;
     int ind = indexOf(tofind);
     int nextind;
     if (ind == -1 && (ind=splitind)==-1)
@@ -169,10 +170,20 @@ GuiTerminalWindow* GuiSplitter::navigatePane(Qt::Key key, GuiTerminalWindow *tof
         return NULL;
     }
 
-
-    if (qobject_cast<GuiSplitter*>(w)) {
-        if ((term = qobject_cast<GuiTerminalWindow*>(w->focusWidget())))
-            return term;
+    if ((split = qobject_cast<GuiSplitter*>(w))) {
+        QPoint findmidp = tofind->mapToGlobal(QPoint(tofind->width()/2, tofind->height()/2));
+        vector<GuiTerminalWindow*> list;
+        int bestdist = INT_MAX;
+        GuiTerminalWindow *bestterm = NULL;
+        split->populateAllTerminals(&list);
+        for (auto it = list.begin(); it != list.end(); ++it) {
+            QPoint tmpmidp = (*it)->mapToGlobal(QPoint((*it)->width()/2, (*it)->height()/2)) - findmidp;
+            if (tmpmidp.manhattanLength() < bestdist) {
+                bestdist = tmpmidp.manhattanLength();
+                bestterm = *it;
+            }
+        }
+        return bestterm;
     } else if ((term = qobject_cast<GuiTerminalWindow*>(w)))
         return term;
 

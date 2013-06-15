@@ -389,7 +389,6 @@ int from_backend(void *frontend, int is_stderr, const char *data, int len)
 
 void qutty_connection_fatal(void *frontend, char *msg)
 {
-    char winTitle[256];
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
     if (f->userClosingTab || f->isSockDisconnected)
         return;
@@ -401,9 +400,7 @@ void qutty_connection_fatal(void *frontend, char *msg)
 
     if (f->cfg.close_on_exit == FORCE_ON)
         f->closeTerminal();
-    qstring_to_char(winTitle, f->windowTitle(), sizeof(winTitle));
-    strncat(winTitle, " (inactive)", sizeof(winTitle));
-    set_title(frontend, winTitle);
+    f->setSessionTitle(f->getSessionTitle() + " (inactive)");
 }
 
 void notify_remote_exit(void *frontend)
@@ -423,12 +420,9 @@ void notify_remote_exit(void *frontend)
              * by a fatal error, so an error box will be coming our way and
              * we should not generate this informational one. */
             if (exitcode != INT_MAX) {
-                char winTitle[256];
                 qt_message_box(frontend, APPNAME " Fatal Error",
                                "Connection closed by remote host");
-                qstring_to_char(winTitle, f->windowTitle(), sizeof(winTitle));
-                strncat(winTitle, " (inactive)", sizeof(winTitle));
-                set_title(frontend, winTitle);
+                f->setSessionTitle(f->getSessionTitle() + " (inactive)");
                 // prevent recursive calling
                 f->isSockDisconnected = true;
             }

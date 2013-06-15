@@ -9,6 +9,7 @@
 #include <QString>
 #include <QAction>
 #include <QMenuBar>
+#include <QInputDialog>
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include "GuiSplitter.h"
@@ -405,4 +406,11 @@ void GuiMainWindow::contextMenuRenameTab()
         return;
     if (terminalList.indexOf(menuCookieTermWnd) == -1)
         return;
+    bool ok;
+    QString text = QInputDialog::getText(this, tr("Rename Session"),
+                                         tr("Session name:"), QLineEdit::Normal,
+                                         menuCookieTermWnd->getCustomSessionTitle(),
+                                         &ok);
+    if (ok && !text.isEmpty())
+        menuCookieTermWnd->setCustomSessionTitle(text);
 }
