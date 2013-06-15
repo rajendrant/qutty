@@ -113,11 +113,9 @@ GuiPaneNavigation::GuiPaneNavigation(GuiMainWindow *p, bool is_direction_mode)
     if (is_direction_mode) {
         auto term = mainWindow->getCurrentTerminal();
         if (term) {
-            auto it = std::find_if(mrupanemap.begin(), mrupanemap.end(),
-                                   [term](map<uint32_t, GuiTerminalWindow*>::value_type v)
-                                   {return term == v.second;});
-            if (it != mrupanemap.end())
-                curr_sel = it->first;
+            for(auto it = mrupanemap.begin(); it != mrupanemap.end(); ++it)
+                if(it->second == term)
+                    curr_sel = it->first;
         }
     }
 
@@ -198,11 +196,9 @@ void GuiPaneNavigation::navigateToDirectionPane(Qt::Key key)
     term = term->parentSplit->navigatePane(key, term);
     if (term) {
         it->second->viewport()->setGraphicsEffect(NULL);
-        auto it = std::find_if(mrupanemap.begin(), mrupanemap.end(),
-                               [term](map<uint32_t, GuiTerminalWindow*>::value_type v)
-                               {return term == v.second;});
-        if (it != mrupanemap.end())
-            curr_sel = it->first;
+        for(auto it = mrupanemap.begin(); it != mrupanemap.end(); ++it)
+            if (it->second == term)
+                curr_sel = it->first;
         term->viewport()->setGraphicsEffect(new QGraphicsColorizeEffect);
     }
 }

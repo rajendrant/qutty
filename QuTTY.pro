@@ -141,3 +141,6 @@ RESOURCES += \
 win32-msvc*:contains(QMAKE_TARGET.arch, x86_64) : {
     LIBS += user32.lib advapi32.lib
 }
+win32-g++ {
+    QMAKE_CXXFLAGS += -std=gnu++0x
+}
