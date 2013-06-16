@@ -10,7 +10,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network
+QT       += core gui network widgets
 
 TARGET = QuTTY
 TEMPLATE = app

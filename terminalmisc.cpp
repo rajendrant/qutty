@@ -28,7 +28,7 @@ void set_title(void *frontend, const char *title)
 {
     assert(frontend);
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
-    f->setSessionTitle(QString::fromAscii(title));
+    f->setSessionTitle(QString::fromLatin1(title));
 }
 
 

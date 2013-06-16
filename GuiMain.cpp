@@ -4,7 +4,7 @@
  * See COPYING for distribution information.
  */
 
-#include <QtGui/QApplication>
+#include <QApplication>
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include "GuiSettingsWindow.h"

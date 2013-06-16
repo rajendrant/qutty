@@ -70,7 +70,8 @@ static int sk_tcp_write_oob (Socket sock, const char *data, int len)
 static void sk_tcp_close (Socket sock)
 {
     Actual_Socket s = (Actual_Socket) sock;
-    s->qtsock->disconnectFromHost();
+    if (s->qtsock)
+        s->qtsock->disconnectFromHost();
 }
 
 static void sk_tcp_set_frozen (Socket /*sock*/, int /*is_frozen*/)

@@ -80,7 +80,7 @@ class TmuxGateway : public TmuxCmdRespReceiver
 
 public:
     TmuxGateway(GuiTerminalWindow *termWindow);
-    ~TmuxGateway();
+    virtual ~TmuxGateway();
     int performCallback(tmux_cb_index_t index, string &response);
     int fromBackend(int is_stderr, const char *data, int len);
     int parseCommand(const char *command, size_t len);

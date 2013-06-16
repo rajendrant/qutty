@@ -239,7 +239,7 @@ int TmuxGateway::cmd_hdlr_window_renamed(const char *command, int len)
         goto cu0;
     }
     iresp>>wndtitle;
-    _mapPanes[paneid]->termWnd()->setSessionTitle(QString::fromAscii(wndtitle.c_str()));
+    _mapPanes[paneid]->termWnd()->setSessionTitle(QString::fromLatin1(wndtitle.c_str()));
     return 0;
 cu0:
     qDebug("TMUX malformed command %s %.*s", fail_reason, len, command);
