@@ -8,6 +8,7 @@ extern "C" {
 #include "putty.h"
 #include "ssh.h"
 }
+#include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include <QMessageBox>
 #include <QtConfig.h>

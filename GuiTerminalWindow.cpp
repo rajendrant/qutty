@@ -14,9 +14,11 @@
 extern "C" {
 #include "putty.h"
 }
+#include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include "GuiSplitter.h"
 #include "GuiMenu.h"
+#include "GuiTabWidget.h"
 
 GuiTerminalWindow::GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow) :
     QAbstractScrollArea(parent),
@@ -889,17 +891,21 @@ void GuiTerminalWindow::reqCloseTerminal(bool userConfirm)
     this->closeTerminal();
 }
 
-void GuiTerminalWindow::on_sessionTitleChange()
+void GuiTerminalWindow::on_sessionTitleChange(bool force)
 {
     int tabind = mainWindow->getTerminalTabInd(this);
-    temp_title = "";
-    temp_title += QString::number(tabind + 1) + ". ";
+    QString title = "";
+    title += QString::number(tabind + 1) + ". ";
     if (!custom_title.isEmpty() && !runtime_title.isEmpty())
-        temp_title += custom_title + " - " +runtime_title;
+        title += custom_title + " - " +runtime_title;
     else if (!custom_title.isEmpty())
-        temp_title += custom_title;
+        title += custom_title;
     else if (!runtime_title.isEmpty())
-        temp_title += runtime_title;
-    if (!parentSplit)
+        title += runtime_title;
+    if (title == temp_title && !force)
+        return;
+    temp_title = title;
+    if (!parentSplit ||
+        mainWindow->tabArea->widget(tabind)->focusWidget()==this)
         mainWindow->tabArea->setTabText(tabind, temp_title);
 }

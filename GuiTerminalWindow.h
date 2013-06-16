@@ -12,9 +12,8 @@
 #include <QFontMetrics>
 #include <QtNetwork/QTcpSocket>
 #include <QAbstractScrollArea>
-#include "QtCommon.h"
-#include "GuiMainWindow.h"
 #include <QElapsedTimer>
+#include "QtCommon.h"
 #include "tmux/tmux.h"
 #include "tmux/TmuxGateway.h"
 #include "tmux/TmuxWindowPane.h"
@@ -29,6 +28,7 @@ extern "C" {
 #define NEXTCOLOURS 240
 #define NALLCOLOURS (NCFGCOLOURS + NEXTCOLOURS)
 
+class GuiMainWindow;
 
 class GuiTerminalWindow : public QAbstractScrollArea, public GuiBase
 {
@@ -149,8 +149,10 @@ public:
     QString getSessionTitle() { return runtime_title; }
     QString getCustomSessionTitle() { return custom_title; }
     void setSessionTitle(QString t) {
-        runtime_title = t;
-        on_sessionTitleChange();
+        if (runtime_title != t) {
+            runtime_title = t;
+            on_sessionTitleChange();
+        }
     }
     void setCustomSessionTitle(QString t) {
         custom_title = t;
@@ -175,7 +177,7 @@ public slots:
     void detachTmuxControllerMode();
     void sockError(QAbstractSocket::SocketError socketError);
     void sockDisconnected();
-    void on_sessionTitleChange();
+    void on_sessionTitleChange(bool force=false);
 
 };
 

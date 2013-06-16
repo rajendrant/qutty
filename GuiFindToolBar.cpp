@@ -4,6 +4,8 @@
  * See COPYING for distribution information.
  */
 
+#include "GuiMainWindow.h"
+#include "GuiTerminalWindow.h"
 #include "GuiFindToolBar.h"
 
 GuiFindToolBar::GuiFindToolBar(GuiMainWindow *p)

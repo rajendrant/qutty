@@ -7,12 +7,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <map>
 #include <QtGui/QMainWindow>
 #include <QMdiArea>
 #include <QMenu>
 #include <QToolButton>
 #include <QShortcut>
-#include "GuiMainWindow.h"
 #include "QtCommon.h"
 #include "GuiSettingsWindow.h"
 #include "GuiMenu.h"
@@ -21,6 +21,7 @@
 
 class GuiSettingsWindow;
 class GuiFindToolBar;
+class GuiTabWidget;
 
 class GuiMainWindow : public QMainWindow
 {
@@ -44,12 +45,16 @@ public:
     GuiTabNavigation *tabNavigate;
     GuiPaneNavigation *paneNavigate;
 
-    QTabWidget *tabArea;
+    GuiTabWidget *tabArea;
 
 private:
     GuiSettingsWindow *settingsWindow;
     QList<GuiTerminalWindow *> terminalList;
     QToolButton newTabToolButton;   // shown in top right corner of tabbar
+
+    // containers for fast-retrieval
+    std::map<const QWidget*,int> tabIndexMap;
+    std::vector<std::pair<GuiSplitter*,GuiTerminalWindow*> > widgetAtIndex;
 
 public:
     GuiMainWindow(QWidget *parent = 0);
@@ -69,7 +74,7 @@ public:
     void tabRemove(int tabind);
     int setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType split, int tabind = -1);
 
-    int getTerminalTabInd(GuiTerminalWindow *term);
+    int getTerminalTabInd(const QWidget *term);
 
     const QList<GuiTerminalWindow*> *getTerminalList() { return &terminalList; }
 private:
@@ -93,7 +98,7 @@ public slots:
     void closeTerminal(GuiTerminalWindow *termWnd);
     void tabCloseRequested (int index);
     void currentChanged(int index);
-    void focusChanged ( QWidget * old, QWidget * now );
+    void on_tabLayoutChanged();
 
     void tabNext();
     void tabPrev();

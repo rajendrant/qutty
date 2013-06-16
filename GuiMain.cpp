@@ -22,7 +22,6 @@ int main(int argc, char *argv[])
     qutty_config.restoreConfig();
 
     mainWindow->on_openNewTab();
-    QObject::connect(&a, SIGNAL(focusChanged(QWidget *, QWidget *)), mainWindow, SLOT(focusChanged(QWidget*,QWidget*)));
     mainWindow->show();
 
     return a.exec();

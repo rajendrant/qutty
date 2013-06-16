@@ -13,6 +13,7 @@
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include "GuiSplitter.h"
+#include "GuiTabWidget.h"
 
 qutty_menu_actions_t qutty_menu_actions[MENU_MAX_ACTION] = {
     //{ "New Session",            "Ctrl+Shift+T",  SLOT( on_openNewTab() ),                        ""},

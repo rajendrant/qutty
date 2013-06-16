@@ -5,7 +5,9 @@
  */
 
 #include "GuiSplitter.h"
+#include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
+#include "GuiTabWidget.h"
 
 GuiSplitter::GuiSplitter(Qt::Orientation split, GuiSplitter *parentsplit, int ind) :
     QSplitter(split, parentsplit),
@@ -36,11 +38,9 @@ void GuiTerminalWindow::createSplitLayout(GuiBase::SplitType split, GuiTerminalW
                                 ? Qt::Vertical : Qt::Horizontal;
 
     if (!parentSplit) {
-        int tabind = mainWindow->tabArea->indexOf(this);
+        int tabind = mainWindow->getTerminalTabInd(this);
         int initsize = orient==Qt::Vertical ? viewport()->width() :
                                               viewport()->height();
-        assert(tabind != -1);
-
         mainWindow->tabRemove(tabind);
         GuiSplitter *splitter = new GuiSplitter(orient);
         if (split==GuiBase::TYPE_HORIZONTAL || split==GuiBase::TYPE_VERTICAL) {
@@ -135,7 +135,7 @@ void GuiSplitter::removeSplitLayout(GuiTerminalWindow *term)
         parentSplit = NULL;
     } else {
         int currtab = term->getMainWindow()->tabArea->currentIndex();
-        int tabind = term->getMainWindow()->tabArea->indexOf(this);
+        int tabind = term->getMainWindow()->getTerminalTabInd(this);
         term->getMainWindow()->tabRemove(tabind);
         term->getMainWindow()->tabInsert(tabind, b->getWidget(), tr(APPNAME));
         if (currtab == tabind)

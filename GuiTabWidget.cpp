@@ -7,6 +7,7 @@
 #include <QTabBar>
 #include <QMenu>
 #include "GuiTabWidget.h"
+#include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include "QtConfig.h"
 #include "GuiSettingsWindow.h"
@@ -15,9 +16,10 @@
 
 GuiTabWidget::GuiTabWidget(GuiMainWindow * parent) :
     QTabWidget(parent),
-    mainWindow(parent)
+    mainWindow(parent),
+    guiTabBar(new GuiTabBar(this, parent))
 {
-    this->setTabBar(new GuiTabBar(this, parent));
+    this->setTabBar(guiTabBar);
     this->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, SIGNAL(customContextMenuRequested(QPoint)),
             SLOT(showContextMenu(QPoint)));

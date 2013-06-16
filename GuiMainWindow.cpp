@@ -15,6 +15,7 @@
 #include "GuiTerminalWindow.h"
 #include "GuiSettingsWindow.h"
 #include "GuiTabWidget.h"
+#include "GuiTabBar.h"
 #include "GuiSplitter.h"
 //#include "windows.h"
 extern "C" {
@@ -26,6 +27,7 @@ int initConfigDefaults(Config *cfg);
 
 GuiMainWindow::GuiMainWindow(QWidget *parent)
     : QMainWindow(parent),
+      tabArea(new GuiTabWidget(this)),
       settingsWindow(NULL),
       newTabToolButton(),
       menuCookieTermWnd(NULL),
@@ -40,7 +42,6 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
 
     setWindowTitle(APPNAME);
 
-    tabArea = new GuiTabWidget(this);
     tabArea->setTabsClosable(true);
     tabArea->setMovable(true);
 
@@ -49,6 +50,9 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
 
     connect(tabArea, SIGNAL(tabCloseRequested(int)), SLOT(tabCloseRequested(int)));
     connect(tabArea, SIGNAL(currentChanged(int)), SLOT(currentChanged(int)));
+    connect(tabArea->getGuiTabBar(), SIGNAL(sig_tabInserted()), SLOT(on_tabLayoutChanged()));
+    connect(tabArea->getGuiTabBar(), SIGNAL(sig_tabRemoved()), SLOT(on_tabLayoutChanged()));
+    connect(tabArea->getGuiTabBar(), SIGNAL(tabMoved(int,int)), SLOT(on_tabLayoutChanged()));
 
     initializeMenuSystem();
     inittializeDragDropWidget();
@@ -109,6 +113,7 @@ void GuiMainWindow::closeTerminal(GuiTerminalWindow *termWnd)
     terminalList.removeAll(termWnd);
     if (ind != -1)
         tabRemove(ind);
+    on_tabLayoutChanged();
 }
 
 void GuiMainWindow::closeEvent ( QCloseEvent * event )
@@ -135,19 +140,17 @@ void GuiMainWindow::closeEvent ( QCloseEvent * event )
 void GuiMainWindow::tabCloseRequested (int index)
 {
     // user cloing the tab
-    GuiBase *base = dynamic_cast<GuiBase*>(tabArea->widget(index));
-    GuiTerminalWindow *termWnd = dynamic_cast<GuiTerminalWindow*>(base);
-    assert(base);
-    if (termWnd) {
+    auto it = widgetAtIndex[index];
+    if (it.second) {
         // single terminal to close
-        termWnd->reqCloseTerminal(false);
-    } else if (base) {
+        it.second->reqCloseTerminal(false);
+    } else if (it.first) {
         // multiple terminals to close
         if (QMessageBox::No == QMessageBox::question(this, "Exit Confirmation?",
                                 "Are you sure you want to close all session panes?",
                                 QMessageBox::Yes|QMessageBox::No))
             return;
-        base->reqCloseTerminal(true);
+        it.first->reqCloseTerminal(true);
     }
 }
 
@@ -265,7 +268,21 @@ bool GuiMainWindow::winEvent ( MSG * msg, long * result )
 
 void GuiMainWindow::currentChanged(int index)
 {
-    if (index!=-1 && tabArea->widget(index)) {
+    if (index < 0)
+        return;
+    if (index < widgetAtIndex.size()) {
+        auto it = widgetAtIndex[index];
+        if (it.first) {
+            if (it.first->focusWidget())
+                it.first->focusWidget()->setFocus();
+        } else if (it.second)
+            it.second->setFocus();
+        return;
+    }
+
+    // slow_mode: if tab is inserted just now, widgetAtIndex may not
+    // be up-to-date.
+    if (tabArea->widget(index)) {
         QWidget *currWgt = tabArea->widget(index);
         if (qobject_cast<GuiSplitter*>(currWgt)) {
             if (currWgt->focusWidget())
@@ -273,11 +290,6 @@ void GuiMainWindow::currentChanged(int index)
         } else if (qobject_cast<GuiTerminalWindow*>(currWgt))
             currWgt->setFocus();
     }
-}
-
-void GuiMainWindow::focusChanged ( QWidget * old, QWidget * now )
-{
-    //qDebug()<<__FUNCTION__<<old<<now;
 }
 
 int initConfigDefaults(Config *cfg)
@@ -429,17 +441,10 @@ GuiTerminalWindow * GuiMainWindow::getCurrentTerminal()
 
 GuiTerminalWindow *GuiMainWindow::getCurrentTerminalInTab(int tabIndex)
 {
-    GuiTerminalWindow *termWindow;
-    QWidget *widget = tabArea->widget(tabIndex);
-    if (!widget)
-        return NULL;
-    if ((termWindow = dynamic_cast<GuiTerminalWindow*>(widget)))
-        return termWindow;
-
-    termWindow = dynamic_cast<GuiTerminalWindow*>(widget->focusWidget());
-    if (!termWindow || terminalList.indexOf(termWindow) == -1)
-        return NULL;
-    return termWindow;
+    auto it = widgetAtIndex[tabIndex];
+    if (it.second || !it.first)
+        return it.second;
+    return qobject_cast<GuiTerminalWindow*>(it.first->focusWidget());
 }
 
 
@@ -503,6 +508,7 @@ int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType sp
                          newTerm->cfg.height*newTerm->getFontHeight() + height() - newTerm->viewport()->height());
             term_size(newTerm->term, newTerm->cfg.height, newTerm->cfg.width, newTerm->cfg.savelines);
         }
+        on_tabLayoutChanged();
         break;
     case GuiBase::TYPE_HORIZONTAL:
     case GuiBase::TYPE_VERTICAL:
@@ -514,6 +520,7 @@ int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType sp
         currTerm->createSplitLayout(split, newTerm);
         newTerm->setFocus();
         terminalList.append(newTerm);
+        on_tabLayoutChanged();
         break;
     }
     default:
@@ -526,15 +533,41 @@ err_exit:
     return -1;
 }
 
-int GuiMainWindow::getTerminalTabInd(GuiTerminalWindow *term)
+int GuiMainWindow::getTerminalTabInd(const QWidget *term)
 {
-    GuiSplitter *split = term->parentSplit;
-    int tabid;
-    if (split) {
-        while(split->parentSplit) split = split->parentSplit;
-        tabid = this->tabArea->indexOf(split);
-    } else
-        tabid = this->tabArea->indexOf(term);
-    assert(tabid != -1);
-    return tabid;
+    auto it = tabIndexMap.find(term);
+    if (it != tabIndexMap.end())
+        return it->second;
+    assert(0);
+    return -1;
+}
+
+/*
+ * Called whenever tab/pane layout changes
+ */
+void GuiMainWindow::on_tabLayoutChanged()
+{
+    QWidget *w;
+    GuiTerminalWindow *term;
+    GuiSplitter *split;
+
+    tabIndexMap.clear();
+    widgetAtIndex.resize(tabArea->count());
+    for (int i=0; i < tabArea->count(); i++) {
+        split = NULL;
+        term = NULL;
+        w = tabArea->widget(i);
+        tabIndexMap[w] = i;
+        if ((term=qobject_cast<GuiTerminalWindow*>(w))) {
+            term->on_sessionTitleChange(true);
+        } else if ((split=qobject_cast<GuiSplitter*>(w))) {
+            vector<GuiTerminalWindow*> list;
+            split->populateAllTerminals(&list);
+            for(auto it=list.begin(); it-list.end(); ++it) {
+                tabIndexMap[*it] = i;
+                (*it)->on_sessionTitleChange(true);
+            }
+        }
+        widgetAtIndex[i] = std::pair<GuiSplitter*,GuiTerminalWindow*>(split, term);
+    }
 }

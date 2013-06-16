@@ -6,8 +6,8 @@
 
 #ifndef GUITABBAR_H
 #define GUITABBAR_H
-#include "GuiTabWidget.h"
-#include "GuiTerminalWindow.h"
+
+#include <QTabBar>
 
 class GuiTabWidget;
 class GuiMainWindow;
@@ -26,6 +26,14 @@ public:
     void dragLeaveEvent (QDragLeaveEvent *e);
     void dragMoveEvent (QDragMoveEvent *e);
     void dropEvent (QDropEvent *e);
+
+protected:
+    void tabInserted(int index) { emit sig_tabInserted(); }
+    void tabRemoved(int index) { emit sig_tabRemoved(); }
+
+signals:
+    void sig_tabInserted();
+    void sig_tabRemoved();
 };
 
 #endif // GUITABBAR_H

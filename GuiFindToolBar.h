@@ -9,8 +9,8 @@
 
 #include <QToolBar>
 #include <QLineEdit>
-#include "GuiMainWindow.h"
-#include "GuiTerminalWindow.h"
+
+class GuiMainWindow;
 
 class GuiFindToolBar : public QToolBar
 {

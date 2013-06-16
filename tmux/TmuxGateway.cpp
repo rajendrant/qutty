@@ -3,6 +3,9 @@
 #include <sstream>
 #include "tmux/TmuxWindowPane.h"
 #include "tmux/TmuxGateway.h"
+#include "GuiMainWindow.h"
+#include "GuiTabWidget.h"
+
 using namespace std;
 
 TmuxGateway::TmuxGateway(GuiTerminalWindow *termWindow)

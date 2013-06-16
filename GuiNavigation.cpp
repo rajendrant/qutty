@@ -7,8 +7,10 @@
 #include <QGraphicsColorizeEffect>
 #include "GuiNavigation.h"
 #include "GuiBase.h"
+#include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include "GuiSplitter.h"
+#include "GuiTabWidget.h"
 
 GuiTabNavigation::GuiTabNavigation(GuiMainWindow *p)
     : QListWidget(p),
