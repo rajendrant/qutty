@@ -31,7 +31,7 @@ typedef struct Socket_tag *Actual_Socket;
 struct Socket_tag {
     const struct socket_function_table *fn;
     /* the above variable absolutely *must* be the first in this structure */
-    char *error;
+    const char *error;
     //SOCKET s;
     Plug plug;
     void *private_ptr;

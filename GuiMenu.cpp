@@ -314,9 +314,9 @@ void GuiMainWindow::contextMenuTermTopDragPaneTriggered()
 }
 
 GuiToolbarTerminalTop::GuiToolbarTerminalTop(GuiMainWindow *p)
-      : menuVisible(false),
-        initSizes(false),
-        QToolBar(p)
+    : QToolBar(p),
+      menuVisible(false),
+      initSizes(false)
 {
 }
 
@@ -354,8 +354,8 @@ void GuiToolbarTerminalTop::hideMe()
 
 void GuiToolbarTerminalTop::processMouseMoveTerminalTop(GuiTerminalWindow *term, QMouseEvent *e)
 {
-    if ( !term->parentSplit || (e->y() > totalHeight ||
-          (e->x() < term->viewport()->width() - totalWidth)) &&
+    if ( (!term->parentSplit || (e->y() > totalHeight ||
+          (e->x() < term->viewport()->width() - totalWidth))) &&
          !menuVisible)
         return;     // fast return
 

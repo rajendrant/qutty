@@ -65,7 +65,7 @@ void GuiTabNavigation::navigateToTabPrev()
         setCurrentRow(currentRow() - 1);
 }
 
-void GuiTabNavigation::focusOutEvent ( QFocusEvent * e )
+void GuiTabNavigation::focusOutEvent ( QFocusEvent * )
 {
     mainWindow->tabNavigate = NULL;
     mainWindow->currentChanged(mainWindow->tabArea->currentIndex());
@@ -162,7 +162,7 @@ void GuiPaneNavigation::navigateToLRUPane()
     it->second->viewport()->setGraphicsEffect(new QGraphicsColorizeEffect);
 }
 
-void GuiPaneNavigation::focusOutEvent(QFocusEvent *e)
+void GuiPaneNavigation::focusOutEvent(QFocusEvent *)
 {
     mainWindow->paneNavigate = NULL;
     mainWindow->currentChanged(mainWindow->tabArea->currentIndex());

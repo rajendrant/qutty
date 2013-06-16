@@ -28,8 +28,8 @@ public:
     void dropEvent (QDropEvent *e);
 
 protected:
-    void tabInserted(int index) { emit sig_tabInserted(); }
-    void tabRemoved(int index) { emit sig_tabRemoved(); }
+    void tabInserted(int index) { (void)index; emit sig_tabInserted(); }
+    void tabRemoved(int index) { (void)index; emit sig_tabRemoved(); }
 
 signals:
     void sig_tabInserted();

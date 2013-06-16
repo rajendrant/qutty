@@ -470,7 +470,7 @@ void GuiSettingsWindow::on_b_delete_sess_clicked()
     loadSessionNames();
 }
 
-void GuiSettingsWindow::on_l_saved_sess_doubleClicked(const QModelIndex &index)
+void GuiSettingsWindow::on_l_saved_sess_doubleClicked(const QModelIndex &)
 {
     if (isChangeSettingsMode)
         return;

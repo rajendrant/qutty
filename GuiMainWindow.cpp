@@ -27,16 +27,16 @@ int initConfigDefaults(Config *cfg);
 
 GuiMainWindow::GuiMainWindow(QWidget *parent)
     : QMainWindow(parent),
-      tabArea(new GuiTabWidget(this)),
-      settingsWindow(NULL),
-      newTabToolButton(),
       menuCookieTermWnd(NULL),
-      dragDropSite(),
       toolBarTerminalTop(this),
+      dragDropSite(),
       findToolBar(NULL),
+      mru_count_last(0),
       tabNavigate(NULL),
       paneNavigate(NULL),
-      mru_count_last(0)
+      tabArea(new GuiTabWidget(this)),
+      settingsWindow(NULL),
+      newTabToolButton()
 {
     memset(menuCommonActions, 0, sizeof(menuCommonActions));
 
@@ -125,9 +125,8 @@ void GuiMainWindow::closeEvent ( QCloseEvent * event )
                                   QMessageBox::Yes|QMessageBox::No))
     {
         // at least close the open sessions
-        GuiTerminalWindow *t;
         QList<GuiTerminalWindow*> child(terminalList);
-        for (QList<GuiTerminalWindow*>::const_iterator it = child.begin();
+        for (auto it = child.begin();
              it != child.end(); it++) {
             (*it)->reqCloseTerminal(true);
         }
@@ -209,13 +208,13 @@ void GuiMainWindow::on_changeSettingsTabComplete(Config cfg, GuiTerminalWindow *
 extern "C" Socket get_ssh_socket(void *handle);
 extern "C" Socket get_telnet_socket(void *handle);
 
-bool GuiMainWindow::winEvent ( MSG * msg, long * result )
+bool GuiMainWindow::winEvent ( MSG * /*msg*/, long * /*result*/ )
 {
+    /*
     int ret;
     HDC hdc;
     //RECT r1, r2;
 
-    /*
     switch(msg->message) {
     case WM_NCCALCSIZE:
         qDebug()<<"got WM_NCCALCSIZE "<<hex<<msg->wParam<<" "<<msg->lParam<<endl;
@@ -250,7 +249,7 @@ bool GuiMainWindow::winEvent ( MSG * msg, long * result )
         if ((int)hdc != 0)
         {
             //ret = DefWindowProc((HWND) this->winId(), msg->message, msg->wParam, msg->lParam);
-            /*TextOut(hdc, 0, 0, L"Hello, Windows!", 15);
+            / *TextOut(hdc, 0, 0, L"Hello, Windows!", 15);
             RECT rect;
             rect.top = 0; rect.left=0; rect.bottom=10; rect.right=20;
             DrawEdge(hdc, &rect, EDGE_RAISED, BF_RECT | BF_ADJUST);
@@ -270,7 +269,7 @@ void GuiMainWindow::currentChanged(int index)
 {
     if (index < 0)
         return;
-    if (index < widgetAtIndex.size()) {
+    if (index < (signed)widgetAtIndex.size()) {
         auto it = widgetAtIndex[index];
         if (it.first) {
             if (it.first->focusWidget())

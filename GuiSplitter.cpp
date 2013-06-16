@@ -156,7 +156,6 @@ GuiTerminalWindow* GuiSplitter::navigatePane(Qt::Key key, GuiTerminalWindow *tof
 
     GuiTerminalWindow *term = NULL;
     QWidget *w;
-    GuiBase *base;
     GuiSplitter *split;
     int ind = indexOf(tofind);
     int nextind;

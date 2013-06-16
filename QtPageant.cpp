@@ -17,8 +17,8 @@ int agent_exists(void)
     return FALSE;
 }
 
-int agent_query(void *in, int inlen, void **out, int *outlen,
-        void (*callback)(void *, void *, int), void *callback_ctx)
+int agent_query(void * /*in*/, int /*inlen*/, void ** /*out*/, int * /*outlen*/,
+        void (* /*callback*/)(void *, void *, int), void * /*callback_ctx*/)
 {
     return 0;
 }

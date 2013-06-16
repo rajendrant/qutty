@@ -24,9 +24,9 @@ GuiTerminalWindow::GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow)
     QAbstractScrollArea(parent),
     clipboard_contents(NULL),
     clipboard_length(0),
-    mru_count(0),
+    runtime_title(""),
     custom_title(""),
-    runtime_title("")
+    mru_count(0)
 {
     this->mainWindow = mainWindow;
 
@@ -497,7 +497,7 @@ void GuiTerminalWindow::drawTerm()
     this->viewport()->update(termrgn);
 }
 
-void GuiTerminalWindow::drawText(int row, int col, wchar_t *ch, int len, unsigned long attr, int lattr)
+void GuiTerminalWindow::drawText(int row, int col, wchar_t * /*ch*/, int len, unsigned long attr, int /*lattr*/)
 {
     if (attr & TATTR_COMBINING) {
         // TODO NOT_YET_IMPLEMENTED
@@ -726,14 +726,14 @@ void GuiTerminalWindow::requestPaste()
     term_do_paste(term);
 }
 
-void GuiTerminalWindow::writeClip(wchar_t * data, int *attr, int len, int must_deselect)
+void GuiTerminalWindow::writeClip(wchar_t * data, int * /*attr*/, int len, int /*must_deselect*/)
 {
     data[len] = 0;
     QString s = QString::fromWCharArray(data);
     QApplication::clipboard()->setText(s);
 }
 
-void 	GuiTerminalWindow::resizeEvent ( QResizeEvent * e )
+void 	GuiTerminalWindow::resizeEvent ( QResizeEvent * )
 {
     if (viewport()->height() == 0 || viewport()->width() == 0) {
         // skip the spurious resizes during split-pane create/delete/drag-drop
@@ -775,7 +775,7 @@ bool GuiTerminalWindow::event(QEvent *event)
     return QAbstractScrollArea::event(event);
 }
 
-void GuiTerminalWindow::focusInEvent ( QFocusEvent * e )
+void GuiTerminalWindow::focusInEvent ( QFocusEvent * )
 {
     this->mru_count = ++mainWindow->mru_count_last;
     if (!term) return;
@@ -786,7 +786,7 @@ void GuiTerminalWindow::focusInEvent ( QFocusEvent * e )
                                         temp_title);
 }
 
-void GuiTerminalWindow::focusOutEvent ( QFocusEvent * e )
+void GuiTerminalWindow::focusOutEvent ( QFocusEvent * )
 {
     if (!term) return;
     term_set_focus(term, FALSE);
@@ -826,7 +826,7 @@ void GuiTerminalWindow::vertScrollBarMoved(int value)
     term_scroll(term, 1, value);
 }
 
-int GuiTerminalWindow::initTmuxControllerMode(char *tmux_version)
+int GuiTerminalWindow::initTmuxControllerMode(char * /*tmux_version*/)
 {
     // TODO version check
     assert(_tmuxMode == TMUX_MODE_NONE);

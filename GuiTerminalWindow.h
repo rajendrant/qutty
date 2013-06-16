@@ -33,6 +33,7 @@ class GuiMainWindow;
 class GuiTerminalWindow : public QAbstractScrollArea, public GuiBase
 {
     Q_OBJECT
+    Q_INTERFACES(GuiBase)
 
 private:
     enum tmux_mode_t _tmuxMode;

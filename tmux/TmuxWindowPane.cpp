@@ -101,7 +101,7 @@ int TmuxWindowPane::resp_hdlr_dump_term_state(string &response)
     _termWnd->term->marg_t = old_state->scroll_region_upper;
     _termWnd->term->marg_b = old_state->scroll_region_lower;
     return 0;
-cu0:
+//cu0:
     qDebug()<<"Error in dump_term_state";
     delete old_state;
     old_state = NULL;

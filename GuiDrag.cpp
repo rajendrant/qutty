@@ -21,8 +21,8 @@ GuiDragDropSite::GuiDragDropSite(QWidget *parent)
     : QWidget(parent),
       layout(this),
       drop_loc(GuiDragDropSite::DRAG_DROP_NONE),
-      drop_mode(GuiBase::TYPE_NONE),
-      tabind(-1)
+      tabind(-1),
+      drop_mode(GuiBase::TYPE_NONE)
 {
     setAttribute(Qt::WA_TransparentForMouseEvents);
     btn[GuiBase::TYPE_UP].setText(QString::fromUtf8("\xe2\x96\xb2"));
@@ -78,6 +78,8 @@ void GuiDragDropSite::paintEvent(QPaintEvent *e)
     case GuiBase::TYPE_DOWN:
         painter.fillRect(0, height()/2, width(), height(), Qt::blue);
         break;
+    default:
+        ;
     }
 }
 
@@ -154,7 +156,7 @@ void GuiDragDropSite::clearDropMode()
     this->hide();
 }
 
-void GuiTerminalWindow::dragStartEvent (QMouseEvent *e)
+void GuiTerminalWindow::dragStartEvent (QMouseEvent *)
 {
     QPixmap pixmap = QPixmap(":/images/drag.png");
 
@@ -187,7 +189,7 @@ void GuiTerminalWindow::dragEnterEvent (QDragEnterEvent *e)
 }
 
 
-void GuiTerminalWindow::dragLeaveEvent (QDragLeaveEvent *e)
+void GuiTerminalWindow::dragLeaveEvent (QDragLeaveEvent *)
 {
     mainWindow->dragDropSite.clearDropMode();
 }
@@ -255,7 +257,7 @@ void GuiTabBar::dragEnterEvent (QDragEnterEvent *e)
 }
 
 
-void GuiTabBar::dragLeaveEvent (QDragLeaveEvent *e)
+void GuiTabBar::dragLeaveEvent (QDragLeaveEvent *)
 {
     mainWindow->dragDropSite.clearDropMode();
 }
@@ -288,7 +290,7 @@ void GuiTabBar::dropEvent (QDropEvent *e)
     int tabind = mainWindow->dragDropSite.get_tabind();
 
     if ( mainWindow->dragDropSite.get_drop_loc() != GuiDragDropSite::DRAG_DROP_ON_TABBAR ||
-         split != GuiBase::TYPE_LEFT && split != GuiBase::TYPE_RIGHT ||
+         (split != GuiBase::TYPE_LEFT && split != GuiBase::TYPE_RIGHT) ||
          tabind == -1)
         goto cu0;
 

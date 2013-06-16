@@ -138,9 +138,15 @@ RC_FILE = qutty.rc
 RESOURCES += \
     QuTTY.qrc
 
+
 win32-msvc*:contains(QMAKE_TARGET.arch, x86_64) : {
     LIBS += user32.lib advapi32.lib
 }
+
+win32-msvc* {
+    QMAKE_CFLAGS    += -D_CRT_SECURE_NO_WARNINGS
+    QMAKE_CXXFLAGS  += -D_CRT_SECURE_NO_WARNINGS
+}
 win32-g++ {
-    QMAKE_CXXFLAGS += -std=gnu++0x
+    QMAKE_CXXFLAGS  += -std=gnu++0x
 }

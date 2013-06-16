@@ -14,6 +14,7 @@ class GuiTerminalWindow;
 class GuiSplitter : public QSplitter, public GuiBase
 {
     Q_OBJECT
+    Q_INTERFACES(GuiBase)
 
 public:
     vector<GuiBase*> child;

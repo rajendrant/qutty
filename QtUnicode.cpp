@@ -36,7 +36,7 @@ void *get_text_codec (const char *line_codepage)
 
 void init_ucs(Config *cfg, struct unicode_data *ucsdata)
 {
-    int i, ret = 0;
+    int i;
 
     /*
      * In the platform-independent parts of the code, font_codepage
@@ -112,7 +112,6 @@ void init_ucs(Config *cfg, struct unicode_data *ucsdata)
      */
     for (i = 0; i < 256; i++) {
     char c[1], *p;
-    wchar_t wc[1];
     int len;
     c[0] = (char)i;
     p = c;

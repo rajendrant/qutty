@@ -447,7 +447,7 @@ struct tm ltime(void)
     return *timeinfo;
 }
 
-void set_busy_status(void *frontend, int status)
+void set_busy_status(void * /*frontend*/, int /*status*/)
 {
     // TODO not implemented
     //busy_status = status;

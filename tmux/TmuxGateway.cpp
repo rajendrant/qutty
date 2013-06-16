@@ -391,7 +391,7 @@ cu0:
     return -1;
 }
 
-int TmuxGateway::createNewWindow(int id, const char *name, int width, int height, string layout)
+int TmuxGateway::createNewWindow(int id, const char *name, int /*width*/, int /*height*/, string layout)
 {
     if (!_mapLayout[id].initLayout(layout.substr(5)))
         goto cu0;
@@ -433,7 +433,7 @@ int TmuxGateway::createNewWindowPane(int id, const char *name, TmuxLayout &layou
         break;
       case TmuxLayout::TMUX_LAYOUT_TYPE_HORIZONTAL:
       case TmuxLayout::TMUX_LAYOUT_TYPE_VERTICAL:
-        for (int i=0; i<layout.child.size(); i++) {
+        for (int i=0; i<(signed)layout.child.size(); i++) {
             createNewWindowPane(id, name, layout.child[i]);
         }
         break;

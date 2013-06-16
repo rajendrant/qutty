@@ -15,31 +15,27 @@ typedef struct __tmux_window_pane_t {
 } tmux_window_pane_t;
 }
 
-extern "C" void tmux_log(Plug plug, int type, SockAddr addr, int port,
-               const char *error_msg, int error_code)
+extern "C" void tmux_log(Plug /*plug*/, int /*type*/, SockAddr /*addr*/, int /*port*/,
+               const char * /*error_msg*/, int /*error_code*/)
 {
-    tmux_window_pane_t *handle = (tmux_window_pane_t*)plug;
     qDebug()<<__FUNCTION__;
 }
 
-extern "C" int tmux_closing(Plug plug, const char *error_msg, int error_code,
-              int calling_back)
+extern "C" int tmux_closing(Plug /*plug*/, const char * /*error_msg*/, int /*error_code*/,
+              int /*calling_back*/)
 {
-    tmux_window_pane_t *handle = (tmux_window_pane_t*)plug;
     qDebug()<<__FUNCTION__;
     return 0;
 }
 
-extern "C" int tmux_receive(Plug plug, int urgent, char *data, int len)
+extern "C" int tmux_receive(Plug /*plug*/, int /*urgent*/, char * /*data*/, int /*len*/)
 {
-    tmux_window_pane_t *handle = (tmux_window_pane_t*)plug;
     qDebug()<<__FUNCTION__;
     return 1;
 }
 
-extern "C" void tmux_sent(Plug plug, int bufsize)
+extern "C" void tmux_sent(Plug /*plug*/, int /*bufsize*/)
 {
-    tmux_window_pane_t *handle = (tmux_window_pane_t*)plug;
     qDebug()<<__FUNCTION__;
 }
 
@@ -49,9 +45,9 @@ extern "C" void tmux_sent(Plug plug, int bufsize)
  * Returns an error message, or NULL on success.
  */
 extern "C" const char *tmux_client_init(void *frontend_handle, void **backend_handle,
-                   Config *cfg,
-                   char *host, int port, char **realhost,
-                   int nodelay, int keepalive)
+                   Config * /*cfg*/,
+                   char * /*host*/, int port, char ** /*realhost*/,
+                   int /*nodelay*/, int /*keepalive*/)
 {
     static const struct plug_function_table fn_table = {
         tmux_log,
@@ -78,7 +74,7 @@ extern "C" void tmux_free(void *plug)
     delete handle;
 }
 
-extern "C" void tmux_reconfig(void *handle, Config *cfg)
+extern "C" void tmux_reconfig(void * /*handle*/, Config * /*cfg*/)
 {
 }
 
@@ -112,22 +108,20 @@ extern "C" int tmux_send(void *handle, char *buf, int len)
 /*
  * Called to query the current socket sendability status.
  */
-extern "C" int tmux_sendbuffer(void *handle)
+extern "C" int tmux_sendbuffer(void * /*handle*/)
 {
     qDebug()<<__FUNCTION__;
     return 1;
 }
 
-extern "C" void tmux_unthrottle(void *handle, int backlog)
+extern "C" void tmux_unthrottle(void * /*handle*/, int /*backlog*/)
 {
-    tmux_window_pane_t *tmuxpane = (tmux_window_pane_t*)handle;
     qDebug()<<__FUNCTION__;
     //sk_set_frozen(telnet->s, backlog > TELNET_MAX_BACKLOG);
 }
 
-extern "C" int tmux_ldisc(void *handle, int option)
+extern "C" int tmux_ldisc(void * /*handle*/, int option)
 {
-    tmux_window_pane_t *tmuxpane = (tmux_window_pane_t*)handle;
     if (option == LD_ECHO)
         return FALSE;
     if (option == LD_EDIT)
@@ -135,18 +129,17 @@ extern "C" int tmux_ldisc(void *handle, int option)
     return FALSE;
 }
 
-extern "C" void tmux_provide_ldisc(void *handle, void *ldisc)
+extern "C" void tmux_provide_ldisc(void * /*handle*/, void * /*ldisc*/)
 {
-    tmux_window_pane_t *tmuxpane = (tmux_window_pane_t*)handle;
     //telnet->ldisc = ldisc;
 }
 
-extern "C" void tmux_provide_logctx(void *handle, void *logctx)
+extern "C" void tmux_provide_logctx(void * /*handle*/, void * /*logctx*/)
 {
     /* This is a stub. */
 }
 
-extern "C" int tmux_cfg_info(void *handle)
+extern "C" int tmux_cfg_info(void * /*handle*/)
 {
     return 0;
 }

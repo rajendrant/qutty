@@ -21,7 +21,6 @@ cu0:
 
 bool TmuxLayout::parseLayout(istringstream &iresp)
 {
-    int no;
     iresp>>width;
     if (iresp.get()!='x') {
         goto cu0;
@@ -66,9 +65,9 @@ string TmuxLayout::dumpLayout()
       case TmuxLayout::TMUX_LAYOUT_TYPE_HORIZONTAL:
       case TmuxLayout::TMUX_LAYOUT_TYPE_VERTICAL:
         ret << (layoutType==TmuxLayout::TMUX_LAYOUT_TYPE_VERTICAL ? '{' : '[');
-        for (int i=0; i<child.size(); i++) {
+        for (int i=0; i<(signed)child.size(); i++) {
             ret<<child[i].dumpLayout();
-            if (i != child.size()-1)
+            if (i != (signed)child.size()-1)
                 ret<<",";
         }
         ret << (layoutType==TmuxLayout::TMUX_LAYOUT_TYPE_VERTICAL ? '}' : ']');

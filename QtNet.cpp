@@ -20,7 +20,7 @@ struct SockAddr_tag {
     const char *error;
 };
 
-static void sk_tcp_flush(Socket s) {}
+static void sk_tcp_flush(Socket /*s*/) {}
 
 /*
  * Each socket abstraction contains a `void *' private field in
@@ -73,9 +73,8 @@ static void sk_tcp_close (Socket sock)
     s->qtsock->disconnectFromHost();
 }
 
-static void sk_tcp_set_frozen (Socket sock, int is_frozen)
+static void sk_tcp_set_frozen (Socket /*sock*/, int /*is_frozen*/)
 {
-    Actual_Socket s = (Actual_Socket) sock;
     qDebug()<<"sk_tcp_set_frozen() NOT IMPL\n";
 }
 
@@ -227,7 +226,7 @@ SockAddr sk_namelookup(const char *host, char **canonicalname,
      return ret;
 }
 
-SockAddr sk_nonamelookup(const char *host)
+SockAddr sk_nonamelookup(const char * /*host*/)
 {
     // TODO not supported for now
     SockAddr ret = new SockAddr_tag;
@@ -328,8 +327,8 @@ cu0:
     return (Socket) ret;
 }
 
-Socket sk_newlistener(char *srcaddr, int port, Plug plug, int local_host_only,
-              int orig_address_family)
+Socket sk_newlistener(char * /*srcaddr*/, int /*port*/, Plug /*plug*/, int /*local_host_only*/,
+              int /*orig_address_family*/)
 {
     // TODO not implemented
     return NULL;
@@ -345,19 +344,19 @@ char *get_hostname(void)
     return hostname;
 }
 
-int net_service_lookup(char *service)
+int net_service_lookup(char * /*service*/)
 {
     // TODO not implemented
     return 0;
 }
 
-Socket sk_register(void *sock, Plug plug)
+Socket sk_register(void * /*sock*/, Plug /*plug*/)
 {
     // TODO not implemented
     return NULL;
 }
 
-SockAddr platform_get_x11_unix_address(const char *path, int displaynum)
+SockAddr platform_get_x11_unix_address(const char * /*path*/, int /*displaynum*/)
 {
     /*
     SockAddr ret = snew(struct SockAddr_tag);
@@ -369,10 +368,10 @@ SockAddr platform_get_x11_unix_address(const char *path, int displaynum)
     return NULL;
 }
 
-Socket platform_new_connection(SockAddr addr, char *hostname,
-                   int port, int privport,
-                   int oobinline, int nodelay, int keepalive,
-                   Plug plug, const Config *cfg)
+Socket platform_new_connection(SockAddr /*addr*/, char * /*hostname*/,
+                   int /*port*/, int /*privport*/,
+                   int /*oobinline*/, int /*nodelay*/, int /*keepalive*/,
+                   Plug /*plug*/, const Config * /*cfg*/)
 {
     // TODO not yet implemented
     return NULL;

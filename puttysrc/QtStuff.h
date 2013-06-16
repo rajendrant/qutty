@@ -9,6 +9,10 @@
 extern "C" {
 #endif
 
+#ifdef _MSC_VER
+#define stricmp _stricmp
+#define strnicmp _strnicmp
+#endif
 
 #define APPNAME "QuTTY"
 #define QUTTY_RELEASE_VERSION "0.5-beta"
@@ -29,7 +33,9 @@ typedef uint32_t uint32;
 
 typedef void* Context;
 
-void init_ucs(Config *, struct unicode_data *);
+typedef struct unicode_data unicode_data_t;
+
+void init_ucs(Config *, unicode_data_t *);
 
 /*
  * On Windows, copying to the clipboard terminates lines with CRLF.

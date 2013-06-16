@@ -18,7 +18,7 @@ extern "C" {
  * below the configured 'warn' threshold).
  */
 int askalg(void *frontend, const char *algtype, const char *algname,
-       void (*callback)(void *ctx, int result), void *ctx)
+       void (* /*callback*/)(void *ctx, int result), void * /*ctx*/)
 {
     assert(frontend);
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
@@ -41,7 +41,7 @@ int askalg(void *frontend, const char *algtype, const char *algname,
  * Returns 2 for wipe, 1 for append, 0 for cancel (don't log).
  */
 int askappend(void *frontend, Filename filename,
-          void (*callback)(void *ctx, int result), void *ctx)
+          void (* /*callback*/)(void *ctx, int result), void * /*ctx*/)
 {
     assert(frontend);
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
@@ -102,7 +102,7 @@ int verify_host_key(const char *hostname, int port,
 
 int verify_ssh_host_key(void *frontend, char *host, int port, char *keytype,
                         char *keystr, char *fingerprint,
-                        void (*callback)(void *ctx, int result), void *ctx)
+                        void (* /*callback*/)(void *ctx, int result), void * /*ctx*/)
 {
     assert(frontend);
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
