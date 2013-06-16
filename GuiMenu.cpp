@@ -14,6 +14,7 @@
 #include "GuiTerminalWindow.h"
 #include "GuiSplitter.h"
 #include "GuiTabWidget.h"
+#include "GuiPreferencesWindow.h"
 
 qutty_menu_actions_t qutty_menu_actions[MENU_MAX_ACTION] = {
     //{ "New Session",            "Ctrl+Shift+T",  SLOT( on_openNewTab() ),                        ""},
@@ -45,7 +46,7 @@ qutty_menu_actions_t qutty_menu_actions[MENU_MAX_ACTION] = {
     { "Fullscreen",             "",              SLOT( contextMenuFullScreen() ),                ""},
     { "Always on top",          "",              SLOT( contextMenuAlwaysOnTop() ),               ""},
     { "Preferences",            "",              SLOT( contextMenuPreferences() ),               ""},
-    { "Rename Tab",             "",              SLOT( contextMenuRenameTab() ),                 ""},
+    { "Rename Session",         "",              SLOT( contextMenuRenameTab() ),                 ""},
     { "Find",                   "Ctrl+Shift+F",  SLOT( contextMenuFind() ),                      ""},
     { "Find Next",              "F3",            SLOT( contextMenuFindNext() ),                  ""},
     { "Find Previous",          "Shift+F3",      SLOT( contextMenuFindPrevious() ),              ""},
@@ -57,8 +58,9 @@ qutty_menu_actions_t qutty_menu_actions[MENU_MAX_ACTION] = {
 qutty_menu_links_t qutty_menu_links[MENU_MAX_MENU] = {
 { "File", 10, {MENU_NEW_TAB, MENU_NEW_WINDOW, MENU_SEPARATOR, MENU_SAVED_SESSIONS, MENU_SEPARATOR,
                MENU_SPLIT_SESSION, MENU_SEPARATOR, MENU_EXPORT_IMPORT, MENU_SEPARATOR, MENU_EXIT} },
-{ "Edit", 7,  {MENU_PASTE, MENU_SEPARATOR, MENU_RENAME_TAB, MENU_SEPARATOR,
-               MENU_FIND, MENU_FIND_NEXT, MENU_FIND_PREVIOUS} },
+{ "Edit", 9,  {MENU_PASTE, MENU_SEPARATOR, MENU_RENAME_TAB, MENU_SEPARATOR,
+               MENU_FIND, MENU_FIND_NEXT, MENU_FIND_PREVIOUS,
+               MENU_SEPARATOR, MENU_PREFERENCES} },
 { "View", 9,  { MENU_SWITCH_LEFT_TAB, MENU_SWITCH_RIGHT_TAB, MENU_SEPARATOR,
                 MENU_SWITCH_UP_PANE, MENU_SWITCH_BOTTOM_PANE, MENU_SEPARATOR,
                 MENU_MENUBAR, MENU_ALWAYSONTOP, MENU_FULLSCREEN } },
@@ -389,13 +391,8 @@ void GuiToolbarTerminalTop::processMouseMoveTerminalTop(GuiTerminalWindow *term,
 
 void GuiMainWindow::contextMenuPreferences()
 {
-    QAction *action = qobject_cast<QAction *>(sender());
-    if (!action)
-        return;
-    if (!menuCookieTermWnd)
-        return;
-    if (terminalList.indexOf(menuCookieTermWnd) == -1)
-        return;
+    GuiPreferencesWindow *pref = new GuiPreferencesWindow;
+    pref->show();
 }
 
 void GuiMainWindow::contextMenuRenameTab()

@@ -52,7 +52,7 @@ enum qutty_menu_id_t {
     MENU_FIND_REGEX,
     MENU_FIND_HIGHLIGHT,
 
-    MENU_SEPARATOR,
+    MENU_SEPARATOR = 128,
 
     MENU_FILE,
     MENU_EDIT,
@@ -88,6 +88,8 @@ extern qutty_menu_links_t qutty_menu_links[];
 
 
 class GuiToolbarTerminalTop : public QToolBar {
+    Q_OBJECT
+
     enum {
         MENU_TERMTOP_MENU,
         MENU_TERMTOP_MOVE,

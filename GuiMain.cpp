@@ -8,21 +8,18 @@
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include "GuiSettingsWindow.h"
-#include "QtTimer.h"
-
-QtTimer *globalTimer;
 
 int main(int argc, char *argv[])
 {
-    globalTimer = new QtTimer;
+    QApplication app(argc, argv);
 
-    QApplication a(argc, argv);
-    GuiMainWindow *mainWindow = new GuiMainWindow();
-
+    // restore all settings from qutty.xml
     qutty_config.restoreConfig();
+
+    GuiMainWindow *mainWindow = new GuiMainWindow();
 
     mainWindow->on_openNewTab();
     mainWindow->show();
 
-    return a.exec();
+    return app.exec();
 }

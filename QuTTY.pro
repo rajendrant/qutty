@@ -21,6 +21,7 @@ SOURCES +=  \
     GuiMainWindow.cpp \
     GuiTerminalWindow.cpp \
     GuiSettingsWindow.cpp \
+    GuiPreferencesWindow.cpp \
     terminalmisc.cpp \
     QtCommon.cpp \
     QtNet.cpp \
@@ -88,6 +89,7 @@ HEADERS +=  \
     GuiMainWindow.h \
     GuiTerminalWindow.h \
     GuiSettingsWindow.h \
+    GuiPreferencesWindow.h \
     QtCommon.h \
     QtLogDbg.h \
     QtConfig.h \
@@ -127,7 +129,8 @@ HEADERS +=  \
 INCLUDEPATH += ./ puttysrc/
 
 FORMS += \
-    GuiSettingsWindow.ui
+    GuiSettingsWindow.ui \
+    GuiPreferencesWindow.ui
 
 OTHER_FILES += \
     qutty.rc \

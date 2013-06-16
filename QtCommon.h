@@ -21,7 +21,6 @@ extern "C" {
 
 class GuiMainWindow;
 class GuiTerminalWindow;
-class TerminalMdiArea;
 
 extern QTimer *qtimer;
 extern long timing_next_time;

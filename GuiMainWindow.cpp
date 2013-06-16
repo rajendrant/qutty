@@ -213,7 +213,7 @@ bool GuiMainWindow::winEvent ( MSG * /*msg*/, long * /*result*/ )
     /*
     int ret;
     HDC hdc;
-    //RECT r1, r2;
+    RECT r1, r2;
 
     switch(msg->message) {
     case WM_NCCALCSIZE:

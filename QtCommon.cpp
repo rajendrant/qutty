@@ -20,11 +20,12 @@ using namespace Qt;
 
 char sshver[] = "PuTTY-Local: " __DATE__ " " __TIME__;
 
+// single global timer
+QtTimer globalTimer;
 
-extern QtTimer *globalTimer;
 void timer_change_notify(long next)
 {
-    globalTimer->startTimerForTick(next);
+    globalTimer.startTimerForTick(next);
 }
 
 int get_remote_username(Config *cfg, char *user, size_t len) {

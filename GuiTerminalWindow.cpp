@@ -11,9 +11,6 @@
 #include <QClipboard>
 #include <QScrollBar>
 #include <QMessageBox>
-extern "C" {
-#include "putty.h"
-}
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include "GuiSplitter.h"
