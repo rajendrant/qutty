@@ -8,7 +8,7 @@
 #define MAINWINDOW_H
 
 #include <map>
-#include <QtGui/QMainWindow>
+#include <QMainWindow>
 #include <QMdiArea>
 #include <QMenu>
 #include <QToolButton>

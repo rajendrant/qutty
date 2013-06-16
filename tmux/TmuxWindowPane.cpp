@@ -82,7 +82,7 @@ int TmuxWindowPane::resp_hdlr_dump_term_state(string &response)
             _termWnd->term->wrap = n;
         } else if (!key.compare("title")) {
             iresp>>tstr;
-            _termWnd->setSessionTitle(QString::fromAscii(tstr.c_str()));
+            _termWnd->setSessionTitle(QString::fromLatin1(tstr.c_str()));
         } else if (!key.compare("kcursor_mode")) {
             iresp>>n;
             _termWnd->term->app_cursor_keys = n;

@@ -69,7 +69,7 @@ void debug_memdump(void *buf, int len, int L);
 #define dmemdump(buf,len) debug_memdump (buf, len, 0);
 #define dmemdumpl(buf,len) debug_memdump (buf, len, 1);
 #else
-#define debug(x)
+#define putty_debug(x)      /* clashes with qDebug() in Qt5.0 */
 #define dmemdump(buf,len)
 #define dmemdumpl(buf,len)
 #endif

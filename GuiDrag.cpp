@@ -5,6 +5,8 @@
  */
 
 #include <QPainter>
+#include <QDrag>
+#include <QMimeData>
 #include "GuiDrag.h"
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"

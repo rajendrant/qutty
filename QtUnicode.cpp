@@ -28,7 +28,7 @@ void *get_text_codec (const char *line_codepage)
     if (!codec)
         codec = QTextCodec::codecForLocale();
     if (!codec)
-        codec = QTextCodec::codecForCStrings();
+        codec = QTextCodec::codecForUtfText(APPNAME);
     qDebug() << __FUNCTION__ << " using codec "
              << (codec ? codec->name().constData() : "NULL");
     return codec;
