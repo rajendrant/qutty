@@ -16,7 +16,11 @@ class GuiMainWindow;
 class GuiTerminalWindow;
 
 enum qutty_menu_id_t {
-    //MENU_NEW_SESSION,
+    /*
+     * These indexes will be saved in xml config file
+     * Don't change the order of the entries
+     * Insert new items only at the end
+     */
     MENU_RESTART_SESSION,
     MENU_DUPLICATE_SESSION,
     MENU_CHANGE_SETTINGS,
@@ -26,6 +30,8 @@ enum qutty_menu_id_t {
     MENU_CLOSE_SESSION,
     MENU_SPLIT_HORIZONTAL,
     MENU_SPLIT_VERTICAL,
+    MENU_DUPLICATE_HSPLIT,
+    MENU_DUPLICATE_VSPLIT,
     MENU_SWITCH_LEFT_TAB,
     MENU_SWITCH_RIGHT_TAB,
     MENU_SWITCH_UP_PANE,
@@ -51,9 +57,21 @@ enum qutty_menu_id_t {
     MENU_FIND_CASE_INSENSITIVE,
     MENU_FIND_REGEX,
     MENU_FIND_HIGHLIGHT,
+    MENU_CUSTOM_OPEN_SAVED_SESSION,
 
-    MENU_SEPARATOR = 128,
+    /*
+     * Insert any new actions here
+     */
 
+    MENU_MAX_ACTION,
+    MENU_SEPARATOR = 100000,
+
+
+    /*
+     * These indexes will be saved in xml config file
+     * Don't change the order of the entries
+     * Insert new items only at the end
+     */
     MENU_FILE,
     MENU_EDIT,
     MENU_VIEW,
@@ -63,10 +81,14 @@ enum qutty_menu_id_t {
     MENU_TERM_WINDOW,
     MENU_TAB_BAR,
     MENU_FIND_OPTIONS,
+
+    /*
+     * Insert any new menus here
+     */
+
     MENU_ID_LAST
 };
 
-#define MENU_MAX_ACTION     (MENU_SEPARATOR)
 #define MENU_MAX_MENU       (MENU_ID_LAST - MENU_SEPARATOR - 1)
 
 struct qutty_menu_actions_t {

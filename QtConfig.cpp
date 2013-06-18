@@ -102,6 +102,28 @@ int QtConfig::readFromXML(QIODevice *device)
                     xml.skipCurrentElement();
                 }
             }
+        } else if (xml.name() == "keyboardshortcuts" && xml.attributes().value("version") == "1.0") {
+            while (xml.readNextStartElement()) {
+                auto attr = xml.attributes();
+                if (xml.name() == "entry"&&
+                    attr.hasAttribute("id") && attr.hasAttribute("keysequence")) {
+                    uint32_t id = attr.value("id").toString().toInt();
+                    QKeySequence k(attr.value("keysequence").toString());
+                    QtMenuActionConfig action(id, k);
+                    if (attr.hasAttribute("name"))
+                        action.name = attr.value("name").toString();
+                    if (attr.hasAttribute("type"))
+                        action.type = attr.value("type").toString().toInt();
+                    if (attr.hasAttribute("str_data"))
+                        action.str_data = attr.value("str_data").toString();
+                    if (attr.hasAttribute("int_data"))
+                        action.int_data = attr.value("int_data").toString().toInt();
+                    menu_action_list.insert(std::make_pair(id, action));
+                    xml.skipCurrentElement();
+                } else {
+                    xml.skipCurrentElement();
+                }
+            }
         } else {
             xml.skipCurrentElement();
         }
@@ -121,6 +143,28 @@ int QtConfig::writeToXML(QIODevice *device)
     xml.writeDTD("<!DOCTYPE qutty>");
     xml.writeStartElement("qutty");
     xml.writeAttribute("version", "1.0");
+
+    if (!menu_action_list.empty()) {
+        xml.writeStartElement("keyboardshortcuts");
+        xml.writeAttribute("version", "1.0");
+        for(auto it=menu_action_list.begin();
+            it != menu_action_list.end(); it++) {
+            xml.writeStartElement("entry");
+            xml.writeAttribute("id", QString::number(it->first));
+            xml.writeAttribute("keysequence", it->second.shortcut.toString());
+            if (!it->second.name.isEmpty())
+                xml.writeAttribute("name", it->second.name);
+            if (it->second.type)
+                xml.writeAttribute("type", QString::number(it->second.type));
+            if (!it->second.str_data.isEmpty())
+                xml.writeAttribute("str_data", it->second.str_data);
+            if (it->second.int_data)
+                xml.writeAttribute("int_data", QString::number(it->second.int_data));
+            xml.writeEndElement();
+        }
+        xml.writeEndElement();
+    }
+
     for(map<string, Config>::iterator  it=config_list.begin();
         it != config_list.end(); it++) {
         int i;

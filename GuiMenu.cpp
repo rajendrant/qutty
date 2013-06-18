@@ -17,7 +17,6 @@
 #include "GuiPreferencesWindow.h"
 
 qutty_menu_actions_t qutty_menu_actions[MENU_MAX_ACTION] = {
-    //{ "New Session",            "Ctrl+Shift+T",  SLOT( on_openNewTab() ),                        ""},
     { "Restart Session",        "",              SLOT( contextMenuRestartSessionTriggered() ),   ""},
     { "Duplicate Session",      "",              SLOT( contextMenuDuplicateSessionTriggered() ), ""},
     { "Change Settings",        "",              SLOT( contextMenuChangeSettingsTriggered() ),   ""},
@@ -28,6 +27,8 @@ qutty_menu_actions_t qutty_menu_actions[MENU_MAX_ACTION] = {
       "Close currently active session/pane"},
     { "Horizontally",           "Ctrl+Shift+H",  SLOT( on_openNewSplitHorizontal() ),            ""},
     { "Vertically",             "Ctrl+Shift+V",  SLOT( on_openNewSplitVertical() ),              ""},
+    { "Duplicate HSplit",       "",              SLOT( contextMenuOpenDuplicateHSplit() ),       ""},
+    { "Duplicate VSplit",       "",              SLOT( contextMenuOpenDuplicateHSplit() ),       ""},
     { "Switch to Left Tab",     "Shift+Left",    SLOT( tabPrev() ),                              ""},
     { "Switch to Right Tab",    "Shift+Right",   SLOT( tabNext() ),                              ""},
     { "Switch to Top Pane",     "Ctrl+Shift+Up", SLOT( contextMenuPaneUp() ),                    ""},
@@ -104,15 +105,21 @@ public:
 void GuiMainWindow::initializeMenuSystem()
 {
     for(int i=0; i<MENU_MAX_ACTION; i++) {
+        QKeySequence keyseq(qutty_menu_actions[i].key);
+        auto it = qutty_config.menu_action_list.find(i);
+        if (it != qutty_config.menu_action_list.end())
+            keyseq = it->second.shortcut;
+
         menuCommonActions[i] = new QAction(qutty_menu_actions[i].name, this);
-        menuCommonActions[i]->setShortcut(QKeySequence(qutty_menu_actions[i].key));
+        menuCommonActions[i]->setShortcut(keyseq);
         menuCommonActions[i]->setToolTip(qutty_menu_actions[i].tooltip);
         menuCommonActions[i]->setShortcutContext(Qt::WidgetShortcut);
         connect(menuCommonActions[i], SIGNAL(triggered()), this, qutty_menu_actions[i].slot);
 
-        QShortcut *shortcut = new QShortcut(QKeySequence(qutty_menu_actions[i].key), this);
+        QShortcut *shortcut = new QShortcut(QKeySequence(keyseq), this);
         shortcut->setContext(Qt::ApplicationShortcut);
         connect(shortcut, SIGNAL(activated()), this, qutty_menu_actions[i].slot);
+        menuCommonShortcuts[i] = shortcut;
     }
     for(int i=0; i<MENU_MAX_MENU; i++) {
         menuCommonMenus[i].setTitle(qutty_menu_links[i].name);
@@ -184,7 +191,7 @@ void GuiMainWindow::contextMenuSavedSessionsChanged()
     if (!menuSavedSessions)
         return;
     menuSavedSessions->clear();
-    for(std::map<string, Config>::iterator it = qutty_config.config_list.begin();
+    for(auto it = qutty_config.config_list.begin();
         it != qutty_config.config_list.end(); it++) {
         if (it->first == QUTTY_DEFAULT_CONFIG_SETTINGS)
             continue;
@@ -206,9 +213,8 @@ void GuiMainWindow::contextMenuSavedSessionTriggered()
 
 void GuiMainWindow::contextMenuPaste()
 {
-    QAction *action = qobject_cast<QAction *>(sender());
-    if (!action)
-        return;
+    if (!menuCookieTermWnd)
+        menuCookieTermWnd = this->getCurrentTerminal();
     if (!menuCookieTermWnd)
         return;
     menuCookieTermWnd->requestPaste();
@@ -216,19 +222,35 @@ void GuiMainWindow::contextMenuPaste()
 
 void GuiMainWindow::contextMenuDuplicateSessionTriggered()
 {
-    QAction *action = qobject_cast<QAction *>(sender());
-    if (!action)
-        return;
+    if (!menuCookieTermWnd)
+        menuCookieTermWnd = this->getCurrentTerminal();
     if (!menuCookieTermWnd)
         return;
     this->createNewTab(&menuCookieTermWnd->cfg);
 }
 
+void GuiMainWindow::contextMenuOpenDuplicateHSplit()
+{
+    if (!menuCookieTermWnd)
+        menuCookieTermWnd = this->getCurrentTerminal();
+    if (!menuCookieTermWnd)
+        return;
+    this->on_createNewSession(menuCookieTermWnd->cfg, GuiBase::TYPE_HORIZONTAL);
+}
+
+void GuiMainWindow::contextMenuOpenDuplicateVSplit()
+{
+    if (!menuCookieTermWnd)
+        menuCookieTermWnd = this->getCurrentTerminal();
+    if (!menuCookieTermWnd)
+        return;
+    this->on_createNewSession(menuCookieTermWnd->cfg, GuiBase::TYPE_VERTICAL);
+}
+
 void GuiMainWindow::contextMenuRestartSessionTriggered()
 {
-    QAction *action = qobject_cast<QAction *>(sender());
-    if (!action)
-        return;
+    if (!menuCookieTermWnd)
+        menuCookieTermWnd = this->getCurrentTerminal();
     if (!menuCookieTermWnd)
         return;
     menuCookieTermWnd->restartTerminal();
@@ -236,9 +258,8 @@ void GuiMainWindow::contextMenuRestartSessionTriggered()
 
 void GuiMainWindow::contextMenuChangeSettingsTriggered()
 {
-    QAction *action = qobject_cast<QAction *>(sender());
-    if (!action)
-        return;
+    if (!menuCookieTermWnd)
+        menuCookieTermWnd = this->getCurrentTerminal();
     if (!menuCookieTermWnd)
         return;
     on_changeSettingsTab(menuCookieTermWnd);
@@ -256,9 +277,8 @@ void GuiMainWindow::contextMenuTermTopCloseTriggered()
 
 void GuiMainWindow::contextMenuCloseSessionTriggered()
 {
-    QAction *action = qobject_cast<QAction *>(sender());
-    if (!action)
-        return;
+    if (!menuCookieTermWnd)
+        menuCookieTermWnd = this->getCurrentTerminal();
     if (!menuCookieTermWnd)
         return;
     if (terminalList.indexOf(menuCookieTermWnd) == -1)
@@ -391,15 +411,14 @@ void GuiToolbarTerminalTop::processMouseMoveTerminalTop(GuiTerminalWindow *term,
 
 void GuiMainWindow::contextMenuPreferences()
 {
-    GuiPreferencesWindow *pref = new GuiPreferencesWindow;
+    GuiPreferencesWindow *pref = new GuiPreferencesWindow(this);
     pref->show();
 }
 
 void GuiMainWindow::contextMenuRenameTab()
 {
-    QAction *action = qobject_cast<QAction *>(sender());
-    if (!action)
-        return;
+    if (!menuCookieTermWnd)
+        menuCookieTermWnd = this->getCurrentTerminal();
     if (!menuCookieTermWnd)
         return;
     if (terminalList.indexOf(menuCookieTermWnd) == -1)

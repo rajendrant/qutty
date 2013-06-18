@@ -39,6 +39,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
       newTabToolButton()
 {
     memset(menuCommonActions, 0, sizeof(menuCommonActions));
+    memset(menuCommonShortcuts, 0, sizeof(menuCommonShortcuts));
 
     setWindowTitle(APPNAME);
 
@@ -495,7 +496,6 @@ int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType sp
         this->tabInsert(tabind, newTerm, "");
         terminalList.append(newTerm);
         tabArea->setCurrentWidget(newTerm);
-        set_title(newTerm, newTerm->cfg.host);
         newTerm->setWindowState(newTerm->windowState() | Qt::WindowMaximized);
 
         // resize according to config if window is smaller
@@ -537,7 +537,6 @@ int GuiMainWindow::getTerminalTabInd(const QWidget *term)
     auto it = tabIndexMap.find(term);
     if (it != tabIndexMap.end())
         return it->second;
-    assert(0);
     return -1;
 }
 

@@ -92,6 +92,8 @@ int GuiTerminalWindow::initTerminal()
     char *ip_addr = cfg.host;
     void *logctx;
 
+    set_title(this, cfg.host);
+
     memset(&ucsdata, 0, sizeof(struct unicode_data));
     init_ucs(&cfg, &ucsdata);
     setTermFont(&cfg);
@@ -177,7 +179,6 @@ int GuiTerminalWindow::restartTerminal()
         qtsock = NULL;
     }
     isSockDisconnected = false;
-    set_title(this, cfg.host);
     return initTerminal();
 }
 

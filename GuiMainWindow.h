@@ -29,6 +29,7 @@ class GuiMainWindow : public QMainWindow
     
 public:
     QAction *menuCommonActions[MENU_MAX_ACTION];
+    QShortcut *menuCommonShortcuts[MENU_MAX_ACTION];
     QMenu menuCommonMenus[MENU_MAX_MENU];
     GuiTerminalWindow *menuCookieTermWnd;
     QMenu menuSavedSessions;
@@ -107,6 +108,8 @@ public slots:
     void contextMenuSavedSessionsChanged();
     void contextMenuSavedSessionTriggered();
     void contextMenuDuplicateSessionTriggered();
+    void contextMenuOpenDuplicateHSplit();
+    void contextMenuOpenDuplicateVSplit();
     void contextMenuRestartSessionTriggered();
     void contextMenuChangeSettingsTriggered();
     void contextMenuCloseSessionTriggered();
