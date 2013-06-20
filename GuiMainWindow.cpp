@@ -39,7 +39,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
       newTabToolButton()
 {
     memset(menuCommonActions, 0, sizeof(menuCommonActions));
-    memset(menuCommonShortcuts, 0, sizeof(menuCommonShortcuts));
+    menuCommonShortcuts.reserve(MENU_MAX_ACTION);
 
     setWindowTitle(APPNAME);
 

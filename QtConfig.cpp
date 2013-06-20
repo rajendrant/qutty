@@ -112,8 +112,6 @@ int QtConfig::readFromXML(QIODevice *device)
                     QtMenuActionConfig action(id, k);
                     if (attr.hasAttribute("name"))
                         action.name = attr.value("name").toString();
-                    if (attr.hasAttribute("type"))
-                        action.type = attr.value("type").toString().toInt();
                     if (attr.hasAttribute("str_data"))
                         action.str_data = attr.value("str_data").toString();
                     if (attr.hasAttribute("int_data"))
@@ -154,8 +152,6 @@ int QtConfig::writeToXML(QIODevice *device)
             xml.writeAttribute("keysequence", it->second.shortcut.toString());
             if (!it->second.name.isEmpty())
                 xml.writeAttribute("name", it->second.name);
-            if (it->second.type)
-                xml.writeAttribute("type", QString::number(it->second.type));
             if (!it->second.str_data.isEmpty())
                 xml.writeAttribute("str_data", it->second.str_data);
             if (it->second.int_data)

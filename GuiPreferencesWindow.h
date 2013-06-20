@@ -27,6 +27,7 @@ class GuiPreferencesWindow : public QDialog
     void addItemToTree(QTreeWidgetItem *par, qutty_menu_id_t menu_index,
                        const char *text, const char *desc);
     void keysh_saveShortcutChange(QTreeWidgetItem *item);
+    void keyshAddCustomSavedSessionToTree(QString session, int opentypeind, QKeySequence key);
 
 public:
     explicit GuiPreferencesWindow(GuiMainWindow *parent);
@@ -35,14 +36,17 @@ public:
     bool eventFilter(QObject *src, QEvent *e);
 
 private slots:
+    void slot_GuiPreferencesWindow_accepted();
     void slot_GuiPreferencesWindow_rejected();
 
     void on_tree_keysh_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);
-    void on_keysh_custom_saved_session_shortcut_create();
+    void slot_keysh_custom_saved_session_shortcut_create();
     void on_btn_keysh_clear_clicked();
 
-    void on_buttonBox_accepted();
 
+    void on_btn_ok_clicked();
+
+    void on_btn_cancel_clicked();
 
 private:
     Ui::GuiPreferencesWindow *ui;

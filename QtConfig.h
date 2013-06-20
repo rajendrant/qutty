@@ -18,13 +18,12 @@ public:
     uint32_t id;
     QKeySequence shortcut;
     QString name;
-    uint32_t type;
     QString str_data;
     uint32_t int_data;
 
     QtMenuActionConfig(uint32_t _id, QKeySequence &k, QString n="",
-                 uint32_t t=0, QString s="", uint32_t i=0)
-        : id(_id), shortcut(k), name(n), type(t), str_data(s), int_data(i)
+                       QString s="", uint32_t i=0)
+        : id(_id), shortcut(k), name(n), str_data(s), int_data(i)
     { }
 };
 

@@ -363,7 +363,10 @@ void GuiTerminalWindow::paintEvent (QPaintEvent *e)
             for(int col=colstart; col<colend && col<term->cols; ) {
                 uint attr = term->dispstr_attr[row*term->cols + col];
                 int coldiff = col+1;
-                for(;attr==term->dispstr_attr[row*term->cols + coldiff]; coldiff++);
+                for(;attr==term->dispstr_attr[row*term->cols + coldiff];
+                    coldiff++);
+                if (coldiff >= term->cols)
+                    coldiff = term->cols;
                 QString str = QString::fromWCharArray(&term->dispstr[row*term->cols + col], coldiff-col);
                 paintText(painter, row, col, str, attr);
 

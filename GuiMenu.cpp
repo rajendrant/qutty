@@ -119,7 +119,7 @@ void GuiMainWindow::initializeMenuSystem()
         QShortcut *shortcut = new QShortcut(QKeySequence(keyseq), this);
         shortcut->setContext(Qt::ApplicationShortcut);
         connect(shortcut, SIGNAL(activated()), this, qutty_menu_actions[i].slot);
-        menuCommonShortcuts[i] = shortcut;
+        menuCommonShortcuts.push_back(make_pair(i, shortcut));
     }
     for(int i=0; i<MENU_MAX_MENU; i++) {
         menuCommonMenus[i].setTitle(qutty_menu_links[i].name);

@@ -29,7 +29,7 @@ class GuiMainWindow : public QMainWindow
     
 public:
     QAction *menuCommonActions[MENU_MAX_ACTION];
-    QShortcut *menuCommonShortcuts[MENU_MAX_ACTION];
+    vector<std::pair<uint32_t,QShortcut*>> menuCommonShortcuts;
     QMenu menuCommonMenus[MENU_MAX_MENU];
     GuiTerminalWindow *menuCookieTermWnd;
     QMenu menuSavedSessions;

@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <QPushButton>
 #include <QInputDialog>
+#include <QMessageBox>
 #include "GuiPreferencesWindow.h"
 #include "GuiMainWindow.h"
 #include "ui_GuiPreferencesWindow.h"
@@ -56,11 +57,16 @@ GuiPreferencesWindow::GuiPreferencesWindow(GuiMainWindow *parent) :
     item->setText(0, "Create custom shortcut to open a saved session");
     QPushButton *button = new QPushButton("Create");
     this->ui->tree_keysh->setItemWidget(item, 1, button);
-    connect(button, SIGNAL(clicked()), SLOT(on_keysh_custom_saved_session_shortcut_create()));
+    connect(button, SIGNAL(clicked()), SLOT(slot_keysh_custom_saved_session_shortcut_create()));
     item = new QTreeWidgetItem(tree, QStringList("Close Session"));
     item->setFont(0, font);
     addItemToTree(item, MENU_CLOSE_SESSION, "Close Session", "");
     addItemToTree(item, MENU_EXIT, "Close Window", "");
+    auto saved_list = qutty_config.menu_action_list.equal_range(MENU_CUSTOM_OPEN_SAVED_SESSION);
+    for (auto it = saved_list.first; it != saved_list.second; ++it) {
+        keyshAddCustomSavedSessionToTree(it->second.str_data, it->second.int_data,
+                                         it->second.shortcut);
+    }
     tree->expandAll();
     tree->resizeColumnToContents(0);
     tree->setMinimumHeight(200);
@@ -71,6 +77,7 @@ GuiPreferencesWindow::GuiPreferencesWindow(GuiMainWindow *parent) :
     // resize to minimum needed dimension
     this->resize(0, 0);
 
+    this->connect(this, SIGNAL(accepted()), SLOT(slot_GuiPreferencesWindow_accepted()));
     this->connect(this, SIGNAL(rejected()), SLOT(slot_GuiPreferencesWindow_rejected()));
 }
 
@@ -144,75 +151,6 @@ void GuiPreferencesWindow::keysh_saveShortcutChange(QTreeWidgetItem *item)
     }
 }
 
-void GuiPreferencesWindow::on_buttonBox_accepted()
-{
-    bool is_config_changed = false;
-    QTreeWidgetItem *root, *ch;
-
-    /******************** Keyboard Shortcuts Tab ****************************************/
-    keysh_saveShortcutChange(ui->tree_keysh->currentItem());
-    if (!shkey_changed)
-        goto keyboard_shortcut_done;
-    root = ui->tree_keysh->invisibleRootItem();
-    for(int i = 0; i < root->childCount(); i++) {
-        QTreeWidgetItem *item = root->child(i);
-        if (item == shkey_root_custom_saved_session)
-            continue;
-        for(int j = 0; j < item->childCount(); j++) {
-            ch = item->child(j);
-            int menu_ind = ch->type() - QTreeWidgetItem::UserType;
-            if (menu_ind < 0 || menu_ind >= MENU_MAX_ACTION)
-                continue;
-            QKeySequence newseq = ch->text(1);
-            if (newseq != mainWindow->menuCommonActions[menu_ind]->shortcut()) {
-                // we have a new shortcut configured
-                mainWindow->menuCommonActions[menu_ind]->setShortcut(newseq);
-                mainWindow->menuCommonShortcuts[menu_ind]->setKey(newseq);
-                if (newseq != QString::fromLatin1(qutty_menu_actions[menu_ind].key)) {
-                    // shortcut needs to be saved in config
-                    QtMenuActionConfig actioncfg(menu_ind, newseq);
-                    qutty_config.menu_action_list.erase(menu_ind);
-                    qutty_config.menu_action_list.insert(std::make_pair(menu_ind, actioncfg));
-                } else {
-                    // shortcut needs to be removed from config
-                    qutty_config.menu_action_list.erase(menu_ind);
-                }
-                is_config_changed = true;
-            }
-        }
-    }
-    for(int i = 0; i < shkey_root_custom_saved_session->childCount()-1; i++) {
-        QTreeWidgetItem *ch = shkey_root_custom_saved_session->child(i);
-        int menu_ind = ch->type() - QTreeWidgetItem::UserType;
-        QString session = ch->data(0, QTreeWidgetItem::UserType).toString();
-        int opentypemode = ch->data(0, QTreeWidgetItem::UserType+1).toInt();
-        if (menu_ind != MENU_CUSTOM_OPEN_SAVED_SESSION || ch->text(1).isEmpty() ||
-            session.isEmpty() || (opentypemode < 1 && opentypemode > 3))
-            continue;
-        QKeySequence newseq = ch->text(1);
-        auto saved_list = qutty_config.menu_action_list.equal_range(menu_ind);
-        for (auto it = saved_list.first; it != saved_list.second; ++it) {
-            if (newseq == it->second.shortcut) {
-                qutty_config.menu_action_list.erase(it);
-                break;
-            }
-        }
-        QtMenuActionConfig action(MENU_CUSTOM_OPEN_SAVED_SESSION, newseq, "", 1,
-                                  session, opentypemode);
-        qutty_config.menu_action_list.insert(std::make_pair(MENU_CUSTOM_OPEN_SAVED_SESSION,
-                                                action));
-        is_config_changed = true;
-    }
-    /*************************************************************************************/
-
-keyboard_shortcut_done:
-
-    if (is_config_changed)
-        qutty_config.saveConfig();
-
-    return;
-}
-
 void GuiPreferencesWindow::on_btn_keysh_clear_clicked()
 {
     ui->le_keysh_shortcut->clear();
@@ -220,7 +158,7 @@ void GuiPreferencesWindow::on_btn_keysh_clear_clicked()
     memset(shkey_entered, 0, sizeof(shkey_entered));
 }
 
-void GuiPreferencesWindow::on_keysh_custom_saved_session_shortcut_create()
+void GuiPreferencesWindow::slot_keysh_custom_saved_session_shortcut_create()
 {
     QString session, opentype;
     QStringList sesslist, opentypelist;
@@ -242,7 +180,7 @@ void GuiPreferencesWindow::on_keysh_custom_saved_session_shortcut_create()
     opentypelist.append(tr("--Select open mode--"));
     opentypelist.append(tr("Open in a New Tab"));
     opentypelist.append(tr("Open in Horizontal Split"));
-    opentypelist.append(tr("Open in Vertiocal Split"));
+    opentypelist.append(tr("Open in Vertical Split"));
     opentype = QInputDialog::getItem(this, tr("Select open mode"),
                                      tr("How do you want to open the session"),
                                      opentypelist, 0, false, &ok);
@@ -250,9 +188,14 @@ void GuiPreferencesWindow::on_keysh_custom_saved_session_shortcut_create()
         return;
 
     opentypeind = opentype==opentypelist[1] ? 1 :
-                  opentype==opentypelist[1] ? 2 : 3;
+                  opentype==opentypelist[2] ? 2 : 3;
+    keyshAddCustomSavedSessionToTree(session, opentypeind, QKeySequence());
+}
+
+void GuiPreferencesWindow::keyshAddCustomSavedSessionToTree(QString session, int opentypeind, QKeySequence key)
+{
     QString opentypestr = opentypeind==1 ? "New Tab" :
-                          opentypeind==1 ? "Horizontal Split" :
+                          opentypeind==2 ? "Horizontal Split" :
                                            "Vertical Split";
     QTreeWidgetItem *item = new QTreeWidgetItem(QTreeWidgetItem::UserType + MENU_CUSTOM_OPEN_SAVED_SESSION);
     item->setText(0, "Open '" + session + "' in " + opentypestr);
@@ -260,6 +203,115 @@ void GuiPreferencesWindow::on_keysh_custom_saved_session_shortcut_create()
                      "' in " + opentypestr);
     item->setData(0, QTreeWidgetItem::UserType, session);
     item->setData(0, QTreeWidgetItem::UserType+1, opentypeind);
+    item->setText(1, key.toString());
     shkey_root_custom_saved_session->insertChild(shkey_root_custom_saved_session->childCount()-1,
                                                 item);
+}
+
+void GuiPreferencesWindow::slot_GuiPreferencesWindow_accepted()
+{
+    bool is_config_changed = false;
+    QTreeWidgetItem *root, *ch;
+
+    /******************** Keyboard Shortcuts Tab ****************************************/
+    root = ui->tree_keysh->invisibleRootItem();
+    for(int i = 0; i < root->childCount(); i++) {
+        QTreeWidgetItem *item = root->child(i);
+        if (item == shkey_root_custom_saved_session)
+            continue;
+        for(int j = 0; j < item->childCount(); j++) {
+            ch = item->child(j);
+            int menu_ind = ch->type() - QTreeWidgetItem::UserType;
+            if (menu_ind < 0 || menu_ind >= MENU_MAX_ACTION)
+                continue;
+            QKeySequence newseq = ch->text(1);
+            if (newseq != mainWindow->menuCommonActions[menu_ind]->shortcut()) {
+                // we have a new shortcut configured
+                mainWindow->menuCommonActions[menu_ind]->setShortcut(newseq);
+                mainWindow->menuCommonShortcuts[menu_ind].second->setKey(newseq);
+                if (newseq != QString::fromLatin1(qutty_menu_actions[menu_ind].key)) {
+                    // shortcut needs to be saved in config
+                    QtMenuActionConfig actioncfg(menu_ind, newseq);
+                    qutty_config.menu_action_list.erase(menu_ind);
+                    qutty_config.menu_action_list.insert(std::make_pair(menu_ind, actioncfg));
+                } else {
+                    // shortcut needs to be removed from config
+                    qutty_config.menu_action_list.erase(menu_ind);
+                }
+                is_config_changed = true;
+            }
+        }
+    }
+    // clear the saved-session in config & recreate
+    {
+    auto it = qutty_config.menu_action_list.equal_range(MENU_CUSTOM_OPEN_SAVED_SESSION);
+    qutty_config.menu_action_list.erase(it.first, it.second);
+    }
+    for(int i = 0; i < shkey_root_custom_saved_session->childCount()-1; i++) {
+        QTreeWidgetItem *ch = shkey_root_custom_saved_session->child(i);
+        int menu_ind = ch->type() - QTreeWidgetItem::UserType;
+        QString session = ch->data(0, QTreeWidgetItem::UserType).toString();
+        int opentypemode = ch->data(0, QTreeWidgetItem::UserType+1).toInt();
+        if (menu_ind != MENU_CUSTOM_OPEN_SAVED_SESSION || ch->text(1).isEmpty() ||
+            session.isEmpty() || opentypemode < 1 || opentypemode > 3)
+            continue;
+        QKeySequence newseq = ch->text(1);
+        QtMenuActionConfig action(MENU_CUSTOM_OPEN_SAVED_SESSION, newseq, "",
+                                  session, opentypemode);
+        qutty_config.menu_action_list.insert(std::make_pair(MENU_CUSTOM_OPEN_SAVED_SESSION,
+                                                action));
+        is_config_changed = true;
+    }
+    /*************************************************************************************/
+
+keyboard_shortcut_done:
+
+    if (is_config_changed)
+        qutty_config.saveConfig();
+
+    return;
+}
+
+void GuiPreferencesWindow::on_btn_ok_clicked()
+{
+    QTreeWidgetItem *root, *ch;
+    map<QKeySequence, QTreeWidgetItem*> dup_find;
+
+    /******************** Keyboard Shortcuts Tab ****************************************/
+    keysh_saveShortcutChange(ui->tree_keysh->currentItem());
+    if (!shkey_changed)
+        goto keyboard_shortcut_done;
+    root = ui->tree_keysh->invisibleRootItem();
+    // find duplicates in keyboard shortcuts
+    for(int i = 0; i < root->childCount(); i++) {
+        QTreeWidgetItem *item = root->child(i);
+        for(int j = 0; j < item->childCount(); j++) {
+            ch = item->child(j);
+            int menu_ind = ch->type() - QTreeWidgetItem::UserType;
+            if (menu_ind < 0 || menu_ind >= MENU_MAX_ACTION)
+                continue;
+            QKeySequence newseq = ch->text(1);
+            if (!newseq)
+                continue;
+            auto it = dup_find.find(newseq);
+            if(it != dup_find.end()) {
+                QString msg("The following commands have duplicate keyboard shortcut configured.\n"
+                            " * " + it->second->text(0) + "\n" +
+                            " * " + ch->text(0) + "\n");
+                QMessageBox::critical(this, tr("Duplicate keyboard shortcut"), msg);
+                //this->reject();
+                return;
+            }
+            dup_find[newseq] = ch;
+        }
+    }
+
+keyboard_shortcut_done:
+
+    this->accept();
+}
+
+void GuiPreferencesWindow::on_btn_cancel_clicked()
+{
+    this->reject();
 }
