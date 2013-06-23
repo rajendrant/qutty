@@ -16,7 +16,7 @@
 #include "GuiTabWidget.h"
 #include "GuiPreferencesWindow.h"
 
-qutty_menu_actions_t qutty_menu_actions[MENU_MAX_ACTION] = {
+qutty_menu_actions_t qutty_menu_actions[MENU_STATIC_ACTION_MAX] = {
     { "Restart Session",        "",              SLOT( contextMenuRestartSessionTriggered() ),   ""},
     { "Duplicate Session",      "",              SLOT( contextMenuDuplicateSessionTriggered() ), ""},
     { "Change Settings",        "",              SLOT( contextMenuChangeSettingsTriggered() ),   ""},
@@ -27,8 +27,8 @@ qutty_menu_actions_t qutty_menu_actions[MENU_MAX_ACTION] = {
       "Close currently active session/pane"},
     { "Horizontally",           "Ctrl+Shift+H",  SLOT( on_openNewSplitHorizontal() ),            ""},
     { "Vertically",             "Ctrl+Shift+V",  SLOT( on_openNewSplitVertical() ),              ""},
-    { "Duplicate HSplit",       "",              SLOT( contextMenuOpenDuplicateHSplit() ),       ""},
-    { "Duplicate VSplit",       "",              SLOT( contextMenuOpenDuplicateHSplit() ),       ""},
+    { "Duplicate to new HSplit", "",             SLOT( contextMenuOpenDuplicateHSplit() ),       ""},
+    { "Duplicate to new VSplit", "",             SLOT( contextMenuOpenDuplicateVSplit() ),       ""},
     { "Switch to Left Tab",     "Shift+Left",    SLOT( tabPrev() ),                              ""},
     { "Switch to Right Tab",    "Shift+Right",   SLOT( tabNext() ),                              ""},
     { "Switch to Top Pane",     "Ctrl+Shift+Up", SLOT( contextMenuPaneUp() ),                    ""},
@@ -104,40 +104,47 @@ public:
 
 void GuiMainWindow::initializeMenuSystem()
 {
-    for(int i=0; i<MENU_MAX_ACTION; i++) {
+    for(int i=0; i<MENU_STATIC_ACTION_MAX; i++) {
+        if (!qutty_menu_actions[i].name)
+            continue;
         QKeySequence keyseq(qutty_menu_actions[i].key);
         auto it = qutty_config.menu_action_list.find(i);
         if (it != qutty_config.menu_action_list.end())
             keyseq = it->second.shortcut;
 
-        menuCommonActions[i] = new QAction(qutty_menu_actions[i].name, this);
-        menuCommonActions[i]->setShortcut(keyseq);
-        menuCommonActions[i]->setToolTip(qutty_menu_actions[i].tooltip);
-        menuCommonActions[i]->setShortcutContext(Qt::WidgetShortcut);
-        connect(menuCommonActions[i], SIGNAL(triggered()), this, qutty_menu_actions[i].slot);
+        QAction *act = new QAction(qutty_menu_actions[i].name, this);
+        act->setToolTip(qutty_menu_actions[i].tooltip);
+        act->setShortcutContext(Qt::WidgetShortcut);
+        connect(act, SIGNAL(triggered()), this, qutty_menu_actions[i].slot);
 
-        QShortcut *shortcut = new QShortcut(QKeySequence(keyseq), this);
-        shortcut->setContext(Qt::ApplicationShortcut);
-        connect(shortcut, SIGNAL(activated()), this, qutty_menu_actions[i].slot);
-        menuCommonShortcuts.push_back(make_pair(i, shortcut));
+        QShortcut *shortcut = NULL;
+        if (qutty_menu_actions[i].slot && qutty_menu_actions[i].slot[0] &&
+            !keyseq.isEmpty()) {
+            act->setShortcut(keyseq);
+            shortcut = new QShortcut(QKeySequence(keyseq), this);
+            shortcut->setContext(Qt::ApplicationShortcut);
+            connect(shortcut, SIGNAL(activated()), this, qutty_menu_actions[i].slot);
+        }
+        // note that menuCommonShortcuts should be in sorted order
+        menuCommonShortcuts.push_back(make_tuple(i, shortcut, act));
     }
     for(int i=0; i<MENU_MAX_MENU; i++) {
         menuCommonMenus[i].setTitle(qutty_menu_links[i].name);
         populateMenu(menuCommonMenus[i], qutty_menu_links[i].links, qutty_menu_links[i].len);
     }
 
-    menuCommonActions[MENU_MENUBAR]->setCheckable(true);
-    menuCommonActions[MENU_FULLSCREEN]->setCheckable(true);
-    menuCommonActions[MENU_ALWAYSONTOP]->setCheckable(true);
+    menuGetActionById(MENU_MENUBAR)->setCheckable(true);
+    menuGetActionById(MENU_FULLSCREEN)->setCheckable(true);
+    menuGetActionById(MENU_ALWAYSONTOP)->setCheckable(true);
 
     // setup main menubar
     menuBar()->addMenu(&menuCommonMenus[MENU_FILE-MENU_SEPARATOR-1]);
     menuBar()->addMenu(&menuCommonMenus[MENU_EDIT-MENU_SEPARATOR-1]);
     menuBar()->addMenu(&menuCommonMenus[MENU_VIEW-MENU_SEPARATOR-1]);
-    menuCommonActions[MENU_MENUBAR]->setChecked(true);
+    menuGetActionById(MENU_MENUBAR)->setChecked(true);
 
     newTabToolButton.setArrowType(Qt::DownArrow);
-    newTabToolButton.setMenu(getMenuById(MENU_TAB_BAR));
+    newTabToolButton.setMenu(menuGetMenuById(MENU_TAB_BAR));
     newTabToolButton.setPopupMode(QToolButton::InstantPopup);
 
     tabArea->setCornerWidget(&newTabToolButton, Qt::TopRightCorner);
@@ -147,18 +154,89 @@ void GuiMainWindow::initializeMenuSystem()
     this->contextMenuSavedSessionsChanged();
 
     // find-next, find-previous are disabled by default
-    menuCommonActions[MENU_FIND_NEXT]->setEnabled(false);
-    menuCommonActions[MENU_FIND_PREVIOUS]->setEnabled(false);
-    menuCommonActions[MENU_FIND_CASE_INSENSITIVE]->setCheckable(true);
-    menuCommonActions[MENU_FIND_HIGHLIGHT]->setCheckable(true);
-    menuCommonActions[MENU_FIND_REGEX]->setCheckable(true);
+    menuGetActionById(MENU_FIND_NEXT)->setEnabled(false);
+    menuGetActionById(MENU_FIND_PREVIOUS)->setEnabled(false);
+    menuGetActionById(MENU_FIND_CASE_INSENSITIVE)->setCheckable(true);
+    menuGetActionById(MENU_FIND_HIGHLIGHT)->setCheckable(true);
+    menuGetActionById(MENU_FIND_REGEX)->setCheckable(true);
+
+    menuCustomSavedSessionSigMapper = new QSignalMapper(this);
+    connect(menuCustomSavedSessionSigMapper, SIGNAL(mapped(int)), SLOT(contextMenuCustomSavedSession(int)));
+    initializeCustomSavedSessionShortcuts();
+}
+
+
+QAction * GuiMainWindow::menuGetActionById(qutty_menu_id_t id)
+{
+    auto it = std::lower_bound(menuCommonShortcuts.begin(),
+                               menuCommonShortcuts.end(),
+                               std::make_tuple(id, (QShortcut*)NULL, (QAction*)NULL));
+    if (it != menuCommonShortcuts.end() && std::get<0>(*it) == id)
+        return std::get<2>(*it);
+    return NULL;
+}
+
+void GuiMainWindow::menuSetShortcutById(qutty_menu_id_t id, QKeySequence key)
+{
+    auto it = std::lower_bound(menuCommonShortcuts.begin(),
+                               menuCommonShortcuts.end(),
+                               std::make_tuple(id, (QShortcut*)NULL, (QAction*)NULL));
+    if (it != menuCommonShortcuts.end() && std::get<0>(*it) == id) {
+        if (!std::get<1>(*it)) {
+            auto shortcut = new QShortcut(QKeySequence(key), this);
+            shortcut->setContext(Qt::ApplicationShortcut);
+            connect(shortcut, SIGNAL(activated()), this, qutty_menu_actions[id].slot);
+            std::get<1>(*it) = shortcut;
+        }
+        std::get<1>(*it)->setKey(key);
+        std::get<2>(*it)->setShortcut(key);
+    }
+}
+
+QKeySequence GuiMainWindow::menuGetShortcutById(qutty_menu_id_t id)
+{
+    auto it = std::lower_bound(menuCommonShortcuts.begin(),
+                               menuCommonShortcuts.end(),
+                               std::make_tuple(id, (QShortcut*)NULL, (QAction*)NULL));
+    if (   it != menuCommonShortcuts.end() && std::get<0>(*it) == id
+        && std::get<1>(*it))
+            return std::get<1>(*it)->key();
+    return QKeySequence();
+}
+
+void GuiMainWindow::initializeCustomSavedSessionShortcuts()
+{
+    for(auto it = menuCommonShortcuts.begin();
+        it != menuCommonShortcuts.end(); ) {
+        if (std::get<0>(*it) >= MENU_CUSTOM_OPEN_SAVED_SESSION &&
+            std::get<0>(*it) < MENU_CUSTOM_OPEN_SAVED_SESSION_END ) {
+            if (std::get<1>(*it))
+                delete std::get<1>(*it);
+            if (std::get<2>(*it))
+                delete std::get<2>(*it);
+            it = menuCommonShortcuts.erase(it);
+        } else
+            ++it;
+    }
+    auto it_begin = qutty_config.menu_action_list.lower_bound(MENU_CUSTOM_OPEN_SAVED_SESSION);
+    auto it_end = qutty_config.menu_action_list.upper_bound(MENU_CUSTOM_OPEN_SAVED_SESSION_END);
+    for(auto it = it_begin; it != it_end; ++it) {
+        QShortcut *shortcut = new QShortcut(it->second.shortcut, this);
+        shortcut->setContext(Qt::ApplicationShortcut);
+        connect(shortcut, SIGNAL(activated()), menuCustomSavedSessionSigMapper, SLOT(map()));
+        menuCustomSavedSessionSigMapper->setMapping(shortcut, it->first);
+        // menuCommonShortcuts should be in sorted order
+        menuCommonShortcuts.push_back(make_tuple((int32_t)it->first, shortcut, (QAction*)NULL));
+    }
+    // expect sort to be O(n) in already (partially) sorted vector
+    std::sort(menuCommonShortcuts.begin(), menuCommonShortcuts.end());
 }
 
 void GuiMainWindow::populateMenu(QMenu &menu, qutty_menu_id_t menu_list[], int len)
 {
     for (int i=0; i < len; i++) {
         if (menu_list[i] < MENU_SEPARATOR) {
-            menu.addAction(menuCommonActions[menu_list[i]]);
+            menu.addAction(menuGetActionById(menu_list[i]));
         } else if (menu_list[i] > MENU_SEPARATOR) {
             menu.addMenu(&menuCommonMenus[menu_list[i] - MENU_SEPARATOR - 1]);
         } else {
@@ -179,9 +257,9 @@ void GuiTerminalWindow::showContextMenu(QMouseEvent *e)
         id = MENU_RESTART_SESSION;
     }
     this->mainWindow->menuCookieTermWnd = this;
-    mainWindow->menuCommonActions[id]->setVisible(false);
-    this->mainWindow->getMenuById(MENU_TERM_WINDOW)->exec(e->globalPos());
-    mainWindow->menuCommonActions[id]->setVisible(true);
+    mainWindow->menuGetActionById(id)->setVisible(false);
+    this->mainWindow->menuGetMenuById(MENU_TERM_WINDOW)->exec(e->globalPos());
+    mainWindow->menuGetActionById(id)->setVisible(true);
     this->mainWindow->menuCookieTermWnd = NULL;
 }
 
@@ -293,7 +371,9 @@ void GuiMainWindow::contextMenuCloseWindowTriggered()
 
 void GuiMainWindow::contextMenuMenuBar()
 {
-    if(menuCommonActions[MENU_MENUBAR]->isChecked()) {
+    if (qobject_cast<QShortcut*>(sender()))  // if invoked from keyboard-shortcut
+        menuGetActionById(MENU_MENUBAR)->toggle();
+    if(menuGetActionById(MENU_MENUBAR)->isChecked()) {
         menuBar()->show();
     } else {
         menuBar()->hide();
@@ -302,7 +382,9 @@ void GuiMainWindow::contextMenuMenuBar()
 
 void GuiMainWindow::contextMenuFullScreen()
 {
-    if(menuCommonActions[MENU_FULLSCREEN]->isChecked()) {
+    if (qobject_cast<QShortcut*>(sender()))  // if invoked from keyboard-shortcut
+        menuGetActionById(MENU_FULLSCREEN)->toggle();
+    if(menuGetActionById(MENU_FULLSCREEN)->isChecked()) {
         setWindowState(windowState() | Qt::WindowFullScreen);
     } else {
         setWindowState(windowState() ^ Qt::WindowFullScreen);
@@ -311,7 +393,9 @@ void GuiMainWindow::contextMenuFullScreen()
 
 void GuiMainWindow::contextMenuAlwaysOnTop()
 {
-    if(menuCommonActions[MENU_ALWAYSONTOP]->isChecked()) {
+    if (qobject_cast<QShortcut*>(sender()))  // if invoked from keyboard-shortcut
+        menuGetActionById(MENU_ALWAYSONTOP)->toggle();
+    if(menuGetActionById(MENU_ALWAYSONTOP)->isChecked()) {
         setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
     } else {
         setWindowFlags(windowFlags() ^ Qt::WindowStaysOnTopHint);
@@ -347,7 +431,7 @@ void GuiToolbarTerminalTop::initializeToolbarTerminalTop(GuiMainWindow *p)
     btns[MENU_TERMTOP_MENU].setIcon(QIcon(":/images/cog_alt_16x16.png"));
     btns[MENU_TERMTOP_MOVE].setIcon(QIcon(":/images/move_16x16.png"));
     btns[MENU_TERMTOP_CLOSE].setIcon(QIcon(":/images/x_14x14.png"));
-    btns[MENU_TERMTOP_MENU].setMenu(p->getMenuById(MENU_TERM_WINDOW));
+    btns[MENU_TERMTOP_MENU].setMenu(p->menuGetMenuById(MENU_TERM_WINDOW));
     btns[MENU_TERMTOP_MENU].setPopupMode(QToolButton::InstantPopup);
     btns[MENU_TERMTOP_MENU].setToolTip(tr("Menu"));
     btns[MENU_TERMTOP_MOVE].setToolTip(tr("Click and start dragging this pane to some other pane"));
@@ -430,4 +514,17 @@ void GuiMainWindow::contextMenuRenameTab()
                                          &ok);
     if (ok && !text.isEmpty())
         menuCookieTermWnd->setCustomSessionTitle(text);
+}
+
+void GuiMainWindow::contextMenuCustomSavedSession(int ind)
+{
+    auto it = qutty_config.menu_action_list.find(ind);
+    if (it == qutty_config.menu_action_list.end())
+        return;
+    char sessname[100];
+    qstring_to_char(sessname, it->second.str_data, sizeof(sessname));
+    auto it_cfg = qutty_config.config_list.find(sessname);
+    if (it_cfg == qutty_config.config_list.end())
+        return;
+    this->on_createNewSession(it_cfg->second, GuiBase::SplitType(it->second.int_data));
 }

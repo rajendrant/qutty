@@ -28,7 +28,7 @@ GuiFindToolBar::GuiFindToolBar(GuiMainWindow *p)
 
     b = new QToolButton(this);
     b->setIcon(QIcon(":/images/cog_alt_16x16.png"));
-    b->setMenu(p->getMenuById(MENU_FIND_OPTIONS));
+    b->setMenu(p->menuGetMenuById(MENU_FIND_OPTIONS));
     b->setPopupMode(QToolButton::InstantPopup);
     addWidget(b);
 
@@ -57,8 +57,8 @@ void GuiMainWindow::contextMenuFind()
                           t->mapTo(this, QPoint(0,0)).y());
 
         findToolBar->setFocus();
-        menuCommonActions[MENU_FIND_NEXT]->setEnabled(true);
-        menuCommonActions[MENU_FIND_PREVIOUS]->setEnabled(true);
+        menuGetActionById(MENU_FIND_NEXT)->setEnabled(true);
+        menuGetActionById(MENU_FIND_PREVIOUS)->setEnabled(true);
     } else {
         findToolBar->on_findClose();
     }
@@ -96,8 +96,8 @@ void GuiFindToolBar::on_findPrevious()
 
 void GuiFindToolBar::on_findClose()
 {
-    mainWnd->menuCommonActions[MENU_FIND_NEXT]->setEnabled(false);
-    mainWnd->menuCommonActions[MENU_FIND_PREVIOUS]->setEnabled(false);
+    mainWnd->menuGetActionById(MENU_FIND_NEXT)->setEnabled(false);
+    mainWnd->menuGetActionById(MENU_FIND_PREVIOUS)->setEnabled(false);
     mainWnd->findToolBar = NULL;
     this->deleteLater();
 }

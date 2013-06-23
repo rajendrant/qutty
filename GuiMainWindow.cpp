@@ -38,9 +38,6 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
       settingsWindow(NULL),
       newTabToolButton()
 {
-    memset(menuCommonActions, 0, sizeof(menuCommonActions));
-    menuCommonShortcuts.reserve(MENU_MAX_ACTION);
-
     setWindowTitle(APPNAME);
 
     tabArea->setTabsClosable(true);
@@ -69,8 +66,14 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
 GuiMainWindow::~GuiMainWindow()
 {
     delete tabArea;
-    for (int i=0; i < MENU_MAX_ACTION; i++)
-        delete menuCommonActions[i];
+    for(auto it = menuCommonShortcuts.begin();
+        it != menuCommonShortcuts.end();
+        ++it) {
+        if (std::get<1>(*it))
+            delete std::get<1>(*it);
+        if (std::get<2>(*it))
+            delete std::get<2>(*it);
+    }
 }
 
 void GuiMainWindow::on_createNewSession(Config cfg, GuiBase::SplitType splittype)
@@ -461,9 +464,9 @@ void GuiMainWindow::readSettings()
     menuBarVisible = settings.value("ShowMenuBar", true).toBool();
     settings.endGroup();
 
-    menuCommonActions[MENU_FULLSCREEN]->setChecked((windowState() & Qt::WindowFullScreen));
-    menuCommonActions[MENU_ALWAYSONTOP]->setChecked((windowFlags() & Qt::WindowStaysOnTopHint));
-    menuCommonActions[MENU_MENUBAR]->setChecked(menuBarVisible);
+    menuGetActionById(MENU_FULLSCREEN)->setChecked((windowState() & Qt::WindowFullScreen));
+    menuGetActionById(MENU_ALWAYSONTOP)->setChecked((windowFlags() & Qt::WindowStaysOnTopHint));
+    menuGetActionById(MENU_MENUBAR)->setChecked(menuBarVisible);
     menuBarVisible ? menuBar()->show() : menuBar()->hide();
 
     this->show();

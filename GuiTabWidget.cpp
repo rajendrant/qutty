@@ -52,8 +52,8 @@ void GuiTabWidget::showContextMenu(const QPoint &point)
     }
 
     this->mainWindow->menuCookieTermWnd = termWindow;
-    mainWindow->menuCommonActions[id]->setVisible(false);
-    this->mainWindow->getMenuById(MENU_TERM_WINDOW)->exec(this->mapToGlobal(point));
-    mainWindow->menuCommonActions[id]->setVisible(true);
+    mainWindow->menuGetActionById(id)->setVisible(false);
+    this->mainWindow->menuGetMenuById(MENU_TERM_WINDOW)->exec(this->mapToGlobal(point));
+    mainWindow->menuGetActionById(id)->setVisible(true);
     this->mainWindow->menuCookieTermWnd = NULL;
 }

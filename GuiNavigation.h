@@ -23,8 +23,7 @@ class GuiTabNavigation : public QListWidget
 public:
     GuiTabNavigation(GuiMainWindow *p);
 
-    void navigateToTabNext();
-    void navigateToTabPrev();
+    void navigateToTab(bool next);
     void acceptNavigation();
 
 protected:
@@ -43,8 +42,7 @@ public:
     GuiPaneNavigation(GuiMainWindow *p, bool is_direction_mode=false);
 
     void navigateToDirectionPane(Qt::Key key);
-    void navigateToMRUPane();
-    void navigateToLRUPane();
+    void navigateToMRUPane(bool next);
     void acceptNavigation();
 
 protected:

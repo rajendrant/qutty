@@ -4,11 +4,10 @@
  * See COPYING for distribution information.
  */
 
-#include "QtCommon.h"
-#include "GuiMainWindow.h"
-#include "GuiTerminalWindow.h"
-#include "QtTimer.h"
 #include <QKeyEvent>
+#include "QtCommon.h"
+#include "QtTimer.h"
+#include "GuiTerminalWindow.h"
 extern "C" {
 #include "putty.h"
 #include "terminal.h"

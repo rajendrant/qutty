@@ -25,7 +25,7 @@ class GuiPreferencesWindow : public QDialog
     /***************************************************************/
 
     void addItemToTree(QTreeWidgetItem *par, qutty_menu_id_t menu_index,
-                       const char *text, const char *desc);
+                       const char *text=NULL, const char *desc=NULL);
     void keysh_saveShortcutChange(QTreeWidgetItem *item);
     void keyshAddCustomSavedSessionToTree(QString session, int opentypeind, QKeySequence key);
 

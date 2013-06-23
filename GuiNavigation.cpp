@@ -4,6 +4,7 @@
  * See COPYING for distribution information.
  */
 
+#include <QApplication>
 #include <QGraphicsColorizeEffect>
 #include "GuiNavigation.h"
 #include "GuiBase.h"
@@ -47,22 +48,21 @@ void GuiTabNavigation::acceptNavigation()
     if ((sel = currentRow()) != -1) {
         mainWindow->tabArea->setCurrentIndex(currentItem()->data(Qt::UserRole).toInt());
     }
+    this->close();
 }
 
-void GuiTabNavigation::navigateToTabNext()
+void GuiTabNavigation::navigateToTab(bool next)
 {
-    if (currentRow() == count()-1)
+    if (next && currentRow() == (count()-1))
         setCurrentRow(0);
-    else
-        setCurrentRow(currentRow() + 1);
-}
-
-void GuiTabNavigation::navigateToTabPrev()
-{
-    if (currentRow() == 0)
+    else if (!next && currentRow() == 0)
         setCurrentRow(count()-1);
+    else if (next)
+        setCurrentRow(currentRow() + 1);
     else
         setCurrentRow(currentRow() - 1);
+    if (!(QApplication::keyboardModifiers() & Qt::ControlModifier))
+        this->acceptNavigation();
 }
 
 void GuiTabNavigation::focusOutEvent ( QFocusEvent * )
@@ -75,19 +75,17 @@ void GuiTabNavigation::focusOutEvent ( QFocusEvent * )
 void GuiTabNavigation::keyPressEvent ( QKeyEvent * e )
 {
     if (e->key() == Qt::Key_Up) {
-        navigateToTabPrev();
+        navigateToTab(false);
     } else if (e->key() == Qt::Key_Down) {
-        navigateToTabNext();
+        navigateToTab(true);
     }
     QListWidget::keyPressEvent(e);
 }
 
 void GuiTabNavigation::keyReleaseEvent ( QKeyEvent * e )
 {
-    if (e->key() == Qt::Key_Control) {
+    if (e->key() == Qt::Key_Control)
         this->acceptNavigation();
-        this->close();
-    }
     QListWidget::keyReleaseEvent(e);
 }
 
@@ -124,15 +122,20 @@ cu0:
 
 void GuiPaneNavigation::acceptNavigation()
 {
-    if (mrupanemap.size() <= 1)
+    if (mrupanemap.size() <= 1) {
+        this->close();
         return;
+    }
     auto it = mrupanemap.find(curr_sel);
-    if (it == mrupanemap.end())
+    if (it == mrupanemap.end()) {
+        this->close();
         return;
+    }
     it->second->setFocus();
+    this->close();
 }
 
-void GuiPaneNavigation::navigateToMRUPane()
+void GuiPaneNavigation::navigateToMRUPane(bool next)
 {
     if (mrupanemap.size() <= 1)
         return;
@@ -140,26 +143,19 @@ void GuiPaneNavigation::navigateToMRUPane()
     if (it == mrupanemap.end())
         return;
     it->second->viewport()->setGraphicsEffect(NULL);
-    ++it;
-    if (it == mrupanemap.end())
-        it = mrupanemap.begin();
+    if (next) {
+        ++it;
+        if (it == mrupanemap.end())
+            it = mrupanemap.begin();
+    } else {
+        if (it == mrupanemap.begin())
+            it = mrupanemap.end();
+        --it;
+    }
     curr_sel = it->first;
     it->second->viewport()->setGraphicsEffect(new QGraphicsColorizeEffect);
-}
-
-void GuiPaneNavigation::navigateToLRUPane()
-{
-    if (mrupanemap.size() <= 1)
-        return;
-    auto it = mrupanemap.find(curr_sel);
-    if (it == mrupanemap.end())
-        return;
-    it->second->viewport()->setGraphicsEffect(NULL);
-    if (it == mrupanemap.begin())
-        it = mrupanemap.end();
-    --it;
-    curr_sel = it->first;
-    it->second->viewport()->setGraphicsEffect(new QGraphicsColorizeEffect);
+    if (!(QApplication::keyboardModifiers() & Qt::ControlModifier))
+        this->acceptNavigation();
 }
 
 void GuiPaneNavigation::focusOutEvent(QFocusEvent *)
@@ -196,14 +192,14 @@ void GuiPaneNavigation::navigateToDirectionPane(Qt::Key key)
                 curr_sel = it->first;
         term->viewport()->setGraphicsEffect(new QGraphicsColorizeEffect);
     }
+    if (!(QApplication::keyboardModifiers() & Qt::ControlModifier))
+        this->acceptNavigation();
 }
 
 void GuiPaneNavigation::keyReleaseEvent(QKeyEvent *e)
 {
-    if (e->key() == Qt::Key_Control) {
+    if (e->key() == Qt::Key_Control)
         this->acceptNavigation();
-        this->close();
-    }
 }
 
 void GuiMainWindow::tabNext ()
@@ -226,28 +222,28 @@ void GuiMainWindow::contextMenuMRUTab()
 {
     if (!tabNavigate)
         tabNavigate = new GuiTabNavigation(this);
-    tabNavigate->navigateToTabNext();
+    tabNavigate->navigateToTab(true);
 }
 
 void GuiMainWindow::contextMenuLRUTab()
 {
     if (!tabNavigate)
         tabNavigate = new GuiTabNavigation(this);
-    tabNavigate->navigateToTabPrev();
+    tabNavigate->navigateToTab(false);
 }
 
 void GuiMainWindow::contextMenuMRUPane()
 {
     if (!paneNavigate)
         paneNavigate = new GuiPaneNavigation(this);
-    paneNavigate->navigateToMRUPane();
+    paneNavigate->navigateToMRUPane(true);
 }
 
 void GuiMainWindow::contextMenuLRUPane()
 {
     if (!paneNavigate)
         paneNavigate = new GuiPaneNavigation(this);
-    paneNavigate->navigateToLRUPane();
+    paneNavigate->navigateToMRUPane(false);
 }
 
 void GuiMainWindow::contextMenuPaneUp()

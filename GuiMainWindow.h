@@ -8,11 +8,12 @@
 #define MAINWINDOW_H
 
 #include <map>
+#include <tuple>
 #include <QMainWindow>
-#include <QMdiArea>
 #include <QMenu>
 #include <QToolButton>
 #include <QShortcut>
+#include <QSignalMapper>
 #include "QtCommon.h"
 #include "GuiSettingsWindow.h"
 #include "GuiMenu.h"
@@ -28,11 +29,7 @@ class GuiMainWindow : public QMainWindow
     Q_OBJECT
     
 public:
-    QAction *menuCommonActions[MENU_MAX_ACTION];
-    vector<std::pair<uint32_t,QShortcut*>> menuCommonShortcuts;
-    QMenu menuCommonMenus[MENU_MAX_MENU];
     GuiTerminalWindow *menuCookieTermWnd;
-    QMenu menuSavedSessions;
     GuiToolbarTerminalTop toolBarTerminalTop;    // top-right of terminal in split-mode
 
     // members for drag-drop support
@@ -57,6 +54,12 @@ private:
     std::map<const QWidget*,int> tabIndexMap;
     std::vector<std::pair<GuiSplitter*,GuiTerminalWindow*> > widgetAtIndex;
 
+    // members for action/menu support
+    vector<std::tuple<int32_t, QShortcut*, QAction*>> menuCommonShortcuts;
+    QMenu menuCommonMenus[MENU_MAX_MENU];
+    QMenu menuSavedSessions;
+    QSignalMapper *menuCustomSavedSessionSigMapper;
+
 public:
     GuiMainWindow(QWidget *parent = 0);
     ~GuiMainWindow();
@@ -66,10 +69,14 @@ public:
     GuiTerminalWindow *getCurrentTerminal();
     GuiTerminalWindow *getCurrentTerminalInTab(int tabIndex);
 
-    QMenu *getMenuById(qutty_menu_id_t id) {
+    QMenu *menuGetMenuById(qutty_menu_id_t id) {
         assert(id > MENU_SEPARATOR && id <= MENU_SEPARATOR + MENU_MAX_MENU);
         return &menuCommonMenus[id - MENU_SEPARATOR - 1];
     }
+    QAction *menuGetActionById(qutty_menu_id_t id);
+    QKeySequence menuGetShortcutById(qutty_menu_id_t id);
+    void menuSetShortcutById(qutty_menu_id_t id, QKeySequence key);
+    void initializeCustomSavedSessionShortcuts();
 
     void tabInsert(int tabind, QWidget *w, const QString &title);
     void tabRemove(int tabind);
@@ -132,6 +139,7 @@ public slots:
     void contextMenuLRUTab();
     void contextMenuMRUPane();
     void contextMenuLRUPane();
+    void contextMenuCustomSavedSession(int ind);
 };
 
 #endif // MAINWINDOW_H
