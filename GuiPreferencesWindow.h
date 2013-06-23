@@ -48,6 +48,8 @@ private slots:
 
     void on_btn_cancel_clicked();
 
+    void on_menu_cb_sel_currentIndexChanged(int index);
+
 private:
     Ui::GuiPreferencesWindow *ui;
 };

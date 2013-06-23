@@ -70,7 +70,7 @@ enum qutty_menu_id_t {
     MENU_CUSTOM_ACTION_MAX,
     MENU_MAX_ACTION = MENU_CUSTOM_ACTION_MAX,
 
-    MENU_SEPARATOR = 100000000,
+    MENU_SEPARATOR                      = 100000000,
 
 
     /*
@@ -102,7 +102,6 @@ struct qutty_menu_actions_t {
     const char *key;
     const char *slot;
     const char *tooltip;
-    int opt;
 };
 
 struct qutty_menu_links_t {

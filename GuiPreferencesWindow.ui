@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Preferences</string>
   </property>
   <property name="modal">
    <bool>true</bool>
@@ -28,12 +28,6 @@
      <property name="documentMode">
       <bool>true</bool>
      </property>
-     <widget class="QWidget" name="tabGeneral">
-      <attribute name="title">
-       <string>General</string>
-      </attribute>
-      <layout class="QHBoxLayout" name="horizontalLayout"/>
-     </widget>
      <widget class="QWidget" name="tabKeyShortcut">
       <attribute name="title">
        <string>Shortcuts</string>
@@ -118,10 +112,157 @@ p, li { white-space: pre-wrap; }
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="widget">
+     <widget class="QWidget" name="tabMenuEditor">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
       <attribute name="title">
        <string>Menus</string>
       </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_8">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Name and order of the menu items can be configured</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="menu_cb_sel">
+           <item>
+            <property name="text">
+             <string>-- Select A Menu --</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Right-click context menu</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Top-right drop down menu</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_3">
+         <property name="title">
+          <string>Description</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QLabel" name="menu_lbl_desc">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <item>
+          <widget class="QTreeWidget" name="menu_tree">
+           <column>
+            <property name="text">
+             <string>Menu Item</string>
+            </property>
+           </column>
+          </widget>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_7">
+           <item>
+            <widget class="QPushButton" name="menu_btn_add_action">
+             <property name="text">
+              <string>Add an action</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="menu_btn_add_submenu">
+             <property name="text">
+              <string>Add a submenu</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="menu_btn_add_separator">
+             <property name="text">
+              <string>Add Separator</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="menu_btn_delete">
+             <property name="text">
+              <string>Delete</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="menu_btn_move_up">
+             <property name="text">
+              <string>Up</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="menu_btn_move_down">
+             <property name="text">
+              <string>Down</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="menu_btn_reset_to_defaults">
+             <property name="text">
+              <string>Reset to Defaults</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_4">
+         <property name="title">
+          <string>Menu item Description</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QLabel" name="menu_lbl_action_desc">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Menu item Name</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="menu_le_action_name"/>
+         </item>
+        </layout>
+       </item>
+      </layout>
      </widget>
     </widget>
    </item>

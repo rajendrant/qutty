@@ -22,7 +22,7 @@ void GuiPreferencesWindow::addItemToTree(QTreeWidgetItem *par, qutty_menu_id_t m
     QTreeWidgetItem *item = new QTreeWidgetItem(par, menu_index+QTreeWidgetItem::UserType);
     item->setText(0, text);
     item->setToolTip(0, desc);
-    item->setText(1, mainWindow->menuGetShortcutById(menu_index));
+    item->setText(1, mainWindow->menuGetShortcutById(menu_index).toString());
     par->addChild(item);
 }
 
@@ -106,6 +106,8 @@ GuiPreferencesWindow::GuiPreferencesWindow(GuiMainWindow *parent) :
     ui->le_keysh_shortcut->setDisabled(true);
     /*************************************************************************************/
 
+    this->ui->tabWidget->removeTab(1);
+
     // resize to minimum needed dimension
     this->resize(0, 0);
 
@@ -176,7 +178,7 @@ void GuiPreferencesWindow::keysh_saveShortcutChange(QTreeWidgetItem *item)
         if (oldseq != newseq) {
             item->setText(1, newseq);
             QFont f = item->font(1);
-            f.setBold(newseq != mainWindow->menuGetShortcutById(menu_ind));
+            f.setBold(newseq != mainWindow->menuGetShortcutById(menu_ind).toString());
             item->setFont(1, f);
             shkey_changed = true;
         }
@@ -327,7 +329,7 @@ void GuiPreferencesWindow::on_btn_ok_clicked()
             if (menu_ind < 0 || menu_ind >= MENU_MAX_ACTION)
                 continue;
             QKeySequence newseq = ch->text(1);
-            if (!newseq)
+            if (newseq.isEmpty())
                 continue;
             auto it = dup_find.find(newseq);
             if(it != dup_find.end()) {
@@ -350,4 +352,16 @@ keyboard_shortcut_done:
 void GuiPreferencesWindow::on_btn_cancel_clicked()
 {
     this->reject();
+}
+
+void GuiPreferencesWindow::on_menu_cb_sel_currentIndexChanged(int index)
+{
+    if (index == 1) {
+        ui->menu_lbl_desc->setText(tr("This menu is shown when right-clicking on a Tab in the Tabbar\n"
+                                      "or when Ctrl + right-clicking inside a Terminal."));
+    } else if (index == 2) {
+        ui->menu_lbl_desc->setText(tr("This menu is shown when the drop-down button at top-right corner is clicked."));
+    } else {
+        ui->menu_lbl_desc->clear();
+    }
 }
