@@ -79,7 +79,6 @@ void GuiTabNavigation::keyPressEvent ( QKeyEvent * e )
     } else if (e->key() == Qt::Key_Down) {
         navigateToTab(true);
     }
-    QListWidget::keyPressEvent(e);
 }
 
 void GuiTabNavigation::keyReleaseEvent ( QKeyEvent * e )
