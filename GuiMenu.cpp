@@ -320,77 +320,75 @@ void GuiMainWindow::contextMenuSavedSessionTriggered()
 
 void GuiMainWindow::contextMenuPaste()
 {
-    if (!menuCookieTermWnd)
-        menuCookieTermWnd = this->getCurrentTerminal();
-    if (!menuCookieTermWnd)
+    GuiTerminalWindow *term = menuCookieTermWnd;
+    if ((term || (term = this->getCurrentTerminal())) &&
+        terminalList.indexOf(term)==-1)
         return;
-    menuCookieTermWnd->requestPaste();
+    term->requestPaste();
 }
 
 void GuiMainWindow::contextMenuDuplicateSessionTriggered()
 {
-    if (!menuCookieTermWnd)
-        menuCookieTermWnd = this->getCurrentTerminal();
-    if (!menuCookieTermWnd)
+    GuiTerminalWindow *term = menuCookieTermWnd;
+    if ((term || (term = this->getCurrentTerminal())) &&
+        terminalList.indexOf(term)==-1)
         return;
-    this->createNewTab(&menuCookieTermWnd->cfg);
+    this->createNewTab(&term->cfg);
 }
 
 void GuiMainWindow::contextMenuOpenDuplicateHSplit()
 {
-    if (!menuCookieTermWnd)
-        menuCookieTermWnd = this->getCurrentTerminal();
-    if (!menuCookieTermWnd)
+    GuiTerminalWindow *term = menuCookieTermWnd;
+    if ((term || (term = this->getCurrentTerminal())) &&
+        terminalList.indexOf(term)==-1)
         return;
-    this->on_createNewSession(menuCookieTermWnd->cfg, GuiBase::TYPE_HORIZONTAL);
+    this->on_createNewSession(term->cfg, GuiBase::TYPE_HORIZONTAL);
 }
 
 void GuiMainWindow::contextMenuOpenDuplicateVSplit()
 {
-    if (!menuCookieTermWnd)
-        menuCookieTermWnd = this->getCurrentTerminal();
-    if (!menuCookieTermWnd)
+    GuiTerminalWindow *term = menuCookieTermWnd;
+    if ((term || (term = this->getCurrentTerminal())) &&
+        terminalList.indexOf(term)==-1)
         return;
-    this->on_createNewSession(menuCookieTermWnd->cfg, GuiBase::TYPE_VERTICAL);
+    this->on_createNewSession(term->cfg, GuiBase::TYPE_VERTICAL);
 }
 
 void GuiMainWindow::contextMenuRestartSessionTriggered()
 {
-    if (!menuCookieTermWnd)
-        menuCookieTermWnd = this->getCurrentTerminal();
-    if (!menuCookieTermWnd)
+    GuiTerminalWindow *term = menuCookieTermWnd;
+    if ((term || (term = this->getCurrentTerminal())) &&
+        terminalList.indexOf(term)==-1)
         return;
-    menuCookieTermWnd->restartTerminal();
+    term->restartTerminal();
 }
 
 void GuiMainWindow::contextMenuChangeSettingsTriggered()
 {
-    if (!menuCookieTermWnd)
-        menuCookieTermWnd = this->getCurrentTerminal();
-    if (!menuCookieTermWnd)
+    GuiTerminalWindow *term = menuCookieTermWnd;
+    if ((term || (term = this->getCurrentTerminal())) &&
+        terminalList.indexOf(term)==-1)
         return;
-    on_changeSettingsTab(menuCookieTermWnd);
+    on_changeSettingsTab(term);
 }
 
 void GuiMainWindow::contextMenuTermTopCloseTriggered()
 {
-    if (!menuCookieTermWnd)
-        return;
-    if (terminalList.indexOf(menuCookieTermWnd) == -1)
+    GuiTerminalWindow *term = menuCookieTermWnd;
+    if ((term || (term = this->getCurrentTerminal())) &&
+        terminalList.indexOf(term)==-1)
         return;
     toolBarTerminalTop.hideMe();
-    menuCookieTermWnd->reqCloseTerminal(false);
+    term->reqCloseTerminal(false);
 }
 
 void GuiMainWindow::contextMenuCloseSessionTriggered()
 {
-    if (!menuCookieTermWnd)
-        menuCookieTermWnd = this->getCurrentTerminal();
-    if (!menuCookieTermWnd)
+    GuiTerminalWindow *term = menuCookieTermWnd;
+    if ((term || (term = this->getCurrentTerminal())) &&
+        terminalList.indexOf(term)==-1)
         return;
-    if (terminalList.indexOf(menuCookieTermWnd) == -1)
-        return;
-    menuCookieTermWnd->reqCloseTerminal(false);
+    term->reqCloseTerminal(false);
 }
 
 void GuiMainWindow::contextMenuCloseWindowTriggered()
@@ -530,19 +528,17 @@ void GuiMainWindow::contextMenuPreferences()
 
 void GuiMainWindow::contextMenuRenameTab()
 {
-    if (!menuCookieTermWnd)
-        menuCookieTermWnd = this->getCurrentTerminal();
-    if (!menuCookieTermWnd)
-        return;
-    if (terminalList.indexOf(menuCookieTermWnd) == -1)
+    GuiTerminalWindow *term = menuCookieTermWnd;
+    if ((term || (term = this->getCurrentTerminal())) &&
+        terminalList.indexOf(term)==-1)
         return;
     bool ok;
     QString text = QInputDialog::getText(this, tr("Rename Session"),
                                          tr("Session name:"), QLineEdit::Normal,
-                                         menuCookieTermWnd->getCustomSessionTitle(),
+                                         term->getCustomSessionTitle(),
                                          &ok);
     if (ok && !text.isEmpty())
-        menuCookieTermWnd->setCustomSessionTitle(text);
+        term->setCustomSessionTitle(text);
 }
 
 void GuiMainWindow::contextMenuCustomSavedSession(int ind)

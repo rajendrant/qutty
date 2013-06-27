@@ -37,6 +37,7 @@ protected:
 
         // only one timer is active at any point of time
         assert(event->timerId() == timerId);
+        timerId = -1;
 
         if (run_timers(this->nextTick, &next)) {
             startTimerForTick(next);
