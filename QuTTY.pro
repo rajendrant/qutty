@@ -142,14 +142,51 @@ RESOURCES += \
     QuTTY.qrc
 
 
-win32-msvc*:contains(QMAKE_TARGET.arch, x86_64) : {
-    LIBS += user32.lib advapi32.lib
-}
-
 win32-msvc* {
+    LIBS += user32.lib advapi32.lib
     QMAKE_CFLAGS    += -D_CRT_SECURE_NO_WARNINGS
     QMAKE_CXXFLAGS  += -D_CRT_SECURE_NO_WARNINGS
 }
+
 win32-g++ {
     QMAKE_CXXFLAGS  += -std=gnu++0x
+}
+
+Release: {
+win32-msvc* {
+# enable google-breakpad support for release mode in MSVC
+
+INCLUDEPATH += third-party/google-breakpad/
+
+SOURCES +=  \
+    third-party/google-breakpad/client/windows/handler/exception_handler.cc \
+    third-party/google-breakpad/client/windows/crash_generation/crash_generation_client.cc \
+    third-party/google-breakpad/common/windows/guid_string.cc \
+
+HEADERS +=  \
+    third-party/google-breakpad/client/windows/common/ipc_protocol.h \
+    third-party/google-breakpad/client/windows/crash_generation/crash_generation_client.h \
+    third-party/google-breakpad/client/windows/handler/exception_handler.h \
+    third-party/google-breakpad/common/scoped_ptr.h \
+    third-party/google-breakpad/common/windows/guid_string.h \
+    third-party/google-breakpad/common/windows/string_utils-inl.h \
+    third-party/google-breakpad/google_breakpad/common/breakpad_types.h \
+    third-party/google-breakpad/google_breakpad/common/minidump_cpu_amd64.h \
+    third-party/google-breakpad/google_breakpad/common/minidump_cpu_arm.h \
+    third-party/google-breakpad/google_breakpad/common/minidump_cpu_ppc.h \
+    third-party/google-breakpad/google_breakpad/common/minidump_cpu_ppc64.h \
+    third-party/google-breakpad/google_breakpad/common/minidump_cpu_sparc.h \
+    third-party/google-breakpad/google_breakpad/common/minidump_cpu_x86.h \
+    third-party/google-breakpad/google_breakpad/common/minidump_exception_win32.h \
+    third-party/google-breakpad/google_breakpad/common/minidump_exception_linux.h \
+    third-party/google-breakpad/google_breakpad/common/minidump_exception_mac.h \
+    third-party/google-breakpad/google_breakpad/common/minidump_exception_ps3.h \
+    third-party/google-breakpad/google_breakpad/common/minidump_exception_solaris.h \
+    third-party/google-breakpad/google_breakpad/common/minidump_format.h \
+
+    QMAKE_LFLAGS_RELEASE +=/MAP
+    QMAKE_LFLAGS_RELEASE +=/debug /opt:ref
+
+    DEFINES += QUTTY_ENABLE_BREAKPAD_SUPPORT="1"
+}
 }
