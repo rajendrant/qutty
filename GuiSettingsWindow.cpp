@@ -24,10 +24,28 @@ extern "C" {
 
 QtConfig qutty_config;
 
+static char sessname_split = '/';
+
+static int QUTTY_ROLE_FULL_SESSNAME = Qt::UserRole + 3;
+
+void adjust_sessname_hierarchy(QTreeWidgetItem *item);
+
+vector<string> qutty_string_split(string &str, char delim)
+{
+    stringstream ss(str);
+    string tmp;
+    vector<string> ret;
+    while (std::getline(ss, tmp, delim)) {
+        ret.push_back(tmp);
+    }
+    return ret;
+}
+
 GuiSettingsWindow::GuiSettingsWindow(QWidget *parent, GuiBase::SplitType openmode) :
     QDialog(parent),
     openMode(openmode),
-    ui(new Ui::GuiSettingsWindow)
+    ui(new Ui::GuiSettingsWindow),
+    pending_session_changes(false)
 {
     memset(&this->cfg, 0, sizeof(Config));
     isChangeSettingsMode = false;
@@ -63,6 +81,10 @@ GuiSettingsWindow::GuiSettingsWindow(QWidget *parent, GuiBase::SplitType openmod
 
     // expand all 1st level items
     ui->treeWidget->expandToDepth(0);
+
+    ui->rb_contype_raw->setVisible(false);
+    ui->rb_contype_rlogin->setVisible(false);
+    ui->rb_contype_serial->setVisible(false);
 
     ui->gp_exit_close->setId(ui->rb_exit_always, FORCE_ON);
     ui->gp_exit_close->setId(ui->rb_exit_never, FORCE_OFF);
@@ -117,13 +139,13 @@ GuiSettingsWindow::GuiSettingsWindow(QWidget *parent, GuiBase::SplitType openmod
     ui->gp_fontquality->setId(ui->rb_fontappear_default, FQ_DEFAULT);
     ui->gp_fontquality->setId(ui->rb_fontappear_clear, FQ_CLEARTYPE);
 
-    this->getConfig();
-
     this->loadSessionNames();
 
     // resize to minimum needed dimension
     this->resize(0, 0);
 
+    this->connect(ui->l_saved_sess, SIGNAL(sig_hierarchyChanged(QTreeWidgetItem*)),
+                  SLOT(slot_sessname_hierarchy_changed(QTreeWidgetItem*)));
     this->connect(this, SIGNAL(rejected()), SLOT(slot_GuiSettingsWindow_rejected()));
 
     // set focus to hostname/ipaddress
@@ -152,12 +174,14 @@ void GuiSettingsWindow::on_buttonBox_accepted()
         goto cu0;
     }
 
+    saveConfigChanges();
+
     if (ui->le_hostname->text() == "" &&
-        ui->l_saved_sess->currentItem()->text() == QUTTY_DEFAULT_CONFIG_SETTINGS) {
+        ui->l_saved_sess->currentItem()->text(0) == QUTTY_DEFAULT_CONFIG_SETTINGS) {
         return;
     } else if (ui->le_hostname->text() == "") {
         char config_name[100];
-        qstring_to_char(config_name, ui->l_saved_sess->currentItem()->text(), sizeof(config_name));
+        qstring_to_char(config_name, ui->l_saved_sess->currentItem()->text(0), sizeof(config_name));
         if (qutty_config.config_list.find(config_name) == qutty_config.config_list.end())
             return;
         setConfig(&qutty_config.config_list[config_name]);
@@ -175,14 +199,21 @@ cu0:
 void GuiSettingsWindow::on_buttonBox_rejected()
 {
     this->close();
-    this->deleteLater();
 }
 
 void GuiSettingsWindow::slot_GuiSettingsWindow_rejected()
 {
+    saveConfigChanges();
     emit signal_session_close();
     this->close();
     this->deleteLater();
+}
+
+void GuiSettingsWindow::saveConfigChanges()
+{
+    if (!pending_session_changes)
+        return;
+    qutty_config.saveConfig();
 }
 
 void GuiSettingsWindow::setConfig(Config *_cfg)
@@ -192,11 +223,16 @@ void GuiSettingsWindow::setConfig(Config *_cfg)
     this->cfg = *_cfg;
 
     // update the ui with the given settings
-    ui->le_hostname->setText(cfg.host);
+    if (cfg.host[0] != '\0')
+        ui->le_hostname->setText(cfg.host);
+
     (cfg.protocol==PROT_SSH ? ui->rb_contype_ssh : ui->rb_contype_telnet)->click();
     ui->le_port->setText(QString::number(cfg.port));
-    ui->le_saved_sess->setText(cfg.config_name);
-    QList<QListWidgetItem*> sel_saved_sess = ui->l_saved_sess->findItems(cfg.config_name, Qt::MatchExactly);
+
+    auto cfg_name_split = qutty_string_split(string(cfg.config_name), sessname_split);
+    ui->le_saved_sess->setText(QString::fromStdString(cfg_name_split.back()));
+
+    QList<QTreeWidgetItem*> sel_saved_sess = ui->l_saved_sess->findItems(cfg.config_name, Qt::MatchExactly);
     if (sel_saved_sess.size() > 0)
         ui->l_saved_sess->setCurrentItem(sel_saved_sess[0]);
 
@@ -310,10 +346,11 @@ Config *GuiSettingsWindow::getConfig()
     cfg->port = ui->le_port->text().toInt();
     cfg->protocol = ui->gp_contype->checkedButton()==ui->rb_contype_ssh ? PROT_SSH :
                                                                         PROT_TELNET ;
-    if(ui->le_saved_sess->text() != "")
-        qstring_to_char(cfg->config_name, ui->le_saved_sess->text(), sizeof(cfg->config_name));
-    else if (ui->l_saved_sess->currentItem())
-        qstring_to_char(cfg->config_name, ui->l_saved_sess->currentItem()->text(), sizeof(cfg->config_name));
+    if (ui->l_saved_sess->currentItem())
+        qstring_to_char(cfg->config_name,
+                        ui->l_saved_sess->currentItem()
+                            ->data(0, Qt::UserRole+3).toString(),
+                        sizeof(cfg->config_name));
 
     cfg->close_on_exit = ui->gp_exit_close->checkedId();
 
@@ -406,31 +443,130 @@ Config *GuiSettingsWindow::getConfig()
 
 void GuiSettingsWindow::loadSessionNames()
 {
+    map<string, QTreeWidgetItem*> folders;
+    folders[""] = ui->l_saved_sess->invisibleRootItem();
     ui->l_saved_sess->clear();
     for(std::map<string, Config>::iterator it = qutty_config.config_list.begin();
         it != qutty_config.config_list.end(); it++) {
-        ui->l_saved_sess->addItem(new QListWidgetItem(it->first.c_str()));
+        string fullsessname = it->first;
+        if (folders.find(fullsessname) != folders.end())
+            continue;
+        if (fullsessname.back() == sessname_split)
+            fullsessname.pop_back();
+        vector<string> split = qutty_string_split(fullsessname, sessname_split);
+        string sessname = split.back();
+        string dirname = fullsessname.substr(0, fullsessname.find_last_of(sessname_split));
+        if (dirname == fullsessname)
+            dirname = "";
+        if (folders.find(dirname) == folders.end()) {
+            QTreeWidgetItem *par = ui->l_saved_sess->invisibleRootItem();
+            string tmpdir = "";
+            for (int i=0; i<split.size()-1; i++) {
+                tmpdir += split[i];
+                if (folders.find(tmpdir) == folders.end()) {
+                    QTreeWidgetItem *newitem = new QTreeWidgetItem(par);
+                    newitem->setText(0, QString::fromStdString(split[i]));
+                    newitem->setData(0, Qt::UserRole+3, QString::fromStdString(tmpdir));
+                    newitem->setData(0, GuiTreeWidget::DragEnabledProperty, true);
+                    newitem->setData(0, GuiTreeWidget::DropEnabledProperty, true);
+                    folders[tmpdir] = newitem;
+                    par = newitem;
+                } else
+                    par = folders[tmpdir];
+                tmpdir += sessname_split;
+            }
+        }
+        QTreeWidgetItem *item = new QTreeWidgetItem(folders[dirname]);
+        item->setText(0, QString::fromStdString(sessname));
+        item->setData(0, Qt::UserRole+3, QString::fromStdString(fullsessname));
+        item->setData(0, GuiTreeWidget::DragEnabledProperty, true);
+        item->setData(0, GuiTreeWidget::DropEnabledProperty, true);
+        if (fullsessname == QUTTY_DEFAULT_CONFIG_SETTINGS) {
+            item->setData(0, GuiTreeWidget::DragEnabledProperty, false);
+            item->setData(0, GuiTreeWidget::DropEnabledProperty, false);
+        }
+        folders[fullsessname] = item;
     }
 }
 
-void GuiSettingsWindow::on_b_load_sess_clicked()
+void GuiSettingsWindow::on_l_saved_sess_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous)
 {
-    char config_name[100];
-    if (!ui->l_saved_sess->currentItem())
+    if (isChangeSettingsMode)
         return;
-    qstring_to_char(config_name, ui->l_saved_sess->currentItem()->text(), sizeof(config_name));
+    if (!current)
+        return;
+    string config_name;
+    config_name = current->data(0, QUTTY_ROLE_FULL_SESSNAME).toString().toStdString();
     if (qutty_config.config_list.find(config_name) == qutty_config.config_list.end())
         return;
     setConfig(&qutty_config.config_list[config_name]);
+    ui->le_saved_sess->setText(current->text(0));
+}
+
+void GuiSettingsWindow::on_b_sess_newfolder_clicked()
+{
+    QTreeWidgetItem *item = ui->l_saved_sess->currentItem();
+    if (!item)
+        return;
+    QString fullname;
+    QTreeWidgetItem *parent = item->parent();
+    if (!parent)
+        parent = ui->l_saved_sess->invisibleRootItem();
+    else
+        fullname = parent->data(0, QUTTY_ROLE_FULL_SESSNAME).toString() + sessname_split;
+    QTreeWidgetItem *newitem = new QTreeWidgetItem(0);
+    QString foldername = tr("New Session");
+    for (int i=1; ; i++) {
+        bool isunique = true;
+        for (int j=0; j<parent->childCount(); j++) {
+            if (parent->child(j)->text(0) == foldername) {
+                isunique = false;
+                foldername = tr("New Session (") + QString::number(i) + tr(")");
+                break;
+            }
+        }
+        if (isunique)
+            break;
+    }
+    fullname += foldername;
+    newitem->setText(0, foldername);
+    newitem->setData(0, QUTTY_ROLE_FULL_SESSNAME, fullname);
+    newitem->setData(0, GuiTreeWidget::DragEnabledProperty, true);
+    newitem->setData(0, GuiTreeWidget::DropEnabledProperty, true);
+    parent->insertChild(parent->indexOfChild(item)+1, newitem);
+    Config cfg = qutty_config.config_list[QUTTY_DEFAULT_CONFIG_SETTINGS];
+    qstring_to_char(cfg.config_name, fullname, sizeof(cfg.config_name));
+    qutty_config.config_list[fullname.toStdString()] = cfg;
+
+    pending_session_changes = true;
 }
 
 void GuiSettingsWindow::on_b_save_sess_clicked()
 {
+    QTreeWidgetItem *item = ui->l_saved_sess->currentItem();
+    string oldfullname, fullname, oldname, name;
+    if (!item || item->text(0) == QUTTY_DEFAULT_CONFIG_SETTINGS)
+        return;
+    name = ui->le_saved_sess->text().toStdString();
+    if (!name.length())
+        return;
+    oldname = item->text(0).toStdString();
+    oldfullname = item->data(0, QUTTY_ROLE_FULL_SESSNAME).toString().toStdString();
+    if (item->parent())
+        fullname = item->parent()->data(0, QUTTY_ROLE_FULL_SESSNAME)
+                .toString().toStdString() + sessname_split;
+    fullname += name;
+    qutty_config.config_list.erase(oldfullname);
     Config *cfg = this->getConfig();
-    qutty_config.config_list[cfg->config_name] = *cfg;
-    qutty_config.saveConfig();
-    qutty_config.restoreConfig();
-    loadSessionNames();
+    qutty_config.config_list[fullname] = *cfg;
+
+    item->setText(0, QString::fromStdString(name));
+    item->setData(0, QUTTY_ROLE_FULL_SESSNAME, QString::fromStdString(fullname));
+
+    for(int i=0; i<item->childCount(); i++)
+        adjust_sessname_hierarchy(item->child(i));
+
+    pending_session_changes = true;
 }
 
 void GuiSettingsWindow::loadDefaultSettings()
@@ -450,24 +586,22 @@ void GuiSettingsWindow::enableModeChangeSettings(Config *cfg, GuiTerminalWindow 
 
     ui->buttonBox->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     ui->gp_connection->setEnabled(false);
-    ui->b_load_sess->setEnabled(false);
     ui->b_delete_sess->setEnabled(false);
+    ui->b_sess_newfolder->setEnabled(false);
+    ui->l_saved_sess->setEnabled(false);
 }
 
 void GuiSettingsWindow::on_b_delete_sess_clicked()
 {
-    char config_name[100];
-    if (!ui->l_saved_sess->currentItem())
+    QTreeWidgetItem *delitem = ui->l_saved_sess->currentItem();
+    string config_name;
+    if (!delitem || delitem->text(0) == QUTTY_DEFAULT_CONFIG_SETTINGS)
         return;
-    qstring_to_char(config_name, ui->l_saved_sess->currentItem()->text(), sizeof(config_name));
-    if (ui->l_saved_sess->currentItem()->text() == QUTTY_DEFAULT_CONFIG_SETTINGS)
-        return;
-    if (qutty_config.config_list.find(config_name) == qutty_config.config_list.end())
-        return;
+    config_name = delitem->data(0, QUTTY_ROLE_FULL_SESSNAME).toString().toStdString();
     qutty_config.config_list.erase(config_name);
-    qutty_config.saveConfig();
-    qutty_config.restoreConfig();
-    loadSessionNames();
+    delete delitem;
+
+    pending_session_changes = true;
 }
 
 void GuiSettingsWindow::on_l_saved_sess_doubleClicked(const QModelIndex &)
@@ -475,8 +609,42 @@ void GuiSettingsWindow::on_l_saved_sess_doubleClicked(const QModelIndex &)
     if (isChangeSettingsMode)
         return;
 
-    on_b_load_sess_clicked();
+    if (!ui->le_hostname->text().length())
+        return;
+    QTreeWidgetItem *item = ui->l_saved_sess->currentItem();
+    if (!item)
+        return;
+    if (item->childCount()) // allow double-click to expand
+        return;
     on_buttonBox_accepted();
+}
+
+void adjust_sessname_hierarchy(QTreeWidgetItem *item)
+{
+    if (!item)
+        return;
+    QTreeWidgetItem *par = item->parent();
+    QString fullname, oldfullname;
+    if (par)
+        fullname = par->data(0, QUTTY_ROLE_FULL_SESSNAME).toString() + sessname_split;
+    fullname += item->text(0);
+    oldfullname = item->data(0, QUTTY_ROLE_FULL_SESSNAME).toString();
+    if (fullname == oldfullname)
+        return; // no change
+    item->setData(0, QUTTY_ROLE_FULL_SESSNAME, fullname);
+    Config cfg = qutty_config.config_list[oldfullname.toStdString()];
+    qstring_to_char(cfg.config_name, fullname, sizeof(cfg.config_name));
+    qutty_config.config_list.erase(oldfullname.toStdString());
+    qutty_config.config_list[fullname.toStdString()] = cfg;
+    for(int i=0; i<item->childCount(); i++)
+        adjust_sessname_hierarchy(item->child(i));
+}
+
+void GuiSettingsWindow::slot_sessname_hierarchy_changed(QTreeWidgetItem *item)
+{
+    // current item & its child have moved to different place
+    adjust_sessname_hierarchy(item);
+    pending_session_changes = true;
 }
 
 void GuiSettingsWindow::on_btn_ssh_auth_browse_keyfile_clicked()
