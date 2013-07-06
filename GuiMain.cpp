@@ -5,6 +5,7 @@
  */
 
 #include <QApplication>
+#include <QDir>
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include "GuiSettingsWindow.h"
@@ -15,9 +16,14 @@
 
 int main(int argc, char *argv[])
 {
+    QDir dumps_dir(QDir::home().filePath("qutty/dumps"));
+    if (!dumps_dir.exists()) {
+        dumps_dir.mkpath(".");
+    }
+
 #ifdef QUTTY_ENABLE_BREAKPAD_SUPPORT
     new google_breakpad::ExceptionHandler(
-                std::wstring(L"C:/dumps/"),
+                dumps_dir.path().toStdWString(),
                 NULL,
                 NULL,
                 NULL,

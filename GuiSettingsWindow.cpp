@@ -597,6 +597,11 @@ void GuiSettingsWindow::on_b_delete_sess_clicked()
     string config_name;
     if (!delitem || delitem->text(0) == QUTTY_DEFAULT_CONFIG_SETTINGS)
         return;
+    if (delitem->childCount()) {
+        QMessageBox::information(this, tr("Cannot delete session"),
+                                 tr("First delete the child sessions"));
+        return;
+    }
     config_name = delitem->data(0, QUTTY_ROLE_FULL_SESSNAME).toString().toStdString();
     qutty_config.config_list.erase(config_name);
     delete delitem;
