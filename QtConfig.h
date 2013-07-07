@@ -10,6 +10,8 @@ extern "C" {
 #include <map>
 #include <string>
 #include <stddef.h>
+#include <QFile>
+
 
 using namespace std;
 
@@ -40,6 +42,9 @@ public:
 
     bool restoreConfig();
     bool saveConfig();
+    void importFromFile(QFile*);
+    void importFromPutty();
+    void exportToFile(QFile*);
 
 signals:
     void savedSessionsChanged();

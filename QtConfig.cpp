@@ -8,6 +8,10 @@
 #include <QObject>
 #include <QMessageBox>
 #include <QDebug>
+#include <QFileDialog>
+#include <QString>
+#include "GuiImportExportFile.h"
+
 extern "C" {
 #include "WINDOWS\STORAGE.H"
 }
@@ -229,21 +233,41 @@ int QtConfig::writeToXML(QIODevice *device)
 
 bool QtConfig::restoreConfig()
 {
+    bool rc = true;
     config_list.clear();
     QFile file(QDir::home().filePath("qutty.xml"));
 
-    if (!file.exists()) {
+    if (!file.exists())
+    {
         restoreFromPuttyWinRegistry();
+        if (this->config_list.size() > 0)
+        {
+            rc = this->saveConfig();
+             if (rc)
+             {
+                        QMessageBox::information(NULL, QObject::tr("Qutty first-time Configuration"),
+                                     QObject::tr("Automatically loaded %1 saved sessions from PuTTY")
+                                         .arg(this->config_list.size()-1));
+             }
+             else
+             {
+                        QMessageBox::warning(NULL, QObject::tr("Qutty first-time Configuration"),
+                                     QObject::tr("Failed to save %1 saved sessions from PuTTY")
+                                         .arg(this->config_list.size()-1));
+             }
+        }
     }
 
-    if (!file.exists()) {
+    if (!file.exists())
+    {
         Config cfg;
         initConfigDefaults(&cfg);
         strcpy(cfg.config_name, QUTTY_DEFAULT_CONFIG_SETTINGS);
         qutty_config.config_list[QUTTY_DEFAULT_CONFIG_SETTINGS] = cfg;
         saveConfig();
     }
-    if (!file.open(QFile::ReadOnly | QFile::Text)) {
+    if (!file.open(QFile::ReadOnly | QFile::Text))
+    {
         QMessageBox::warning(NULL, QObject::tr("Qutty Configuration"),
                              QObject::tr("Cannot read file %1:\n%2.")
                              .arg(file.fileName())
@@ -252,7 +276,7 @@ bool QtConfig::restoreConfig()
     }
     readFromXML(&file);
     emit savedSessionsChanged();
-    return true;
+    return rc;
 }
 
 /*
@@ -287,22 +311,9 @@ bool QtConfig::restoreFromPuttyWinRegistry()
     if (handle) {
         while (enum_sshhostkey_next(handle, hostkey, sizeof(hostkey),
                                     hostkey_val, sizeof(hostkey_val))) {
-            qutty_config.ssh_host_keys[string((char*)hostkey)] = string((char*)hostkey_val);
+            this->ssh_host_keys[string((char*)hostkey)] = string((char*)hostkey_val);
         }
         enum_sshhostkey_finish(handle);
-    }
-
-    if (savedSess.nsessions > 0) {
-        rc = this->saveConfig();
-        if (rc) {
-            QMessageBox::information(NULL, QObject::tr("Qutty first-time Configuration"),
-                         QObject::tr("Automatically loaded %1 saved sessions from PuTTY")
-                             .arg(savedSess.nsessions-1));
-        } else {
-            QMessageBox::warning(NULL, QObject::tr("Qutty first-time Configuration"),
-                         QObject::tr("Failed to save %1 saved sessions from PuTTY")
-                             .arg(savedSess.nsessions-1));
-        }
     }
 
     get_sesslist(&savedSess, FALSE);    /* free */
@@ -322,4 +333,36 @@ bool QtConfig::saveConfig()
     }
     writeToXML(&file);
     return true;
+}
+
+void QtConfig::importFromFile(QFile *file)
+{
+    if (!file->open(QFile::ReadWrite | QFile::Text))
+    {
+            QMessageBox::warning(NULL, QObject::tr("Qutty Configuration"),
+                                 QObject::tr("Cannot read file %1:\n%2.")
+                                 .arg(file->fileName())
+                                 .arg(file->errorString()));
+            return;
+    }
+
+    readFromXML(file);
+}
+
+void QtConfig::importFromPutty()
+{
+    restoreFromPuttyWinRegistry();
+}
+
+void QtConfig::exportToFile(QFile *file)
+{
+    if (!file->open(QFile::WriteOnly | QFile::Text))
+    {
+            QMessageBox::warning(NULL, QObject::tr("Qutty Configuration"),
+                                 QObject::tr("Cannot write file %1:\n%2.")
+                                 .arg(file->fileName())
+                                 .arg(file->errorString()));
+            return;
+    }
+    writeToXML(file);
 }

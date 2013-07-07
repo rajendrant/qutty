@@ -9,12 +9,15 @@
 #include <QString>
 #include <QAction>
 #include <QMenuBar>
+#include <QFile>
 #include <QInputDialog>
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include "GuiSplitter.h"
 #include "GuiTabWidget.h"
 #include "GuiPreferencesWindow.h"
+#include "GuiImportExportFile.h"
+#include "QtConfig.h"
 
 qutty_menu_actions_t qutty_menu_actions[MENU_STATIC_ACTION_MAX] = {
     { "Restart Session",        "",              SLOT( contextMenuRestartSessionTriggered() ),
@@ -59,9 +62,12 @@ qutty_menu_actions_t qutty_menu_actions[MENU_STATIC_ACTION_MAX] = {
       "Switch to the split-pane that is most recently used"},
     { "Switch to LRU Pane",     "Ctrl+Shift+]",  SLOT( contextMenuLRUPane() ),
       "Switch to the split-pane that is least recently used"},
-    { "Import from File",       "",              "",                                             ""},
-    { "Import PuTTY sessions",  "",              "",                                             ""},
-    { "Export from File",       "",              "",                                             ""},
+    { "Import from File",       "",              SLOT(contextMenuImportFromFile()),
+      "Import the QuTTY sessions from file"},
+    { "Import PuTTY sessions",  "",              SLOT(contextMenuImportFromPuttySessions()),
+      "Import the sessions from PuTTY"},
+    { "Export To File",       "",                SLOT(contextMenuExportToFile()),
+      "Export the QuTTY sessions to file"},
     { "Exit",                   "",              SLOT( contextMenuCloseWindowTriggered() ),
       "Close the window"},
     { "Show Menubar",           "",              SLOT( contextMenuMenuBar() ),
@@ -552,4 +558,28 @@ void GuiMainWindow::contextMenuCustomSavedSession(int ind)
     if (it_cfg == qutty_config.config_list.end())
         return;
     this->on_createNewSession(it_cfg->second, GuiBase::SplitType(it->second.int_data));
+}
+
+void GuiMainWindow::contextMenuImportFromFile()
+{
+    QString fileName;
+    fileName = QFileDialog::getOpenFileName(this, tr("Select a file to import"));
+    if(fileName != NULL)
+    {
+        QFile file(fileName);
+        GuiImportExportFile *importExportFile = new GuiImportExportFile(this, &file, true);
+        importExportFile->show();
+    }
+}
+
+void GuiMainWindow::contextMenuImportFromPuttySessions()
+{
+    GuiImportExportFile *importExportFile = new GuiImportExportFile(this, NULL, true);
+    importExportFile->show();
+}
+
+void GuiMainWindow::contextMenuExportToFile()
+{
+    GuiImportExportFile *importExportFile = new GuiImportExportFile(this, NULL);
+    importExportFile->show();
 }

@@ -39,6 +39,7 @@ SOURCES +=  \
     GuiFindToolBar.cpp \
     GuiNavigation.cpp \
     GuiTreeWidget.cpp \
+    GuiImportExportFile.cpp \
     puttysrc/WINDOWS/winnoise.c \
     puttysrc/WINDOWS/winstore.c \
     puttysrc/WINDOWS/windefs.c \
@@ -92,6 +93,7 @@ HEADERS +=  \
     GuiSettingsWindow.h \
     GuiPreferencesWindow.h \
     GuiTreeWidget.h \
+    GuiImportExportFile.h \
     QtCommon.h \
     QtLogDbg.h \
     QtConfig.h \

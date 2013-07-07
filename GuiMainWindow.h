@@ -140,6 +140,9 @@ public slots:
     void contextMenuMRUPane();
     void contextMenuLRUPane();
     void contextMenuCustomSavedSession(int ind);
+    void contextMenuImportFromFile();
+    void contextMenuImportFromPuttySessions();
+    void contextMenuExportToFile();
 };
 
 #endif // MAINWINDOW_H
