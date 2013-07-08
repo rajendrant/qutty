@@ -169,7 +169,6 @@ int QtConfig::writeToXML(QIODevice *device)
         it != config_list.end(); it++) {
         int i;
         Config *cfg = &(it->second);
-
         xml.writeStartElement("config");
         xml.writeAttribute("version", "1.0");
 

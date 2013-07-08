@@ -91,6 +91,11 @@ GuiPreferencesWindow::GuiPreferencesWindow(GuiMainWindow *parent) :
     addItemToTree(item, MENU_FIND);
     addItemToTree(item, MENU_FIND_NEXT);
     addItemToTree(item, MENU_FIND_PREVIOUS);
+    item = new QTreeWidgetItem(tree, QStringList("Import and Export"));
+    item->setFont(0, font);
+    addItemToTree(item, MENU_IMPORT_FILE);
+    addItemToTree(item, MENU_IMPORT_REGISTRY);
+    addItemToTree(item, MENU_EXPORT_FILE);
 
     /***** setup custom saved session list ******/
     auto it_begin = qutty_config.menu_action_list.lower_bound(MENU_CUSTOM_OPEN_SAVED_SESSION);

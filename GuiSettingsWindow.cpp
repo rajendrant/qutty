@@ -558,6 +558,7 @@ void GuiSettingsWindow::on_b_save_sess_clicked()
     fullname += name;
     qutty_config.config_list.erase(oldfullname);
     Config *cfg = this->getConfig();
+    strncpy (cfg->config_name, fullname.c_str(), sizeof(cfg->config_name));
     qutty_config.config_list[fullname] = *cfg;
 
     item->setText(0, QString::fromStdString(name));
