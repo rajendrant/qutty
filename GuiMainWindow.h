@@ -15,11 +15,13 @@
 #include <QShortcut>
 #include <QSignalMapper>
 #include "QtCommon.h"
+#include "GuiCompactSettingsWindow.h"
 #include "GuiSettingsWindow.h"
 #include "GuiMenu.h"
 #include "GuiDrag.h"
 #include "GuiNavigation.h"
 
+class GuiCompactSettingsWindow;
 class GuiSettingsWindow;
 class GuiFindToolBar;
 class GuiTabWidget;
@@ -46,6 +48,7 @@ public:
     GuiTabWidget *tabArea;
 
 private:
+    GuiCompactSettingsWindow *compactSettingsWindow;
     GuiSettingsWindow *settingsWindow;
     QList<GuiTerminalWindow *> terminalList;
     QToolButton newTabToolButton;   // shown in top right corner of tabbar
@@ -95,10 +98,11 @@ private:
 
 public slots:
     void on_openNewWindow();
+    void on_openNewCompactSession(GuiBase::SplitType splittype);
     void on_openNewSession(GuiBase::SplitType splittype);
-    void on_openNewTab() { on_openNewSession(GuiBase::TYPE_LEAF); }
-    void on_openNewSplitHorizontal() { on_openNewSession(GuiBase::TYPE_HORIZONTAL); }
-    void on_openNewSplitVertical() { on_openNewSession(GuiBase::TYPE_VERTICAL); }
+    void on_openNewTab() { on_openNewCompactSession(GuiBase::TYPE_LEAF); }
+    void on_openNewSplitHorizontal() { on_openNewCompactSession(GuiBase::TYPE_HORIZONTAL); }
+    void on_openNewSplitVertical() { on_openNewCompactSession(GuiBase::TYPE_VERTICAL); }
     void on_createNewSession(Config cfg, GuiBase::SplitType splittype);
     void on_settingsWindowClose();
     void on_changeSettingsTab(GuiTerminalWindow *termWnd);

@@ -40,6 +40,7 @@ SOURCES +=  \
     GuiNavigation.cpp \
     GuiTreeWidget.cpp \
     GuiImportExportFile.cpp \
+    GuiCompactSettingsWindow.cpp \
     puttysrc/WINDOWS/winnoise.c \
     puttysrc/WINDOWS/winstore.c \
     puttysrc/WINDOWS/windefs.c \
@@ -107,6 +108,7 @@ HEADERS +=  \
     GuiFindToolBar.h \
     GuiTabBar.h \
     GuiNavigation.h \
+    GuiCompactSettingsWindow.h \
     puttysrc/WINDOWS/STORAGE.H \
     puttysrc/TREE234.H \
     puttysrc/TERMINAL.H \

@@ -36,6 +36,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
       paneNavigate(NULL),
       tabArea(new GuiTabWidget(this)),
       settingsWindow(NULL),
+      compactSettingsWindow(NULL),
       newTabToolButton()
 {
     setWindowTitle(APPNAME);
@@ -176,9 +177,29 @@ void GuiMainWindow::on_openNewSession(GuiBase::SplitType splittype)
     settingsWindow->show();
 }
 
+void GuiMainWindow::on_openNewCompactSession(GuiBase::SplitType splittype)
+{
+    /*
+     * 1. Context menu -> New Tab
+     * 2. Main Menu -> New tab
+     * 3. Keyboard shortcut
+     * 4. Split sessions
+     */
+    if (compactSettingsWindow) {
+        QMessageBox::information(this, tr("Cannot open"), tr("Close the existing settings window"));
+        return;
+    }
+    compactSettingsWindow = new GuiCompactSettingsWindow(this, splittype);
+    connect(compactSettingsWindow, SIGNAL(signal_on_open(Config, GuiBase::SplitType)), SLOT(on_createNewSession(Config, GuiBase::SplitType)));
+    connect(compactSettingsWindow, SIGNAL(signal_on_close()), SLOT(on_settingsWindowClose()));
+    connect(compactSettingsWindow, SIGNAL(signal_on_detail(GuiBase::SplitType)), SLOT(on_openNewSession(GuiBase::SplitType)));
+    compactSettingsWindow->show();
+}
+
 void GuiMainWindow::on_settingsWindowClose()
 {
     settingsWindow = NULL;
+    compactSettingsWindow = NULL;
 }
 
 void GuiMainWindow::on_openNewWindow()
