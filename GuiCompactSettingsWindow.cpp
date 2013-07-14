@@ -37,15 +37,26 @@ GuiCompactSettingsWindow::GuiCompactSettingsWindow(QWidget *parent, GuiBase::Spl
     QtCompleterWithAdvancedCompletion *c = new QtCompleterWithAdvancedCompletion(le_hostname);
     c->setModel(completions);
 
+    cb_session_list = new QtComboBoxWithTreeView(this);
+    cb_session_list->setItemDelegate(new QtSessionTreeItemDelegate);
+    cb_session_list->setModel(new QtSessionTreeModel(this, qutty_config.config_list));
+    cb_session_list->setMaxVisibleItems(15);
+
     cb_connection_type = new QComboBox(this);
     cb_connection_type->setMaximumWidth(100);
     cb_connection_type->addItem("Telnet");
     cb_connection_type->addItem("SSH");
 
-    cb_session_list = new QtComboBoxWithTreeView(this);
-    cb_session_list->setItemDelegate(new QtSessionTreeItemDelegate);
-    cb_session_list->setModel(new QtSessionTreeModel(this, qutty_config.config_list));
-    cb_session_list->setMaxVisibleItems(15);
+    if(qutty_config.config_list.find(QUTTY_DEFAULT_CONFIG_SETTINGS) != qutty_config.config_list.end())
+    {
+        cfg = &qutty_config.config_list[QUTTY_DEFAULT_CONFIG_SETTINGS];
+        cb_session_list->setCurrentText(QString(cfg->config_name));
+        le_hostname->setText(QString(cfg->host));
+        if(cfg->protocol == PROT_TELNET)
+            cb_connection_type->setCurrentIndex(0);
+        else
+            cb_connection_type->setCurrentIndex(1);
+    }
 
     connect(cb_session_list, SIGNAL(activated(int)), this, SLOT(on_cb_session_list_activated(int)));
 
@@ -122,7 +133,8 @@ void GuiCompactSettingsWindow::on_cb_session_list_activated(int n)
     if(it != qutty_config.config_list.end())
     {
         cfg = &(it->second);
-        le_hostname->setText(QString(cfg->host));
+        if(cfg->host[0] != '\0')
+            le_hostname->setText(QString(cfg->host));
         if(cfg->protocol == PROT_TELNET)
             cb_connection_type->setCurrentIndex(0);
         else
