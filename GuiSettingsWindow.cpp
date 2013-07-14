@@ -24,8 +24,6 @@ extern "C" {
 
 QtConfig qutty_config;
 
-static char sessname_split = '/';
-
 static int QUTTY_ROLE_FULL_SESSNAME = Qt::UserRole + 3;
 
 void adjust_sessname_hierarchy(QTreeWidgetItem *item);
@@ -229,7 +227,7 @@ void GuiSettingsWindow::setConfig(Config *_cfg)
     (cfg.protocol==PROT_SSH ? ui->rb_contype_ssh : ui->rb_contype_telnet)->click();
     ui->le_port->setText(QString::number(cfg.port));
 
-    auto cfg_name_split = qutty_string_split(string(cfg.config_name), sessname_split);
+    auto cfg_name_split = qutty_string_split(string(cfg.config_name), QUTTY_SESSION_NAME_SPLIT);
     ui->le_saved_sess->setText(QString::fromStdString(cfg_name_split.back()));
 
     QList<QTreeWidgetItem*> sel_saved_sess = ui->l_saved_sess->findItems(cfg.config_name, Qt::MatchExactly);
@@ -349,7 +347,7 @@ Config *GuiSettingsWindow::getConfig()
     if (ui->l_saved_sess->currentItem())
         qstring_to_char(cfg->config_name,
                         ui->l_saved_sess->currentItem()
-                            ->data(0, Qt::UserRole+3).toString(),
+                            ->data(0, QUTTY_ROLE_FULL_SESSNAME).toString(),
                         sizeof(cfg->config_name));
 
     cfg->close_on_exit = ui->gp_exit_close->checkedId();
@@ -451,11 +449,11 @@ void GuiSettingsWindow::loadSessionNames()
         string fullsessname = it->first;
         if (folders.find(fullsessname) != folders.end())
             continue;
-        if (fullsessname.back() == sessname_split)
+        if (fullsessname.back() == QUTTY_SESSION_NAME_SPLIT)
             fullsessname.pop_back();
-        vector<string> split = qutty_string_split(fullsessname, sessname_split);
+        vector<string> split = qutty_string_split(fullsessname, QUTTY_SESSION_NAME_SPLIT);
         string sessname = split.back();
-        string dirname = fullsessname.substr(0, fullsessname.find_last_of(sessname_split));
+        string dirname = fullsessname.substr(0, fullsessname.find_last_of(QUTTY_SESSION_NAME_SPLIT));
         if (dirname == fullsessname)
             dirname = "";
         if (folders.find(dirname) == folders.end()) {
@@ -466,24 +464,20 @@ void GuiSettingsWindow::loadSessionNames()
                 if (folders.find(tmpdir) == folders.end()) {
                     QTreeWidgetItem *newitem = new QTreeWidgetItem(par);
                     newitem->setText(0, QString::fromStdString(split[i]));
-                    newitem->setData(0, Qt::UserRole+3, QString::fromStdString(tmpdir));
-                    newitem->setData(0, GuiTreeWidget::DragEnabledProperty, true);
-                    newitem->setData(0, GuiTreeWidget::DropEnabledProperty, true);
+                    newitem->setData(0, QUTTY_ROLE_FULL_SESSNAME, QString::fromStdString(tmpdir));
                     folders[tmpdir] = newitem;
                     par = newitem;
                 } else
                     par = folders[tmpdir];
-                tmpdir += sessname_split;
+                tmpdir += QUTTY_SESSION_NAME_SPLIT;
             }
         }
         QTreeWidgetItem *item = new QTreeWidgetItem(folders[dirname]);
         item->setText(0, QString::fromStdString(sessname));
-        item->setData(0, Qt::UserRole+3, QString::fromStdString(fullsessname));
-        item->setData(0, GuiTreeWidget::DragEnabledProperty, true);
-        item->setData(0, GuiTreeWidget::DropEnabledProperty, true);
+        item->setData(0, QUTTY_ROLE_FULL_SESSNAME, QString::fromStdString(fullsessname));
         if (fullsessname == QUTTY_DEFAULT_CONFIG_SETTINGS) {
-            item->setData(0, GuiTreeWidget::DragEnabledProperty, false);
-            item->setData(0, GuiTreeWidget::DropEnabledProperty, false);
+            item->setFlags(item->flags() ^ Qt::ItemIsDragEnabled);
+            item->setFlags(item->flags() ^ Qt::ItemIsDropEnabled);
         }
         folders[fullsessname] = item;
     }
@@ -513,7 +507,7 @@ void GuiSettingsWindow::on_b_sess_newfolder_clicked()
     if (!parent)
         parent = ui->l_saved_sess->invisibleRootItem();
     else
-        fullname = parent->data(0, QUTTY_ROLE_FULL_SESSNAME).toString() + sessname_split;
+        fullname = parent->data(0, QUTTY_ROLE_FULL_SESSNAME).toString() + QUTTY_SESSION_NAME_SPLIT;
     QTreeWidgetItem *newitem = new QTreeWidgetItem(0);
     QString foldername = tr("New Session");
     for (int i=1; ; i++) {
@@ -531,8 +525,6 @@ void GuiSettingsWindow::on_b_sess_newfolder_clicked()
     fullname += foldername;
     newitem->setText(0, foldername);
     newitem->setData(0, QUTTY_ROLE_FULL_SESSNAME, fullname);
-    newitem->setData(0, GuiTreeWidget::DragEnabledProperty, true);
-    newitem->setData(0, GuiTreeWidget::DropEnabledProperty, true);
     parent->insertChild(parent->indexOfChild(item)+1, newitem);
     Config cfg = qutty_config.config_list[QUTTY_DEFAULT_CONFIG_SETTINGS];
     qstring_to_char(cfg.config_name, fullname, sizeof(cfg.config_name));
@@ -554,7 +546,7 @@ void GuiSettingsWindow::on_b_save_sess_clicked()
     oldfullname = item->data(0, QUTTY_ROLE_FULL_SESSNAME).toString().toStdString();
     if (item->parent())
         fullname = item->parent()->data(0, QUTTY_ROLE_FULL_SESSNAME)
-                .toString().toStdString() + sessname_split;
+                .toString().toStdString() + QUTTY_SESSION_NAME_SPLIT;
     fullname += name;
     qutty_config.config_list.erase(oldfullname);
     Config *cfg = this->getConfig();
@@ -575,7 +567,7 @@ void GuiSettingsWindow::loadInitialSettings(Config cfg)
     if (qutty_config.config_list.find(cfg.config_name)
             != qutty_config.config_list.end()) {
         setConfig(&qutty_config.config_list[cfg.config_name]);
-        vector<string> split = qutty_string_split(string(cfg.config_name), sessname_split);
+        vector<string> split = qutty_string_split(string(cfg.config_name), QUTTY_SESSION_NAME_SPLIT);
         string sessname = split.back();
         ui->le_saved_sess->setText(QString::fromStdString(sessname));
     }
@@ -634,7 +626,7 @@ void adjust_sessname_hierarchy(QTreeWidgetItem *item)
     QTreeWidgetItem *par = item->parent();
     QString fullname, oldfullname;
     if (par)
-        fullname = par->data(0, QUTTY_ROLE_FULL_SESSNAME).toString() + sessname_split;
+        fullname = par->data(0, QUTTY_ROLE_FULL_SESSNAME).toString() + QUTTY_SESSION_NAME_SPLIT;
     fullname += item->text(0);
     oldfullname = item->data(0, QUTTY_ROLE_FULL_SESSNAME).toString();
     if (fullname == oldfullname)

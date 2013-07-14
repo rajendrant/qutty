@@ -3,6 +3,7 @@
 #include <QHBoxLayout>
 #include "GuiCompactSettingsWindow.h"
 #include "GuiMainWindow.h"
+#include "QtSessionTreeModel.h"
 
 GuiCompactSettingsWindow::GuiCompactSettingsWindow(QWidget *parent, GuiBase::SplitType openmode)
     : QDialog(parent)
@@ -29,21 +30,10 @@ GuiCompactSettingsWindow::GuiCompactSettingsWindow(QWidget *parent, GuiBase::Spl
     cb_connection_type->addItem("Telnet");
     cb_connection_type->addItem("SSH");
 
-    cb_session_list = new QComboBox(this);
-    cb_session_list->setMinimumWidth(500);
-    map<string, Config>::iterator it = qutty_config.config_list.begin();
-    cfg = &(it->second);
-    le_hostname->setText(QString(cfg->host));
-    if(cfg->protocol == PROT_TELNET)
-        cb_connection_type->setCurrentIndex(0);
-    else
-        cb_connection_type->setCurrentIndex(1);
-    while(it != qutty_config.config_list.end())
-    {
-        cfg = &(it->second);
-        cb_session_list->addItem(QString(cfg->config_name));
-        it++;
-    }
+    cb_session_list = new QtComboBoxWithTreeView(this);
+    cb_session_list->setItemDelegate(new QtSessionTreeItemDelegate);
+    cb_session_list->setModel(new QtSessionTreeModel(this, qutty_config.config_list));
+    cb_session_list->setMaxVisibleItems(15);
 
     connect(cb_session_list, SIGNAL(activated(int)), this, SLOT(on_cb_session_list_activated(int)));
 

@@ -8,6 +8,7 @@ extern "C" {
 #include <QKeySequence>
 #include <QString>
 #include <map>
+#include <vector>
 #include <string>
 #include <stddef.h>
 #include <QFile>
@@ -58,7 +59,10 @@ private:
 // all global config is here
 extern QtConfig qutty_config;
 
+extern vector<string> qutty_string_split(string &str, char delim);
+
 #define QUTTY_DEFAULT_CONFIG_SETTINGS "Default Settings"
+#define QUTTY_SESSION_NAME_SPLIT '/'
 
 int initConfigDefaults(Config *cfg);
 

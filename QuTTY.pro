@@ -41,6 +41,7 @@ SOURCES +=  \
     GuiTreeWidget.cpp \
     GuiImportExportFile.cpp \
     GuiCompactSettingsWindow.cpp \
+    QtSessionTreeModel.cpp \
     puttysrc/WINDOWS/winnoise.c \
     puttysrc/WINDOWS/winstore.c \
     puttysrc/WINDOWS/windefs.c \
@@ -109,6 +110,9 @@ HEADERS +=  \
     GuiTabBar.h \
     GuiNavigation.h \
     GuiCompactSettingsWindow.h \
+    QtSessionTreeModel.h \
+    QtSessionTreeItem.h \
+    QtComboBoxWithTreeView.h \
     puttysrc/WINDOWS/STORAGE.H \
     puttysrc/TREE234.H \
     puttysrc/TERMINAL.H \
