@@ -4,6 +4,9 @@
 #include "GuiCompactSettingsWindow.h"
 #include "GuiMainWindow.h"
 #include "QtSessionTreeModel.h"
+#include "QtCompleterWithAdvancedCompletion.h"
+#include "serialize/QtMRUSessionList.h"
+#include <QStringList>
 
 GuiCompactSettingsWindow::GuiCompactSettingsWindow(QWidget *parent, GuiBase::SplitType openmode)
     : QDialog(parent)
@@ -24,6 +27,15 @@ GuiCompactSettingsWindow::GuiCompactSettingsWindow(QWidget *parent, GuiBase::Spl
 
     le_hostname = new QLineEdit(this);
     le_hostname->setMinimumWidth(500);
+
+    QStringList completions;
+    for(auto it = qutty_mru_sesslist.mru_list.begin();
+        it != qutty_mru_sesslist.mru_list.end();
+        ++it) {
+        completions << it->second;
+    }
+    QtCompleterWithAdvancedCompletion *c = new QtCompleterWithAdvancedCompletion(le_hostname);
+    c->setModel(completions);
 
     cb_connection_type = new QComboBox(this);
     cb_connection_type->setMaximumWidth(100);

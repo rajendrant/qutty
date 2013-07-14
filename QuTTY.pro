@@ -42,6 +42,7 @@ SOURCES +=  \
     GuiImportExportFile.cpp \
     GuiCompactSettingsWindow.cpp \
     QtSessionTreeModel.cpp \
+    QtCompleterWithAdvancedCompletion.cpp \
     puttysrc/WINDOWS/winnoise.c \
     puttysrc/WINDOWS/winstore.c \
     puttysrc/WINDOWS/windefs.c \
@@ -87,7 +88,8 @@ SOURCES +=  \
     tmux/TmuxBackend.cpp \
     tmux/TmuxGateway.cpp \
     tmux/TmuxWindowPane.cpp \
-    tmux/TmuxLayout.cpp
+    tmux/TmuxLayout.cpp \
+    serialize/QtMRUSessionList.cpp \
 
 HEADERS +=  \
     GuiMainWindow.h \
@@ -113,6 +115,7 @@ HEADERS +=  \
     QtSessionTreeModel.h \
     QtSessionTreeItem.h \
     QtComboBoxWithTreeView.h \
+    QtCompleterWithAdvancedCompletion.h \
     puttysrc/WINDOWS/STORAGE.H \
     puttysrc/TREE234.H \
     puttysrc/TERMINAL.H \
@@ -133,7 +136,8 @@ HEADERS +=  \
     tmux/tmux.h \
     tmux/TmuxGateway.h \
     tmux/TmuxWindowPane.h \
-    tmux/TmuxLayout.h
+    tmux/TmuxLayout.h \
+    serialize/QtMRUSessionList.h \
 
 
 INCLUDEPATH += ./ puttysrc/

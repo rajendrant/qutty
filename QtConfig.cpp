@@ -11,6 +11,7 @@
 #include <QFileDialog>
 #include <QString>
 #include "GuiImportExportFile.h"
+#include "serialize/QtMRUSessionList.h"
 
 extern "C" {
 #include "WINDOWS\STORAGE.H"
@@ -275,6 +276,10 @@ bool QtConfig::restoreConfig()
     }
     readFromXML(&file);
     emit savedSessionsChanged();
+
+    // restore any other serialized data strcutures
+    qutty_mru_sesslist.initialize();
+
     return rc;
 }
 
