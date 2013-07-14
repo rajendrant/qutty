@@ -114,7 +114,7 @@ void GuiCompactSettingsWindow::on_cb_session_list_activated(int n)
 {
     string configName;
     Config *cfg;
-    configName = cb_session_list->itemText(n).toStdString();
+    configName = cb_session_list->currentText().toStdString();
     map<string, Config>::iterator it = qutty_config.config_list.find(configName);
 
     if(it != qutty_config.config_list.end())

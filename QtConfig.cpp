@@ -331,6 +331,7 @@ bool QtConfig::saveConfig()
         return false;
     }
     writeToXML(&file);
+    emit savedSessionsChanged();
     return true;
 }
 
