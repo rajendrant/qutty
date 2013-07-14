@@ -14,6 +14,7 @@
 #include "QtConfig.h"
 #include "GuiSettingsWindow.h"
 #include <QMessageBox>
+#include "QtComboBoxWithTreeView.h"
 
 class GuiMainWindow;
 
@@ -21,7 +22,7 @@ class GuiCompactSettingsWindow : public QDialog
 {
     Q_OBJECT
 
-    QComboBox *cb_session_list;
+    QtComboBoxWithTreeView *cb_session_list;
     QComboBox *cb_connection_type;
     QLineEdit *le_hostname;
     GuiBase::SplitType openMode;

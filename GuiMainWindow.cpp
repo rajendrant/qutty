@@ -17,6 +17,7 @@
 #include "GuiTabWidget.h"
 #include "GuiTabBar.h"
 #include "GuiSplitter.h"
+#include "serialize/QtMRUSessionList.h"
 //#include "windows.h"
 extern "C" {
 #include "putty.h"
@@ -81,6 +82,8 @@ void GuiMainWindow::on_createNewSession(Config cfg, GuiBase::SplitType splittype
 {
     // User has selected a session
     this->createNewTab(&cfg, splittype);
+    qutty_mru_sesslist.insertSession(QString::fromLatin1(cfg.config_name),
+                                     QString::fromLatin1(cfg.host));
 }
 
 void GuiMainWindow::createNewTab(Config *cfg, GuiBase::SplitType splittype)
