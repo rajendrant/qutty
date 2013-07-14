@@ -158,7 +158,7 @@ void GuiMainWindow::tabCloseRequested (int index)
     }
 }
 
-void GuiMainWindow::on_openNewSession(GuiBase::SplitType splittype)
+void GuiMainWindow::on_openNewSession(Config cfg, GuiBase::SplitType splittype)
 {
     /*
      * 1. Context menu -> New Tab
@@ -173,7 +173,7 @@ void GuiMainWindow::on_openNewSession(GuiBase::SplitType splittype)
     settingsWindow = new GuiSettingsWindow(this, splittype);
     connect(settingsWindow, SIGNAL(signal_session_open(Config, GuiBase::SplitType)), SLOT(on_createNewSession(Config, GuiBase::SplitType)));
     connect(settingsWindow, SIGNAL(signal_session_close()), SLOT(on_settingsWindowClose()));
-    settingsWindow->loadDefaultSettings();
+    settingsWindow->loadInitialSettings(cfg);
     settingsWindow->show();
 }
 
@@ -192,7 +192,7 @@ void GuiMainWindow::on_openNewCompactSession(GuiBase::SplitType splittype)
     compactSettingsWindow = new GuiCompactSettingsWindow(this, splittype);
     connect(compactSettingsWindow, SIGNAL(signal_on_open(Config, GuiBase::SplitType)), SLOT(on_createNewSession(Config, GuiBase::SplitType)));
     connect(compactSettingsWindow, SIGNAL(signal_on_close()), SLOT(on_settingsWindowClose()));
-    connect(compactSettingsWindow, SIGNAL(signal_on_detail(GuiBase::SplitType)), SLOT(on_openNewSession(GuiBase::SplitType)));
+    connect(compactSettingsWindow, SIGNAL(signal_on_detail(Config, GuiBase::SplitType)), SLOT(on_openNewSession(Config, GuiBase::SplitType)));
     compactSettingsWindow->show();
 }
 

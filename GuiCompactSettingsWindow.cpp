@@ -77,11 +77,11 @@ void GuiCompactSettingsWindow::on_close_clicked()
 void GuiCompactSettingsWindow::on_open_clicked()
 {
     Config cfg;
-    char configName[100];
+    string configName;
     if (le_hostname->text() == "" &&
         cb_session_list->currentText() == QUTTY_DEFAULT_CONFIG_SETTINGS)
         return;
-    qstring_to_char(configName, cb_session_list->currentText(), sizeof(configName));
+    configName = cb_session_list->currentText().toStdString();
     if (qutty_config.config_list.find(configName) == qutty_config.config_list.end())
         return;
     cfg = qutty_config.config_list[configName];
@@ -98,16 +98,23 @@ void GuiCompactSettingsWindow::on_open_clicked()
 
 void GuiCompactSettingsWindow::on_details_clicked()
 {
-    emit signal_on_detail(openMode);
+    Config cfg;
+    string configName;
+
+    configName = cb_session_list->currentText().toStdString();
+    if (qutty_config.config_list.find(configName) == qutty_config.config_list.end())
+        return;
+    cfg = qutty_config.config_list[configName];
+    emit signal_on_detail(cfg, openMode);
     this->close();
     this->deleteLater();
 }
 
 void GuiCompactSettingsWindow::on_cb_session_list_activated(int n)
 {
-    char configName[100];
+    string configName;
     Config *cfg;
-    qstring_to_char(configName, cb_session_list->itemText(n), sizeof(configName));
+    configName = cb_session_list->itemText(n).toStdString();
     map<string, Config>::iterator it = qutty_config.config_list.find(configName);
 
     if(it != qutty_config.config_list.end())

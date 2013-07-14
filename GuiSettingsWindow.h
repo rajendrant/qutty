@@ -50,7 +50,7 @@ public:
     Config *getConfig();
 
     void loadSessionNames();
-    void loadDefaultSettings();
+    void loadInitialSettings(Config);
     void enableModeChangeSettings(Config *cfg, GuiTerminalWindow *termWnd);
 
 signals:

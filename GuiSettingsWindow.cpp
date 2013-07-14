@@ -570,12 +570,14 @@ void GuiSettingsWindow::on_b_save_sess_clicked()
     pending_session_changes = true;
 }
 
-void GuiSettingsWindow::loadDefaultSettings()
+void GuiSettingsWindow::loadInitialSettings(Config cfg)
 {
-    if (qutty_config.config_list.find(QUTTY_DEFAULT_CONFIG_SETTINGS)
+    if (qutty_config.config_list.find(cfg.config_name)
             != qutty_config.config_list.end()) {
-        setConfig(&qutty_config.config_list[QUTTY_DEFAULT_CONFIG_SETTINGS]);
-        ui->le_saved_sess->setText(QUTTY_DEFAULT_CONFIG_SETTINGS);
+        setConfig(&qutty_config.config_list[cfg.config_name]);
+        vector<string> split = qutty_string_split(string(cfg.config_name), sessname_split);
+        string sessname = split.back();
+        ui->le_saved_sess->setText(QString::fromStdString(sessname));
     }
 }
 

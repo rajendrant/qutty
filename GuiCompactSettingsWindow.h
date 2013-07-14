@@ -32,7 +32,7 @@ public:
 signals:
     void signal_on_open(Config cfg, GuiBase::SplitType splittype);
     void signal_on_close();
-    void signal_on_detail(GuiBase::SplitType splittype);
+    void signal_on_detail(Config cfg, GuiBase::SplitType splittype);
 
 public slots:
     void on_open_clicked();

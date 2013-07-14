@@ -99,7 +99,7 @@ private:
 public slots:
     void on_openNewWindow();
     void on_openNewCompactSession(GuiBase::SplitType splittype);
-    void on_openNewSession(GuiBase::SplitType splittype);
+    void on_openNewSession(Config cfg, GuiBase::SplitType splittype);
     void on_openNewTab() { on_openNewCompactSession(GuiBase::TYPE_LEAF); }
     void on_openNewSplitHorizontal() { on_openNewCompactSession(GuiBase::TYPE_HORIZONTAL); }
     void on_openNewSplitVertical() { on_openNewCompactSession(GuiBase::TYPE_VERTICAL); }
