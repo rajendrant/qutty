@@ -9,7 +9,8 @@
 #include <QStringList>
 
 GuiCompactSettingsWindow::GuiCompactSettingsWindow(QWidget *parent, GuiBase::SplitType openmode)
-    : QDialog(parent)
+    : QDialog(parent),
+      session_list_model(NULL)
 {
     openMode = openmode;
 
@@ -32,15 +33,21 @@ GuiCompactSettingsWindow::GuiCompactSettingsWindow(QWidget *parent, GuiBase::Spl
     for(auto it = qutty_mru_sesslist.mru_list.begin();
         it != qutty_mru_sesslist.mru_list.end();
         ++it) {
-        completions << it->second;
+        if (it->second[0] == '\0')
+            continue;
+        // in 'hostname|sessname' format
+        completions << it->second + "|" + it->first;
     }
     QtCompleterWithAdvancedCompletion *c = new QtCompleterWithAdvancedCompletion(le_hostname);
     c->setModel(completions);
+    c->popup()->setItemDelegate(new QtHostNameCompleterItemDelegate);
+    connect(c, SIGNAL(activated(QString)), this, SLOT(on_hostname_completion_activated(QString)));
 
     cb_session_list = new QtComboBoxWithTreeView(this);
     cb_session_list->setItemDelegate(new QtSessionTreeItemDelegate);
-    cb_session_list->setModel(new QtSessionTreeModel(this, qutty_config.config_list));
-    cb_session_list->setMaxVisibleItems(15);
+    session_list_model = new QtSessionTreeModel(this, qutty_config.config_list);
+    cb_session_list->setModel(session_list_model);
+    cb_session_list->setMaxVisibleItems(25);
 
     cb_connection_type = new QComboBox(this);
     cb_connection_type->setMaximumWidth(100);
@@ -50,7 +57,7 @@ GuiCompactSettingsWindow::GuiCompactSettingsWindow(QWidget *parent, GuiBase::Spl
     if(qutty_config.config_list.find(QUTTY_DEFAULT_CONFIG_SETTINGS) != qutty_config.config_list.end())
     {
         cfg = &qutty_config.config_list[QUTTY_DEFAULT_CONFIG_SETTINGS];
-        cb_session_list->setCurrentText(QString(cfg->config_name));
+        cb_session_list->setCurrentIndex(cb_session_list->findText(QUTTY_DEFAULT_CONFIG_SETTINGS));
         le_hostname->setText(QString(cfg->host));
         if(cfg->protocol == PROT_TELNET)
             cb_connection_type->setCurrentIndex(0);
@@ -139,5 +146,28 @@ void GuiCompactSettingsWindow::on_cb_session_list_activated(int n)
             cb_connection_type->setCurrentIndex(0);
         else
             cb_connection_type->setCurrentIndex(1);
+    }
+}
+
+void GuiCompactSettingsWindow::on_hostname_completion_activated(QString str)
+{
+    QStringList split = str.split('|');
+    if (split.length() > 1) {
+        le_hostname->setText(split[0]);
+
+        /*
+         * Based on the suggestion/technique from below url:
+         * http://www.qtcentre.org/threads/14699-QCombobox-with-QTreeView-QTreeWidget
+         */
+        QString fullsessname = split[1];
+        QAbstractItemView *treeview = cb_session_list->view();
+        QModelIndex m_index = session_list_model->findIndexForSessionName(fullsessname);
+        treeview->setCurrentIndex(m_index.parent());
+        cb_session_list->setRootModelIndex(treeview->currentIndex());
+        cb_session_list->setCurrentIndex(m_index.row());
+        treeview->setCurrentIndex(QModelIndex());
+        cb_session_list->setRootModelIndex(treeview->currentIndex());
+        cb_session_list->showPopup();
+        cb_session_list->hidePopup();
     }
 }
