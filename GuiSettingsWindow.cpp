@@ -537,17 +537,23 @@ void GuiSettingsWindow::on_b_save_sess_clicked()
 {
     QTreeWidgetItem *item = ui->l_saved_sess->currentItem();
     string oldfullname, fullname, oldname, name;
-    if (!item || item->text(0) == QUTTY_DEFAULT_CONFIG_SETTINGS)
+    if (!item)
         return;
-    name = ui->le_saved_sess->text().toStdString();
-    if (!name.length())
-        return;
-    oldname = item->text(0).toStdString();
+    if(item->text(0) == QUTTY_DEFAULT_CONFIG_SETTINGS)
+    {
+        name = fullname = QUTTY_DEFAULT_CONFIG_SETTINGS;
+    }
+    else
+    {
+        name = ui->le_saved_sess->text().toStdString();
+        if (!name.length())
+            return;
+        if (item->parent())
+            fullname = item->parent()->data(0, QUTTY_ROLE_FULL_SESSNAME)
+                    .toString().toStdString() + QUTTY_SESSION_NAME_SPLIT;
+        fullname += name;
+    }
     oldfullname = item->data(0, QUTTY_ROLE_FULL_SESSNAME).toString().toStdString();
-    if (item->parent())
-        fullname = item->parent()->data(0, QUTTY_ROLE_FULL_SESSNAME)
-                .toString().toStdString() + QUTTY_SESSION_NAME_SPLIT;
-    fullname += name;
     qutty_config.config_list.erase(oldfullname);
     Config *cfg = this->getConfig();
     strncpy (cfg->config_name, fullname.c_str(), sizeof(cfg->config_name));
