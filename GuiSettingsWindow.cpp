@@ -497,46 +497,10 @@ void GuiSettingsWindow::on_l_saved_sess_currentItemChanged(QTreeWidgetItem *curr
     ui->le_saved_sess->setText(current->text(0));
 }
 
-void GuiSettingsWindow::on_b_sess_newfolder_clicked()
-{
-    QTreeWidgetItem *item = ui->l_saved_sess->currentItem();
-    if (!item)
-        return;
-    QString fullname;
-    QTreeWidgetItem *parent = item->parent();
-    if (!parent)
-        parent = ui->l_saved_sess->invisibleRootItem();
-    else
-        fullname = parent->data(0, QUTTY_ROLE_FULL_SESSNAME).toString() + QUTTY_SESSION_NAME_SPLIT;
-    QTreeWidgetItem *newitem = new QTreeWidgetItem(0);
-    QString foldername = tr("New Session");
-    for (int i=1; ; i++) {
-        bool isunique = true;
-        for (int j=0; j<parent->childCount(); j++) {
-            if (parent->child(j)->text(0) == foldername) {
-                isunique = false;
-                foldername = tr("New Session (") + QString::number(i) + tr(")");
-                break;
-            }
-        }
-        if (isunique)
-            break;
-    }
-    fullname += foldername;
-    newitem->setText(0, foldername);
-    newitem->setData(0, QUTTY_ROLE_FULL_SESSNAME, fullname);
-    parent->insertChild(parent->indexOfChild(item)+1, newitem);
-    Config cfg = qutty_config.config_list[QUTTY_DEFAULT_CONFIG_SETTINGS];
-    qstring_to_char(cfg.config_name, fullname, sizeof(cfg.config_name));
-    qutty_config.config_list[fullname.toStdString()] = cfg;
-
-    pending_session_changes = true;
-}
-
 void GuiSettingsWindow::on_b_save_sess_clicked()
 {
     QTreeWidgetItem *item = ui->l_saved_sess->currentItem();
-    string oldfullname, fullname, oldname, name;
+    string oldfullname, fullname, name;
     if (!item)
         return;
     if(item->text(0) == QUTTY_DEFAULT_CONFIG_SETTINGS)
@@ -588,7 +552,7 @@ void GuiSettingsWindow::enableModeChangeSettings(Config *cfg, GuiTerminalWindow 
     ui->buttonBox->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     ui->gp_connection->setEnabled(false);
     ui->b_delete_sess->setEnabled(false);
-    ui->b_sess_newfolder->setEnabled(false);
+    ui->b_sess_copy->setEnabled(false);
     ui->l_saved_sess->setEnabled(false);
 }
 
@@ -747,4 +711,50 @@ void GuiSettingsWindow::on_l_colour_currentItemChanged(QListWidgetItem *current,
         ui->le_colour_g->setText(QString::number(cfg.colours[curr][1]));
         ui->le_colour_b->setText(QString::number(cfg.colours[curr][2]));
     }
+}
+
+void GuiSettingsWindow::on_b_sess_copy_clicked()
+{
+    QTreeWidgetItem *item = ui->l_saved_sess->currentItem();
+    string fullPathName;
+    if (!item)
+        return;
+    QString fullname;
+    QTreeWidgetItem *parent = item->parent();
+    if (!parent)
+    {
+        parent = ui->l_saved_sess->invisibleRootItem();
+        fullPathName = item->text(0).toStdString();
+    }
+    else
+    {
+        fullname = parent->data(0, QUTTY_ROLE_FULL_SESSNAME).toString() + QUTTY_SESSION_NAME_SPLIT;
+        fullPathName = fullname.toStdString()+ item->text(0).toStdString();
+    }
+    QTreeWidgetItem *newitem = new QTreeWidgetItem(0);
+    QString foldername = item->text(0);
+    for (int i=1; ; i++) {
+        bool isunique = true;
+        for (int j=0; j<parent->childCount(); j++) {
+            if (parent->child(j)->text(0) == foldername) {
+                isunique = false;
+                foldername = item->text(0) + tr(" (") + QString::number(i) + tr(")");
+                break;
+            }
+        }
+        if (isunique)
+        {
+            break;
+        }
+    }
+
+    fullname += foldername;
+    newitem->setText(0, foldername);
+    newitem->setData(0, QUTTY_ROLE_FULL_SESSNAME, fullname);
+    parent->insertChild(parent->indexOfChild(item)+1, newitem);
+    Config cfg = qutty_config.config_list[fullPathName];
+    qstring_to_char(cfg.config_name, fullname, sizeof(cfg.config_name));
+    qutty_config.config_list[fullname.toStdString()] = cfg;
+
+    pending_session_changes = true;
 }

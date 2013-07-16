@@ -69,8 +69,6 @@ private slots:
 
     void on_rb_contype_ssh_clicked();
 
-    void on_b_sess_newfolder_clicked();
-
     void on_b_save_sess_clicked();
 
     void on_b_delete_sess_clicked();
@@ -94,6 +92,8 @@ private slots:
     void on_l_saved_sess_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);
 
     void slot_sessname_hierarchy_changed(QTreeWidgetItem *item);
+
+    void on_b_sess_copy_clicked();
 
 private:
     Ui::GuiSettingsWindow *ui;

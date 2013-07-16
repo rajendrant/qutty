@@ -414,7 +414,7 @@
          <item>
           <widget class="QGroupBox" name="groupBox_2">
            <property name="title">
-            <string>Load, save or delete a stored session</string>
+            <string>Save, delete and copy sessions in hierarchical manner</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_27">
             <item>
@@ -486,9 +486,9 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="b_sess_newfolder">
+                 <widget class="QPushButton" name="b_sess_copy">
                   <property name="text">
-                   <string>New</string>
+                   <string>Copy</string>
                   </property>
                  </widget>
                 </item>
@@ -5559,24 +5559,24 @@
  <resources/>
  <connections/>
  <buttongroups>
+  <buttongroup name="gp_resize_action"/>
+  <buttongroup name="gp_termopt_echo"/>
+  <buttongroup name="buttonGroup_10"/>
+  <buttongroup name="gp_logfile"/>
+  <buttongroup name="buttonGroup_3"/>
+  <buttongroup name="buttonGroup_4"/>
   <buttongroup name="buttonGroup_7"/>
   <buttongroup name="buttonGroup_8"/>
   <buttongroup name="buttonGroup_9"/>
-  <buttongroup name="gp_resize_action"/>
-  <buttongroup name="gp_fontquality"/>
-  <buttongroup name="gp_exit_close"/>
-  <buttongroup name="buttonGroup_10"/>
-  <buttongroup name="gp_logfile"/>
-  <buttongroup name="gp_contype"/>
-  <buttongroup name="gp_fnkeys"/>
   <buttongroup name="gp_seslog"/>
-  <buttongroup name="gp_curappear"/>
-  <buttongroup name="gp_addressfamily"/>
-  <buttongroup name="gp_termopt_edit"/>
   <buttongroup name="buttonGroup"/>
-  <buttongroup name="gp_termopt_echo"/>
+  <buttongroup name="gp_exit_close"/>
+  <buttongroup name="gp_addressfamily"/>
+  <buttongroup name="gp_curappear"/>
+  <buttongroup name="gp_fontquality"/>
   <buttongroup name="gp_remote_qtitle_action"/>
-  <buttongroup name="buttonGroup_3"/>
-  <buttongroup name="buttonGroup_4"/>
+  <buttongroup name="gp_fnkeys"/>
+  <buttongroup name="gp_termopt_edit"/>
+  <buttongroup name="gp_contype"/>
  </buttongroups>
 </ui>

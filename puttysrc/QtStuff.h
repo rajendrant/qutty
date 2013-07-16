@@ -15,7 +15,7 @@ extern "C" {
 #endif
 
 #define APPNAME "QuTTY"
-#define QUTTY_RELEASE_VERSION "0.5-beta"
+#define QUTTY_RELEASE_VERSION "0.6-beta"
 
 
 struct Filename {
