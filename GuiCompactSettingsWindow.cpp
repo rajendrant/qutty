@@ -167,7 +167,13 @@ void GuiCompactSettingsWindow::on_hostname_completion_activated(QString str)
         cb_session_list->setCurrentIndex(m_index.row());
         treeview->setCurrentIndex(QModelIndex());
         cb_session_list->setRootModelIndex(treeview->currentIndex());
+
+        bool old = QApplication::isEffectEnabled(Qt::UI_AnimateCombo);
+        if (old)
+            QApplication::setEffectEnabled(Qt::UI_AnimateCombo, false);
         cb_session_list->showPopup();
         cb_session_list->hidePopup();
+        if (old)
+            QApplication::setEffectEnabled(Qt::UI_AnimateCombo, true);
     }
 }
