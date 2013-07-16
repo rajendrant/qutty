@@ -51,6 +51,31 @@ int QtSessionTreeModel::columnCount(const QModelIndex &parent) const
     return 1;   // only 1 column - session_name
 }
 
+QModelIndex QtSessionTreeModel::findIndexForSessionName(QString fullsessname) const
+{
+    QStringList dirname = fullsessname.split(QUTTY_SESSION_NAME_SPLIT);
+    QModelIndex par;
+    QModelIndex ch;
+    for(auto it = dirname.begin(); it != dirname.end(); it++) {
+        bool isfound = false;
+        for(int r = 0; r < rowCount(par); r++) {
+            ch = index(r, 0, par);
+            if (!ch.isValid())
+                continue;
+            QtSessionTreeItem *chitem = static_cast<QtSessionTreeItem*>(ch.internalPointer());
+            if (chitem->getSessionName() == *it) {
+                par = ch;
+                isfound = true;
+                break;
+            }
+        }
+        if (!isfound) {
+            return QModelIndex();
+        }
+    }
+    return ch;
+}
+
 QVariant QtSessionTreeModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid() || role != Qt::DisplayRole)

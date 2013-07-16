@@ -37,6 +37,8 @@ public:
     void setMaxVisibleItems(int maxItems) { maxVisibleItems = maxItems; }
     void setFilterMode(FilterMode mode) { filterMode = mode; }
 
+    QListView *popup() const { return popuplist; }
+
 protected:
     bool eventFilter(QObject *o, QEvent *e);
 

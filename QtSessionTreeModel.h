@@ -25,6 +25,8 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
 
+    QModelIndex findIndexForSessionName(QString fullsessname) const;
+
 private:
     QtSessionTreeItem *rootItem;
 };
