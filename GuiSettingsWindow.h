@@ -77,8 +77,6 @@ private slots:
 
     void on_btn_ssh_auth_browse_keyfile_clicked();
 
-    void chkUnsupportedConfigs(Config &cfg);
-
     void on_btn_fontsel_clicked();
 
     void on_treeWidget_itemSelectionChanged();
@@ -102,5 +100,7 @@ private:
 
     void saveConfigChanges();
 };
+
+void chkUnsupportedConfigs(Config &cfg);
 
 #endif // GUISETTINGSWINDOW_H

@@ -624,23 +624,6 @@ void GuiSettingsWindow::on_btn_ssh_auth_browse_keyfile_clicked()
                                          ui->le_ssh_auth_keyfile->text(), tr("*.ppk")));
 }
 
-void GuiSettingsWindow::chkUnsupportedConfigs(Config &cfg)
-{
-    QString opt_unsupp = "";
-
-    if (cfg.try_gssapi_auth) {
-        cfg.try_gssapi_auth = 0;
-    }
-    if (cfg.portfwd[0] != '\0') {
-        cfg.portfwd[0] = '\0';
-        opt_unsupp += " * SSH Tunnels/port forwarding\n";
-    }
-    if (opt_unsupp.length() > 0)
-        QMessageBox::warning(NULL, QObject::tr("Qutty Configuration"),
-                         QObject::tr("Following options are not yet supported in QuTTY.\n\n%1")
-                         .arg(opt_unsupp));
-}
-
 void GuiSettingsWindow::on_btn_fontsel_clicked()
 {
     QFont oldfont = QFont(cfg.font.name, cfg.font.height);
@@ -757,4 +740,27 @@ void GuiSettingsWindow::on_b_sess_copy_clicked()
     qutty_config.config_list[fullname.toStdString()] = cfg;
 
     pending_session_changes = true;
+}
+
+void chkUnsupportedConfigs(Config &cfg)
+{
+    QString opt_unsupp = "";
+
+    if (cfg.try_gssapi_auth) {
+        cfg.try_gssapi_auth = 0;
+    }
+    if (cfg.portfwd[0] != '\0') {
+        cfg.portfwd[0] = '\0';
+        opt_unsupp += " * SSH Tunnels/port forwarding\n";
+    }
+    if(cfg.tryagent)
+        cfg.tryagent = 0;
+
+    if(cfg.ttymodes[0] != '\0')
+        strncpy(cfg.ttymodes, "", sizeof(cfg.ttymodes));
+
+    if (opt_unsupp.length() > 0)
+        QMessageBox::warning(NULL, QObject::tr("Qutty Configuration"),
+                         QObject::tr("Following options are not yet supported in QuTTY.\n\n%1")
+                         .arg(opt_unsupp));
 }

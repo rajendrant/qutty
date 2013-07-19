@@ -111,6 +111,9 @@ void GuiCompactSettingsWindow::on_open_clicked()
         cfg.protocol = PROT_SSH;
     else
         cfg.protocol = PROT_TELNET;
+
+    chkUnsupportedConfigs(cfg);
+
     emit signal_on_open(cfg, openMode);
     this->close();
     this->deleteLater();

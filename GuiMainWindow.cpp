@@ -24,8 +24,6 @@ extern "C" {
 #include "ssh.h"
 }
 
-int initConfigDefaults(Config *cfg);
-
 GuiMainWindow::GuiMainWindow(QWidget *parent)
     : QMainWindow(parent),
       menuCookieTermWnd(NULL),
