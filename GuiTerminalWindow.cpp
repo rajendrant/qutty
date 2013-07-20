@@ -460,12 +460,15 @@ void GuiTerminalWindow::paintCursor(QPainter &painter, int row, int col,
             length = fontHeight;
         }
         if (attr & TATTR_ACTCURS) {
-            assert(0); // NOT_YET_IMPLEMENTED
+            // To draw the vertical and underline active cursors
+            painter.setPen(colours[261]);
+            painter.drawLine(startx, starty + length * dx, startx + length * dx, starty + length);
         } else {
+            // To draw the vertical and underline passive cursors
             painter.setPen(colours[261]);
             for (i = 0; i < length; i++) {
                 if (i % 2 == 0) {
-                    painter.drawPoint(startx, starty);
+                    painter.drawPoint(startx, starty + length * dx);
                 }
                 startx += dx;
                 starty += dy;
