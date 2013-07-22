@@ -6,14 +6,32 @@
 #include <QHBoxLayout>
 #include <QDebug>
 
-GuiDwmApi qutty_dwm_api;
+/*
+ * Tabs In Titlebar is only supported in Windows Vista+ with DWM(Aero) enabled
+ *  * If DWM/Aero is disabled in Win Vista/7 Tabs will not be in titlebar
+ *  * DWM is always enabled (cannot be disabled) in Windows 8 onwards
+ *  * So older windows versions are not supported, since that adds more code to maintain
+ *
+ * Much of the logic is based on below URL
+ * http://msdn.microsoft.com/en-us/library/windows/desktop/bb688195%28v=vs.85%29.aspx
+ *
+ * Following issues are seen:
+ * * top, left portion of the mainwindow gets clipped
+ * * Also if 'autohide the taskbar' is enabled in Windows, taskbar doesn't popup when
+ *   mouse is moved to bottom of screen with application in maximized mode
+ * These issues are fixed based on
+ * http://stackoverflow.com/questions/137005/auto-hide-taskbar-not-appearing-when-my-application-is-maximized
+ */
 
 GuiTabInTitlebar::GuiTabInTitlebar(QMainWindow *mainwindow, QTabWidget *tabarea, QTabBar *tabbar)
     : mainWindow(mainwindow),
       tabArea(tabarea),
       tabBar(tabbar)
 {
-    mainWindow->setAttribute(Qt::WA_TranslucentBackground, true);
+    if (!dwmApi.dwmIsCompositionEnabled())
+        return;
+
+    tabBar->setAttribute(Qt::WA_TranslucentBackground, true);
 
     // Handle window creation.
     RECT rcClient;
@@ -32,7 +50,6 @@ GuiTabInTitlebar::GuiTabInTitlebar(QMainWindow *mainwindow, QTabWidget *tabarea,
 bool GuiTabInTitlebar::handleWinEvent(MSG *msg, long *result)
 {
     bool fCallDWP = true;
-    BOOL fDwmEnabled = FALSE;
     LRESULT lRet = 0;
     HRESULT hr = S_OK;
     HWND hWnd       = msg->hwnd;
@@ -40,10 +57,10 @@ bool GuiTabInTitlebar::handleWinEvent(MSG *msg, long *result)
     WPARAM wParam   = msg->wParam;
     LPARAM lParam   = msg->lParam;
 
-    if (!qutty_dwm_api.dwmIsCompositionEnabled())
+    if (!dwmApi.dwmIsCompositionEnabled())
         return false;
 
-    fCallDWP = !qutty_dwm_api.dwmDefWindowProc(hWnd, message, wParam, lParam, &lRet);
+    fCallDWP = !dwmApi.dwmDefWindowProc(hWnd, message, wParam, lParam, &lRet);
 
     // Handle window activation.
     if (message == WM_ACTIVATE)
@@ -56,7 +73,7 @@ bool GuiTabInTitlebar::handleWinEvent(MSG *msg, long *result)
         margins.cyBottomHeight = 0; // 20
         margins.cyTopHeight = mainWindow->style()->pixelMetric(QStyle::PM_TitleBarHeight);
 
-        hr = qutty_dwm_api.dwmExtendFrameIntoClientArea(hWnd, &margins);
+        hr = dwmApi.dwmExtendFrameIntoClientArea(hWnd, &margins);
 
         if (!SUCCEEDED(hr))
         {
@@ -94,6 +111,11 @@ bool GuiTabInTitlebar::handleWinEvent(MSG *msg, long *result)
 
 void GuiTabInTitlebar::setTabAreaCornerWidget(QWidget *w)
 {
+    if (!dwmApi.dwmIsCompositionEnabled()) {
+        tabArea->setCornerWidget(w, Qt::TopRightCorner);
+        return;
+    }
+
     // add spacer to stop Qt from using the area of
     // the min, max, close buttons in titlebar
     int caption_btn_size = 100;

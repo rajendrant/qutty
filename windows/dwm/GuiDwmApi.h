@@ -53,15 +53,15 @@ public:
     {
         if (fnptrDwmDefWindowProc)
             return fnptrDwmDefWindowProc(hWnd, msg, wParam, lParam, plResult);
+        return S_FALSE;
     }
 
     HRESULT dwmExtendFrameIntoClientArea(HWND hWnd, const MARGINS* pMarInset)
     {
         if (fnptrDwmExtendFrameIntoClientArea)
             return fnptrDwmExtendFrameIntoClientArea(hWnd, pMarInset);
+        return S_FALSE;
     }
 };
-
-extern GuiDwmApi qutty_dwm_api;
 
 #endif // QTDWMAPI_H

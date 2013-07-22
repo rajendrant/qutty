@@ -8,6 +8,7 @@
 
 class GuiTabInTitlebar
 {
+    GuiDwmApi dwmApi;
     QMainWindow *mainWindow;
     QTabWidget *tabArea;
     QTabBar *tabBar;
