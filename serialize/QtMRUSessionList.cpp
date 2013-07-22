@@ -35,6 +35,21 @@ void QtMRUSessionList::insertSession(QString &sessname, QString &hostname)
     save();
 }
 
+void QtMRUSessionList::deleteSession(QString &sessname)
+{    
+    for(int index = 0; index < mru_list.size(); index++)
+    {
+        QPair<QString, QString> tmp = mru_list.value(index);
+        if(tmp.first == sessname)
+        {
+            int ind = mru_list.indexOf(tmp);
+            if (ind != -1)
+                mru_list.remove(ind);
+        }
+    }
+    save();
+}
+
 void QtMRUSessionList::save()
 {
     QFile file(QDir::home().filePath(serialize_file_name));

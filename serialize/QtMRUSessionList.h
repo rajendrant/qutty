@@ -12,7 +12,7 @@ public:
     QtMRUSessionList() { }
     void initialize();
     void insertSession(QString &sessname, QString &hostname);
-
+    void deleteSession(QString &sessname);
     QVector<QPair<QString, QString> > mru_list;
 
 private:

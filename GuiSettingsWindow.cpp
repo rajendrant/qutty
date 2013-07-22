@@ -16,6 +16,7 @@
 #include <QMessageBox>
 #include <QFontDialog>
 #include <QColorDialog>
+#include "serialize/QtMRUSessionList.h"
 #include "QtCommon.h"
 #include "QtConfig.h"
 extern "C" {
@@ -568,6 +569,7 @@ void GuiSettingsWindow::on_b_delete_sess_clicked()
         return;
     }
     config_name = delitem->data(0, QUTTY_ROLE_FULL_SESSNAME).toString().toStdString();
+    qutty_mru_sesslist.deleteSession(QString::fromStdString(config_name));
     qutty_config.config_list.erase(config_name);
     delete delitem;
 

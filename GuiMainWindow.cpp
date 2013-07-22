@@ -80,8 +80,6 @@ void GuiMainWindow::on_createNewSession(Config cfg, GuiBase::SplitType splittype
 {
     // User has selected a session
     this->createNewTab(&cfg, splittype);
-    qutty_mru_sesslist.insertSession(QString::fromLatin1(cfg.config_name),
-                                     QString::fromLatin1(cfg.host));
 }
 
 void GuiMainWindow::createNewTab(Config *cfg, GuiBase::SplitType splittype)
@@ -95,6 +93,9 @@ void GuiMainWindow::createNewTab(Config *cfg, GuiBase::SplitType splittype)
 
     if (this->setupLayout(newWnd, splittype))
         goto err_exit;
+
+    // To set the current session to MRU list
+    qutty_mru_sesslist.insertSession(QString(cfg->config_name), QString(cfg->host));
 
     return;
 
