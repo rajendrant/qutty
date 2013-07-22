@@ -20,6 +20,7 @@
 #include "GuiMenu.h"
 #include "GuiDrag.h"
 #include "GuiNavigation.h"
+#include "windows/GuiTabInTitlebar.h"
 
 class GuiCompactSettingsWindow;
 class GuiSettingsWindow;
@@ -46,6 +47,9 @@ public:
     GuiPaneNavigation *paneNavigate;
 
     GuiTabWidget *tabArea;
+
+    // wrapper member to handle Tabs in Titlebar
+    GuiTabInTitlebar tabInTitleBar;
 
 private:
     GuiCompactSettingsWindow *compactSettingsWindow;
