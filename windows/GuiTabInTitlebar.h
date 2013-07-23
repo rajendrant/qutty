@@ -12,6 +12,10 @@ class GuiTabInTitlebar
     QMainWindow *mainWindow;
     QTabWidget *tabArea;
     QTabBar *tabBar;
+    QWidget *tabAreaCornerWidget;
+    bool isCompositionEnabled;
+
+    bool hitTestNCA(MSG *msg, long *result);
 
 public:
     GuiTabInTitlebar(QMainWindow *mainwindow, QTabWidget *tabarea, QTabBar *tabbar);

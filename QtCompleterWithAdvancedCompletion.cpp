@@ -3,6 +3,16 @@
 #include <QKeyEvent>
 #include <QDebug>
 
+/*
+ * There are some existing bugs to support this feature in QCompleter
+ * And people are actively working on it.
+ * https://bugreports.qt-project.org/browse/QTBUG-7830
+ * https://bugreports.qt-project.org/browse/QTBUG-3414
+ * https://codereview.qt-project.org/#change,43718
+ *
+ * Hopefully Qt5 will have this feature soon, and we shall remove this file
+ */
+
 QtCompleterWithAdvancedCompletion::QtCompleterWithAdvancedCompletion(QLineEdit *le) :
     QObject(le),
     popuplist(new QListView),

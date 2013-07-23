@@ -100,6 +100,9 @@ private:
     void readSettings();
     void writeSettings();
 
+protected:
+    bool nativeEvent(const QByteArray & eventType, void * message, long * result);
+
 public slots:
     void on_openNewWindow();
     void on_openNewCompactSession(GuiBase::SplitType splittype);

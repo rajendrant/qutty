@@ -4,6 +4,7 @@
 #include <QDesktopWidget>
 #include <QToolBar>
 #include <QHBoxLayout>
+#include <QWidget>
 #include <QDebug>
 
 /*
@@ -23,19 +24,25 @@
  * http://stackoverflow.com/questions/137005/auto-hide-taskbar-not-appearing-when-my-application-is-maximized
  */
 
+#define WINDOW_FRAME_WIDTH  (mainWindow->style()->pixelMetric(QStyle::PM_MdiSubWindowFrameWidth))
+#define TITLE_BAR_HEIGHT    (mainWindow->style()->pixelMetric(QStyle::PM_TitleBarHeight))
+
 GuiTabInTitlebar::GuiTabInTitlebar(QMainWindow *mainwindow, QTabWidget *tabarea, QTabBar *tabbar)
     : mainWindow(mainwindow),
       tabArea(tabarea),
-      tabBar(tabbar)
+      tabBar(tabbar),
+      isCompositionEnabled(false)
 {
     if (!dwmApi.dwmIsCompositionEnabled())
         return;
 
-    tabBar->setAttribute(Qt::WA_TranslucentBackground, true);
+    isCompositionEnabled = true;
+
+    mainWindow->setAttribute(Qt::WA_TranslucentBackground, true);
 
     // Handle window creation.
     RECT rcClient;
-    HWND hwnd = mainWindow->winId();
+    HWND hwnd = (HWND) mainWindow->winId();
     GetWindowRect(hwnd, &rcClient);
 
     // Inform application of the frame change.
@@ -57,8 +64,13 @@ bool GuiTabInTitlebar::handleWinEvent(MSG *msg, long *result)
     WPARAM wParam   = msg->wParam;
     LPARAM lParam   = msg->lParam;
 
-    if (!dwmApi.dwmIsCompositionEnabled())
+    if (!isCompositionEnabled)
         return false;
+
+    if (message == WM_NCHITTEST)
+    {
+        return hitTestNCA(msg, result);
+    }
 
     fCallDWP = !dwmApi.dwmDefWindowProc(hWnd, message, wParam, lParam, &lRet);
 
@@ -68,10 +80,10 @@ bool GuiTabInTitlebar::handleWinEvent(MSG *msg, long *result)
         // Extend the frame into the client area.
         MARGINS margins;
 
-        margins.cxLeftWidth = 0;      // 8
-        margins.cxRightWidth = 0;    // 8
-        margins.cyBottomHeight = 0; // 20
-        margins.cyTopHeight = mainWindow->style()->pixelMetric(QStyle::PM_TitleBarHeight);
+        margins.cxLeftWidth     = WINDOW_FRAME_WIDTH;
+        margins.cxRightWidth    = WINDOW_FRAME_WIDTH;
+        margins.cyBottomHeight  = WINDOW_FRAME_WIDTH;
+        margins.cyTopHeight     = TITLE_BAR_HEIGHT;
 
         hr = dwmApi.dwmExtendFrameIntoClientArea(hWnd, &margins);
 
@@ -111,10 +123,12 @@ bool GuiTabInTitlebar::handleWinEvent(MSG *msg, long *result)
 
 void GuiTabInTitlebar::setTabAreaCornerWidget(QWidget *w)
 {
-    if (!dwmApi.dwmIsCompositionEnabled()) {
+    if (!isCompositionEnabled) {
         tabArea->setCornerWidget(w, Qt::TopRightCorner);
         return;
     }
+
+    tabAreaCornerWidget = w;
 
     // add spacer to stop Qt from using the area of
     // the min, max, close buttons in titlebar
@@ -133,4 +147,56 @@ void GuiTabInTitlebar::setTabAreaCornerWidget(QWidget *w)
     hboxlayout->addWidget(w);
     hboxlayout->addSpacing(caption_btn_size);
     tabArea->setCornerWidget(cornerw, Qt::TopRightCorner);
+}
+
+bool GuiTabInTitlebar::hitTestNCA(MSG *msg, long *result)
+{
+    // Get the window rectangle.
+    RECT rcWindow;
+    GetWindowRect(msg->hwnd, &rcWindow);
+
+    // Get the frame rectangle, adjusted for the style without a caption.
+    RECT rcFrame = { 0 };
+    AdjustWindowRectEx(&rcFrame, WS_OVERLAPPEDWINDOW & ~WS_CAPTION, FALSE, NULL);
+
+    int x = GET_X_LPARAM(msg->lParam), y = GET_Y_LPARAM(msg->lParam);
+    QPoint p(x - rcWindow.left, y - rcWindow.top);
+    if ( (tabBar->rect().contains(p) && tabBar->tabAt(p) != -1) ||
+         (tabAreaCornerWidget->rect().contains(tabAreaCornerWidget->mapFromGlobal(QPoint(x, y))))
+       ) {
+        *result = HTCLIENT;
+        return true;
+    }
+    qDebug() << tabAreaCornerWidget->rect() << tabAreaCornerWidget->mapFromGlobal(QPoint(x, y))
+             << x<<y;
+    LRESULT lRet = 0;
+    if (dwmApi.dwmDefWindowProc(msg->hwnd, msg->message, msg->wParam, msg->lParam, &lRet)) {
+        *result = lRet;
+        return true;    // handled for Titlebar area
+    }
+
+    USHORT uRow = 1;
+    USHORT uCol = 1;
+
+    // Determine if the point is at the top or bottom of the window.
+    if (y >= rcWindow.top && y < rcWindow.top + TITLE_BAR_HEIGHT)
+        uRow = 0;
+    else if (y < rcWindow.bottom && y >= rcWindow.bottom - WINDOW_FRAME_WIDTH)
+        uRow = 2;
+
+    // Determine if the point is at the left or right of the window.
+    if (x >= rcWindow.left && x < rcWindow.left + WINDOW_FRAME_WIDTH)
+        uCol = 0;
+    else if (x < rcWindow.right && x >= rcWindow.right - WINDOW_FRAME_WIDTH)
+        uCol = 2;
+
+    LRESULT hitTests[3][3] =
+    {
+        { HTTOPLEFT,    y < (rcWindow.top - rcFrame.top) ? HTTOP : HTCAPTION,    HTTOPRIGHT },
+        { HTLEFT,       HTNOWHERE,      HTRIGHT },
+        { HTBOTTOMLEFT, HTBOTTOM,       HTBOTTOMRIGHT },
+    };
+
+    *result = hitTests[uRow][uCol];
+    return *result != HTNOWHERE;
 }
