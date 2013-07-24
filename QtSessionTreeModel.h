@@ -12,7 +12,7 @@ class QtSessionTreeModel : public QAbstractItemModel
 {
     Q_OBJECT
 public:
-    explicit QtSessionTreeModel(QObject *parent, map<string, Config> &config_list);
+    explicit QtSessionTreeModel(QObject *parent, map<QString, Config> &config_list);
     ~QtSessionTreeModel();
 
     QVariant data(const QModelIndex &index, int role) const;

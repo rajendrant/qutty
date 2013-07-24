@@ -1,32 +1,32 @@
 #include "QtSessionTreeModel.h"
 #include "QtConfig.h"
 
-QtSessionTreeModel::QtSessionTreeModel(QObject *parent, map<string, Config> &config_list) :
+QtSessionTreeModel::QtSessionTreeModel(QObject *parent, map<QString, Config> &config_list) :
     QAbstractItemModel(parent)
 {
-    map<string, QtSessionTreeItem*> folders;
+    map<QString, QtSessionTreeItem*> folders;
     rootItem = new QtSessionTreeItem("Session Name", NULL);
     folders[""] = rootItem;
 
-    for(std::map<string, Config>::iterator it = config_list.begin();
+    for(std::map<QString, Config>::iterator it = config_list.begin();
         it != config_list.end(); it++) {
-        string fullsessname = it->first;
+        QString fullsessname = it->first;
         if (folders.find(fullsessname) != folders.end())
             continue;
-        if (fullsessname.back() == QUTTY_SESSION_NAME_SPLIT)
-            fullsessname.pop_back();
-        vector<string> split = qutty_string_split(fullsessname, QUTTY_SESSION_NAME_SPLIT);
-        string sessname = split.back();
-        string dirname = fullsessname.substr(0, fullsessname.find_last_of(QUTTY_SESSION_NAME_SPLIT));
+        if (fullsessname.endsWith(QUTTY_SESSION_NAME_SPLIT))
+            fullsessname.chop(1);
+        QStringList split = fullsessname.split(QUTTY_SESSION_NAME_SPLIT);
+        QString sessname = split.back();
+        QString dirname = fullsessname.mid(0, fullsessname.lastIndexOf(QUTTY_SESSION_NAME_SPLIT));
         if (dirname == fullsessname)
             dirname = "";
         if (folders.find(dirname) == folders.end()) {
             QtSessionTreeItem *par = rootItem;
-            string tmpdir = "";
+            QString tmpdir = "";
             for (int i=0; i<split.size()-1; i++) {
                 tmpdir += split[i];
                 if (folders.find(tmpdir) == folders.end()) {
-                    QtSessionTreeItem *newitem = new QtSessionTreeItem(QString::fromStdString(split[i]), par);
+                    QtSessionTreeItem *newitem = new QtSessionTreeItem(split[i], par);
                     par->appendChild(newitem);
                     folders[tmpdir] = newitem;
                     par = newitem;
@@ -35,7 +35,7 @@ QtSessionTreeModel::QtSessionTreeModel(QObject *parent, map<string, Config> &con
                 tmpdir += QUTTY_SESSION_NAME_SPLIT;
             }
         }
-        QtSessionTreeItem *item = new QtSessionTreeItem(QString::fromStdString(sessname), folders[dirname]);
+        QtSessionTreeItem *item = new QtSessionTreeItem((sessname), folders[dirname]);
         folders[dirname]->appendChild(item);
         folders[fullsessname] = item;
     }

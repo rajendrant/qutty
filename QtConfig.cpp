@@ -93,7 +93,7 @@ int QtConfig::readFromXML(QIODevice *device)
                     xml.skipCurrentElement();
                 }
             }
-            config_list[cfg.config_name] = cfg;
+            config_list[QString(cfg.config_name)] = cfg;
         } else if (xml.name() == "sshhostkeys" && xml.attributes().value("version") == "1.0") {
             while (xml.readNextStartElement()) {
                 if (xml.name() == "entry") {
@@ -166,7 +166,7 @@ int QtConfig::writeToXML(QIODevice *device)
         xml.writeEndElement();
     }
 
-    for(map<string, Config>::iterator  it=config_list.begin();
+    for(map<QString, Config>::iterator  it=config_list.begin();
         it != config_list.end(); it++) {
         int i;
         Config *cfg = &(it->second);
@@ -303,7 +303,7 @@ bool QtConfig::restoreFromPuttyWinRegistry()
         close_settings_r(sesskey);
 
         strncpy(cfg.config_name, savedSess.sessions[i], sizeof(cfg.config_name));
-        this->config_list[cfg.config_name] = cfg;
+        this->config_list[QString(cfg.config_name)] = cfg;
 
         qDebug() << "putty session " << i << " name " << savedSess.sessions[i]
                  << " host " << cfg.host << " port " << cfg.port;

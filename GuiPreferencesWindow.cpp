@@ -209,7 +209,7 @@ void GuiPreferencesWindow::slot_keysh_custom_saved_session_shortcut_create()
         it != qutty_config.config_list.end(); ++it) {
         if (it->first == QUTTY_DEFAULT_CONFIG_SETTINGS)
             continue;
-        sesslist.append(it->first.c_str());
+        sesslist.append(it->first);
     }
     session = QInputDialog::getItem(this, "Select session",
                         "Select a session to create shortcut for",
