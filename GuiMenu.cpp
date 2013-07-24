@@ -182,7 +182,7 @@ void GuiMainWindow::initializeMenuSystem()
     newTabToolButton.setMenu(menuGetMenuById(MENU_TAB_BAR));
     newTabToolButton.setPopupMode(QToolButton::InstantPopup);
 
-    tabArea->setCornerWidget(&newTabToolButton, Qt::TopRightCorner);
+    tabInTitleBar.setTabAreaCornerWidget(&newTabToolButton);
     tabArea->setStyle(new MyStyle(this));   // TODO MEMLEAK
 
     connect(&qutty_config, SIGNAL(savedSessionsChanged()), this, SLOT(contextMenuSavedSessionsChanged()));

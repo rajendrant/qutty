@@ -90,6 +90,7 @@ SOURCES +=  \
     tmux/TmuxWindowPane.cpp \
     tmux/TmuxLayout.cpp \
     serialize/QtMRUSessionList.cpp \
+    windows/GuiTabInTitlebar.cpp
 
 HEADERS +=  \
     GuiMainWindow.h \
@@ -138,6 +139,8 @@ HEADERS +=  \
     tmux/TmuxWindowPane.h \
     tmux/TmuxLayout.h \
     serialize/QtMRUSessionList.h \
+    windows/dwm/GuiDwmApi.h \
+    windows/GuiTabInTitlebar.h
 
 
 INCLUDEPATH += ./ puttysrc/

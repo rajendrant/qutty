@@ -34,6 +34,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
       tabNavigate(NULL),
       paneNavigate(NULL),
       tabArea(new GuiTabWidget(this)),
+      tabInTitleBar(this, tabArea, tabArea->getGuiTabBar()),
       settingsWindow(NULL),
       compactSettingsWindow(NULL),
       newTabToolButton()
@@ -235,61 +236,14 @@ void GuiMainWindow::on_changeSettingsTabComplete(Config cfg, GuiTerminalWindow *
 extern "C" Socket get_ssh_socket(void *handle);
 extern "C" Socket get_telnet_socket(void *handle);
 
-bool GuiMainWindow::winEvent ( MSG * /*msg*/, long * /*result*/ )
+bool GuiMainWindow::winEvent ( MSG *msg, long *result )
 {
-    /*
-    int ret;
-    HDC hdc;
-    RECT r1, r2;
+    return tabInTitleBar.handleWinEvent(msg, result);
+}
 
-    switch(msg->message) {
-    case WM_NCCALCSIZE:
-        qDebug()<<"got WM_NCCALCSIZE "<<hex<<msg->wParam<<" "<<msg->lParam<<endl;
-        if (msg->wParam) {
-                NCCALCSIZE_PARAMS* param = (NCCALCSIZE_PARAMS*)msg->lParam;
-                memcpy(&r1, param->rgrc, sizeof(RECT));
-                qDebug()<<dec<<param->lppos<<" "<<param->rgrc->top<<" "<<param->rgrc->left<<" "<<param->rgrc->bottom<<" "<<param->rgrc->right<<endl;
-        } else {
-                RECT* param = (RECT*)msg->lParam;
-                qDebug()<<dec<<param->top<<" "<<param->left<<" "<<param->bottom<<" "<<param->right<<endl;
-        }
-        ret = DefWindowProc((HWND) this->winId(), msg->message, msg->wParam, msg->lParam);
-        if (msg->wParam) {
-                NCCALCSIZE_PARAMS* param = (NCCALCSIZE_PARAMS*)msg->lParam;
-                qDebug()<<hex<<"ret "<<ret<<dec<<param->lppos<<" "<<param->rgrc->top<<" "<<param->rgrc->left<<" "<<param->rgrc->bottom<<" "<<param->rgrc->right<<endl;
-                memcpy(&r2, param->rgrc, sizeof(RECT));
-                memcpy(param->rgrc, &r1, sizeof(RECT));
-                param->rgrc->top += r1.bottom - r2.bottom + 1;
-                //if(mainWindow->windowState()&Qt::WindowMaximized)
-                //    param->rgrc->top = r1.top + 4;
-        } else {
-                RECT* param = (RECT*)msg->lParam;
-                qDebug()<<hex<<"ret "<<ret<<dec<<param->top<<" "<<param->left<<" "<<param->bottom<<" "<<param->right<<endl;
-                //param->top -= 40;
-        }
-        *result = ret;
-        return true;
-    case WM_NCACTIVATE:
-        qDebug() << "got wm_ncactivate "<<msg->message<<" "<<msg->lParam<<" "<<msg->wParam<<"\n";
-    case WM_NCPAINT:
-        hdc = GetWindowDC((HWND) this->winId());
-        if ((int)hdc != 0)
-        {
-            //ret = DefWindowProc((HWND) this->winId(), msg->message, msg->wParam, msg->lParam);
-            / *TextOut(hdc, 0, 0, L"Hello, Windows!", 15);
-            RECT rect;
-            rect.top = 0; rect.left=0; rect.bottom=10; rect.right=20;
-            DrawEdge(hdc, &rect, EDGE_RAISED, BF_RECT | BF_ADJUST);
-            FillRect(hdc, &rect, GetSysColorBrush(COLOR_BTNFACE));
-            ReleaseDC((HWND) this->winId(), hdc);
-            qDebug()<<"painted WM_NCPAINT\n";* /
-        } else
-            qDebug()<<"failed painting WM_NCPAINT\n";
-        *result = 0;
-        return true;
-    }*/
-
-    return false;
+bool GuiMainWindow::nativeEvent(const QByteArray & eventType, void * message, long * result)
+{
+    return winEvent((MSG*)message, result);
 }
 
 void GuiMainWindow::currentChanged(int index)
