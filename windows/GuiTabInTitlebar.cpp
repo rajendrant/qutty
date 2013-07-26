@@ -24,19 +24,19 @@
  * http://stackoverflow.com/questions/137005/auto-hide-taskbar-not-appearing-when-my-application-is-maximized
  */
 
-#define WINDOW_FRAME_WIDTH  (mainWindow->style()->pixelMetric(QStyle::PM_MdiSubWindowFrameWidth))
-#define TITLE_BAR_HEIGHT    (mainWindow->style()->pixelMetric(QStyle::PM_TitleBarHeight))
-
-GuiTabInTitlebar::GuiTabInTitlebar(QMainWindow *mainwindow, QTabWidget *tabarea, QTabBar *tabbar)
+GuiTabInTitlebar::GuiTabInTitlebar(QMainWindow *mainwindow, QTabWidget *tabarea, QTabBar *tabbar, bool enable)
     : mainWindow(mainwindow),
       tabArea(tabarea),
       tabBar(tabbar),
+      tabAreaCornerWidget(NULL),
       isCompositionEnabled(false)
 {
-    if (!dwmApi.dwmIsCompositionEnabled())
+    if (!enable || !dwmApi.dwmIsCompositionEnabled())
         return;
 
     isCompositionEnabled = true;
+
+    tabbar_height = mainWindow->style()->pixelMetric(QStyle::PM_TitleBarHeight);
 
     mainWindow->setAttribute(Qt::WA_TranslucentBackground, true);
 
@@ -52,6 +52,8 @@ GuiTabInTitlebar::GuiTabInTitlebar(QMainWindow *mainwindow, QTabWidget *tabarea,
                  rcClient.right - rcClient.left,
                  rcClient.bottom - rcClient.top,
                  SWP_FRAMECHANGED);
+
+    handleWindowStateChangeEvent(mainWindow->windowState());
 }
 
 bool GuiTabInTitlebar::handleWinEvent(MSG *msg, long *result)
@@ -80,10 +82,10 @@ bool GuiTabInTitlebar::handleWinEvent(MSG *msg, long *result)
         // Extend the frame into the client area.
         MARGINS margins;
 
-        margins.cxLeftWidth     = WINDOW_FRAME_WIDTH;
-        margins.cxRightWidth    = WINDOW_FRAME_WIDTH;
-        margins.cyBottomHeight  = WINDOW_FRAME_WIDTH;
-        margins.cyTopHeight     = TITLE_BAR_HEIGHT;
+        margins.cxLeftWidth     = -1;
+        margins.cxRightWidth    = -1;
+        margins.cyBottomHeight  = -1;
+        margins.cyTopHeight     = -1;
 
         hr = dwmApi.dwmExtendFrameIntoClientArea(hWnd, &margins);
 
@@ -129,24 +131,8 @@ void GuiTabInTitlebar::setTabAreaCornerWidget(QWidget *w)
     }
 
     tabAreaCornerWidget = w;
-
-    // add spacer to stop Qt from using the area of
-    // the min, max, close buttons in titlebar
-    int caption_btn_size = 100;
-    NONCLIENTMETRICS ncm;
-    ncm.cbSize = sizeof(NONCLIENTMETRICS);
-    BOOL ok=SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &ncm, 0);
-    if (ok) {
-        caption_btn_size = 3 * (ncm.iCaptionWidth + 2*ncm.iBorderWidth) + 2 * ncm.iBorderWidth;
-    }
-
-    QWidget *cornerw = new QWidget;
-    QHBoxLayout *hboxlayout = new QHBoxLayout;
-    hboxlayout->setContentsMargins(0,0,0,0);
-    cornerw->setLayout(hboxlayout);
-    hboxlayout->addWidget(w);
-    hboxlayout->addSpacing(caption_btn_size);
-    tabArea->setCornerWidget(cornerw, Qt::TopRightCorner);
+    tabArea->setCornerWidget(w, Qt::TopLeftCorner);
+    tabbar_height = tabAreaCornerWidget->sizeHint().height();
 }
 
 bool GuiTabInTitlebar::hitTestNCA(MSG *msg, long *result)
@@ -159,35 +145,38 @@ bool GuiTabInTitlebar::hitTestNCA(MSG *msg, long *result)
     RECT rcFrame = { 0 };
     AdjustWindowRectEx(&rcFrame, WS_OVERLAPPEDWINDOW & ~WS_CAPTION, FALSE, NULL);
 
-    int x = GET_X_LPARAM(msg->lParam), y = GET_Y_LPARAM(msg->lParam);
-    QPoint p(x - rcWindow.left, y - rcWindow.top);
-    if ( (tabBar->rect().contains(p) && tabBar->tabAt(p) != -1) ||
-         (tabAreaCornerWidget->rect().contains(tabAreaCornerWidget->mapFromGlobal(QPoint(x, y))))
-       ) {
-        *result = HTCLIENT;
-        return true;
-    }
-    qDebug() << tabAreaCornerWidget->rect() << tabAreaCornerWidget->mapFromGlobal(QPoint(x, y))
-             << x<<y;
     LRESULT lRet = 0;
     if (dwmApi.dwmDefWindowProc(msg->hwnd, msg->message, msg->wParam, msg->lParam, &lRet)) {
         *result = lRet;
-        return true;    // handled for Titlebar area
+        return true;    // handled for Titlebar min-max-close-button area
+    }
+
+    int x = GET_X_LPARAM(msg->lParam), y = GET_Y_LPARAM(msg->lParam);
+    QPoint p(x - rcWindow.left - window_frame_width, y - rcWindow.top - titlebar_frame_width);
+
+    if (p.x() >= 0 && p.y() >= 0 && p.y() <= tabbar_height) {
+        // within tab-left-corner-icon area OR tab-area
+        if ( p.x() <= tabAreaCornerWidget->width() ||
+             tabBar->tabAt(QPoint(p.x()-tabAreaCornerWidget->width(), p.y())) != -1
+           ) {
+            *result = HTCLIENT;
+            return true;
+        }
     }
 
     USHORT uRow = 1;
     USHORT uCol = 1;
 
     // Determine if the point is at the top or bottom of the window.
-    if (y >= rcWindow.top && y < rcWindow.top + TITLE_BAR_HEIGHT)
+    if (y >= rcWindow.top && y < rcWindow.top + titlebar_frame_width + tabbar_height)
         uRow = 0;
-    else if (y < rcWindow.bottom && y >= rcWindow.bottom - WINDOW_FRAME_WIDTH)
+    else if (y < rcWindow.bottom && y >= rcWindow.bottom - window_frame_width)
         uRow = 2;
 
     // Determine if the point is at the left or right of the window.
-    if (x >= rcWindow.left && x < rcWindow.left + WINDOW_FRAME_WIDTH)
+    if (x >= rcWindow.left && x < rcWindow.left + window_frame_width)
         uCol = 0;
-    else if (x < rcWindow.right && x >= rcWindow.right - WINDOW_FRAME_WIDTH)
+    else if (x < rcWindow.right && x >= rcWindow.right - window_frame_width)
         uCol = 2;
 
     LRESULT hitTests[3][3] =
@@ -199,4 +188,18 @@ bool GuiTabInTitlebar::hitTestNCA(MSG *msg, long *result)
 
     *result = hitTests[uRow][uCol];
     return *result != HTNOWHERE;
+}
+
+void GuiTabInTitlebar::handleWindowStateChangeEvent(Qt::WindowStates state)
+{
+    if (state & Qt::WindowMaximized) {
+        window_frame_width = 0;
+        titlebar_frame_width = 0;
+        mainWindow->setContentsMargins(0, 0, 0, 0);
+    } else {
+        window_frame_width = mainWindow->style()->pixelMetric(QStyle::PM_MdiSubWindowFrameWidth);
+        titlebar_frame_width = 3*mainWindow->style()->pixelMetric(QStyle::PM_TitleBarHeight)/4;
+        mainWindow->setContentsMargins(window_frame_width, titlebar_frame_width,
+                                       window_frame_width, window_frame_width);
+    }
 }

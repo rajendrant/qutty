@@ -11,6 +11,9 @@
 #include <QTabBar>
 #include <QSettings>
 #include <QMenuBar>
+#include <QLabel>
+#include <QGraphicsBlurEffect>
+#include <QBitmap>
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include "GuiSettingsWindow.h"
@@ -34,7 +37,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
       tabNavigate(NULL),
       paneNavigate(NULL),
       tabArea(new GuiTabWidget(this)),
-      tabInTitleBar(this, tabArea, tabArea->getGuiTabBar()),
+      tabInTitleBar(this, tabArea, tabArea->getGuiTabBar(), true),
       settingsWindow(NULL),
       compactSettingsWindow(NULL),
       newTabToolButton()
@@ -548,4 +551,33 @@ void GuiMainWindow::on_tabLayoutChanged()
         }
         widgetAtIndex[i] = std::pair<GuiSplitter*,GuiTerminalWindow*>(split, term);
     }
+}
+
+
+void GuiMainWindow::changeEvent(QEvent *e)
+{
+    if (e->type() == QEvent::WindowStateChange) {
+        tabInTitleBar.handleWindowStateChangeEvent(windowState());
+    }
+    QMainWindow::changeEvent(e);
+}
+
+void GuiToolButton::paintEvent(QPaintEvent *e)
+{
+    QStyleOptionToolButton option;
+    option.initFrom(this);
+    QPainter painter(this);
+    if (option.state & QStyle::State_MouseOver)
+        painter.drawPixmap(e->rect(), QPixmap(":/images/menu-hover.png"));
+    else
+        painter.drawPixmap(e->rect(), QPixmap(":/images/drag.png"));
+}
+
+
+QSize GuiToolButton::sizeHint() const
+{
+    QSize s1(QToolButton::sizeHint());
+    QSize s2(QPixmap(":/images/drag.png").size());
+    float f = float(s2.width()) / s2.height();
+    return QSize(f*s1.width(), s1.height());
 }

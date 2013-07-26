@@ -18,6 +18,7 @@
 #include "GuiPreferencesWindow.h"
 #include "GuiImportExportFile.h"
 #include "QtConfig.h"
+#include "GuiTabBar.h"
 
 qutty_menu_actions_t qutty_menu_actions[MENU_STATIC_ACTION_MAX] = {
     { "Restart Session",        "",              SLOT( contextMenuRestartSessionTriggered() ),
@@ -126,10 +127,10 @@ public:
     QRect subElementRect ( SubElement element, const QStyleOption * option, const QWidget * widget = 0 ) const
     {
         QRect rc = QProxyStyle::subElementRect(element, option, widget);
-        if (element == QStyle::SE_TabWidgetRightCorner) {
+        if (element == QStyle::SE_TabWidgetLeftCorner) {
             // This is a very bad hack we are doing
             // Reference: http://www.qtcentre.org/threads/12539-QTabWidget-corner-widget-is-not-shown
-            QWidget *wid = mainWindow->tabArea->cornerWidget();
+            QWidget *wid = mainWindow->tabArea->cornerWidget(Qt::TopLeftCorner);
             if (wid)
                 rc.setSize(wid->size());
         }
@@ -178,7 +179,6 @@ void GuiMainWindow::initializeMenuSystem()
     menuBar()->addMenu(&menuCommonMenus[MENU_VIEW-MENU_SEPARATOR-1]);
     menuGetActionById(MENU_MENUBAR)->setChecked(true);
 
-    newTabToolButton.setArrowType(Qt::DownArrow);
     newTabToolButton.setMenu(menuGetMenuById(MENU_TAB_BAR));
     newTabToolButton.setPopupMode(QToolButton::InstantPopup);
 

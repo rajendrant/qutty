@@ -27,6 +27,17 @@ class GuiSettingsWindow;
 class GuiFindToolBar;
 class GuiTabWidget;
 
+class GuiToolButton : public QToolButton
+{
+    Q_OBJECT
+
+protected:
+    void paintEvent(QPaintEvent *);
+
+public:
+    QSize sizeHint() const;
+};
+
 class GuiMainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -55,7 +66,7 @@ private:
     GuiCompactSettingsWindow *compactSettingsWindow;
     GuiSettingsWindow *settingsWindow;
     QList<GuiTerminalWindow *> terminalList;
-    QToolButton newTabToolButton;   // shown in top right corner of tabbar
+    GuiToolButton newTabToolButton;   // shown in top right corner of tabbar
 
     // containers for fast-retrieval
     std::map<const QWidget*,int> tabIndexMap;
@@ -102,6 +113,7 @@ private:
 
 protected:
     bool nativeEvent(const QByteArray & eventType, void * message, long * result);
+    void changeEvent(QEvent *e);
 
 public slots:
     void on_openNewWindow();

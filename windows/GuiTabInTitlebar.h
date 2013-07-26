@@ -15,11 +15,16 @@ class GuiTabInTitlebar
     QWidget *tabAreaCornerWidget;
     bool isCompositionEnabled;
 
+    int tabbar_height;
+    int titlebar_frame_width;
+    int window_frame_width;
+
     bool hitTestNCA(MSG *msg, long *result);
 
 public:
-    GuiTabInTitlebar(QMainWindow *mainwindow, QTabWidget *tabarea, QTabBar *tabbar);
+    GuiTabInTitlebar(QMainWindow *mainwindow, QTabWidget *tabarea, QTabBar *tabbar, bool enable=true);
     bool handleWinEvent(MSG *msg, long *result);
+    void handleWindowStateChangeEvent(Qt::WindowStates);
     void setTabAreaCornerWidget(QWidget *w);
 };
 
