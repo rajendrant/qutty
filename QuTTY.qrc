@@ -4,7 +4,6 @@
         <file>images/move_16x16.png</file>
         <file>images/x_14x14.png</file>
         <file>images/drag.png</file>
-        <file>images/menu-drop-down.png</file>
         <file>images/menu-hover.png</file>
     </qresource>
 </RCC>
