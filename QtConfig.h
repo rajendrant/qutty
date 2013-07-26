@@ -36,7 +36,7 @@ class QtConfig : public QObject {
 
 public:
     map<string, string> ssh_host_keys;
-    map<string, Config> config_list;
+    map<QString, Config> config_list;
     map<uint32_t, QtMenuActionConfig> menu_action_list;
 
     QtConfig();

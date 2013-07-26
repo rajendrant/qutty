@@ -18,7 +18,7 @@ void QtMRUSessionList::initialize()
         for(auto it = qutty_config.config_list.begin();
             it != qutty_config.config_list.end();
             ++it) {
-            QPair<QString, QString> e(QString::fromStdString(it->first), it->second.host);
+            QPair<QString, QString> e(it->first, it->second.host);
             mru_list.append(e);
         }
         save();

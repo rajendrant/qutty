@@ -308,7 +308,7 @@ void GuiMainWindow::contextMenuSavedSessionsChanged()
         it != qutty_config.config_list.end(); it++) {
         if (it->first == QUTTY_DEFAULT_CONFIG_SETTINGS)
             continue;
-        menuSavedSessions->addAction(it->first.c_str(), this, SLOT(contextMenuSavedSessionTriggered()));
+        menuSavedSessions->addAction(it->first, this, SLOT(contextMenuSavedSessionTriggered()));
     }
 }
 
@@ -317,8 +317,8 @@ void GuiMainWindow::contextMenuSavedSessionTriggered()
     QAction *action = qobject_cast<QAction *>(sender());
     if (!action)
         return;
-    char sessname[100];
-    qstring_to_char(sessname, action->text(), sizeof(sessname));
+    QString sessname = action->text();
+
     if (qutty_config.config_list.find(sessname) == qutty_config.config_list.end())
         return;
     this->createNewTab(&qutty_config.config_list[sessname]);
@@ -552,8 +552,7 @@ void GuiMainWindow::contextMenuCustomSavedSession(int ind)
     auto it = qutty_config.menu_action_list.find(ind);
     if (it == qutty_config.menu_action_list.end())
         return;
-    char sessname[100];
-    qstring_to_char(sessname, it->second.str_data, sizeof(sessname));
+    QString sessname;
     auto it_cfg = qutty_config.config_list.find(sessname);
     if (it_cfg == qutty_config.config_list.end())
         return;
