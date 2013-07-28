@@ -28,32 +28,45 @@ GuiTabInTitlebar::GuiTabInTitlebar(QMainWindow *mainwindow, QTabWidget *tabarea,
     : mainWindow(mainwindow),
       tabArea(tabarea),
       tabBar(tabbar),
-      tabAreaCornerWidget(NULL),
+      tabAreaLCornerWidget(NULL),
       isCompositionEnabled(false)
 {
     if (!enable || !dwmApi.dwmIsCompositionEnabled())
         return;
 
     isCompositionEnabled = true;
+}
+
+void GuiTabInTitlebar::initialize()
+{
+    if (!isCompositionEnabled)
+        return;
 
     tabbar_height = mainWindow->style()->pixelMetric(QStyle::PM_TitleBarHeight);
 
     mainWindow->setAttribute(Qt::WA_TranslucentBackground, true);
 
-    // Handle window creation.
-    RECT rcClient;
-    HWND hwnd = (HWND) mainWindow->winId();
-    GetWindowRect(hwnd, &rcClient);
-
-    // Inform application of the frame change.
-    SetWindowPos(hwnd,
-                 NULL,
-                 rcClient.left, rcClient.top,
-                 rcClient.right - rcClient.left,
-                 rcClient.bottom - rcClient.top,
-                 SWP_FRAMECHANGED);
-
     handleWindowStateChangeEvent(mainWindow->windowState());
+
+    /*
+     * add spacer to stop Qt from using the area of
+     * the min, max, close buttons in titlebar
+     */
+    titlebar_captionbtn_width = 4 * mainWindow->style()->pixelMetric(QStyle::PM_TitleBarHeight);
+    NONCLIENTMETRICS ncm;
+    ncm.cbSize = sizeof(NONCLIENTMETRICS);
+    BOOL ok=SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &ncm, 0);
+    if (ok) {
+        titlebar_captionbtn_width = 3 * (ncm.iCaptionWidth + 2*ncm.iBorderWidth) + 2 * ncm.iBorderWidth;
+        QWidget *w = new QWidget;
+        QHBoxLayout *hboxlayout = new QHBoxLayout;
+        hboxlayout->setContentsMargins(0,0,0,0);
+        w->setLayout(hboxlayout);
+        hboxlayout->addSpacing(titlebar_captionbtn_width);
+        tabArea->setCornerWidget(w, Qt::TopRightCorner);
+    }
+
+    handleWindowResize();
 }
 
 bool GuiTabInTitlebar::handleWinEvent(MSG *msg, long *result)
@@ -80,13 +93,7 @@ bool GuiTabInTitlebar::handleWinEvent(MSG *msg, long *result)
     if (message == WM_ACTIVATE)
     {
         // Extend the frame into the client area.
-        MARGINS margins;
-
-        margins.cxLeftWidth     = -1;
-        margins.cxRightWidth    = -1;
-        margins.cyBottomHeight  = -1;
-        margins.cyTopHeight     = -1;
-
+        MARGINS margins = {-1, -1, -1, -1};
         hr = dwmApi.dwmExtendFrameIntoClientArea(hWnd, &margins);
 
         if (!SUCCEEDED(hr))
@@ -130,9 +137,9 @@ void GuiTabInTitlebar::setTabAreaCornerWidget(QWidget *w)
         return;
     }
 
-    tabAreaCornerWidget = w;
+    tabAreaLCornerWidget = w;
     tabArea->setCornerWidget(w, Qt::TopLeftCorner);
-    tabbar_height = tabAreaCornerWidget->sizeHint().height();
+    tabbar_height = tabAreaLCornerWidget->sizeHint().height();
 }
 
 bool GuiTabInTitlebar::hitTestNCA(MSG *msg, long *result)
@@ -154,24 +161,33 @@ bool GuiTabInTitlebar::hitTestNCA(MSG *msg, long *result)
     int x = GET_X_LPARAM(msg->lParam), y = GET_Y_LPARAM(msg->lParam);
     QPoint p(x - rcWindow.left - window_frame_width, y - rcWindow.top - titlebar_frame_width);
 
-    if (p.x() >= 0 && p.y() >= 0 && p.y() <= tabbar_height) {
-        // within tab-left-corner-icon area OR tab-area
-        if ( p.x() <= tabAreaCornerWidget->width() ||
-             tabBar->tabAt(QPoint(p.x()-tabAreaCornerWidget->width(), p.y())) != -1
+    if (p.x() >= 0 && p.y() >= 0 && p.y() <= tabbar_height &&
+        p.x() <= rcWindow.right-rcWindow.left-titlebar_captionbtn_width-2*window_frame_width) {
+        /*
+         * within tab-left-corner-icon area OR tab-area-tabs OR tab-area-navigate-buttons
+         * tab-left-corner  - p within tabAreaCornerWidget
+         * tab-area-tabs    - tabAt return != -1
+         * tab-area-navigate-buttons  - childt returns != NULL
+         */
+        if ( p.x() <= tabAreaLCornerWidget->width() ||
+             tabBar->tabAt(QPoint(p.x()-tabAreaLCornerWidget->width(), p.y())) != -1 ||
+             tabBar->childAt(p.x()-tabAreaLCornerWidget->width(), p.y())
            ) {
             *result = HTCLIENT;
             return true;
         }
     }
 
-    USHORT uRow = 1;
+    USHORT uRow = 2;
     USHORT uCol = 1;
 
     // Determine if the point is at the top or bottom of the window.
-    if (y >= rcWindow.top && y < rcWindow.top + titlebar_frame_width + tabbar_height)
+    if (y >= rcWindow.top && y < rcWindow.top + window_frame_width)
         uRow = 0;
+    else if (y >= rcWindow.top && y < rcWindow.top + titlebar_frame_width + tabbar_height)
+        uRow = 1;
     else if (y < rcWindow.bottom && y >= rcWindow.bottom - window_frame_width)
-        uRow = 2;
+        uRow = 3;
 
     // Determine if the point is at the left or right of the window.
     if (x >= rcWindow.left && x < rcWindow.left + window_frame_width)
@@ -179,11 +195,12 @@ bool GuiTabInTitlebar::hitTestNCA(MSG *msg, long *result)
     else if (x < rcWindow.right && x >= rcWindow.right - window_frame_width)
         uCol = 2;
 
-    LRESULT hitTests[3][3] =
+    LRESULT hitTests[4][3] =
     {
-        { HTTOPLEFT,    y < (rcWindow.top - rcFrame.top) ? HTTOP : HTCAPTION,    HTTOPRIGHT },
-        { HTLEFT,       HTNOWHERE,      HTRIGHT },
-        { HTBOTTOMLEFT, HTBOTTOM,       HTBOTTOMRIGHT },
+        { HTTOPLEFT,    HTTOP,      HTTOPRIGHT },
+        { HTLEFT,       HTCAPTION,  HTRIGHT },
+        { HTLEFT,       HTNOWHERE,  HTRIGHT },
+        { HTBOTTOMLEFT, HTBOTTOM,   HTBOTTOMRIGHT },
     };
 
     *result = hitTests[uRow][uCol];
@@ -202,4 +219,19 @@ void GuiTabInTitlebar::handleWindowStateChangeEvent(Qt::WindowStates state)
         mainWindow->setContentsMargins(window_frame_width, titlebar_frame_width,
                                        window_frame_width, window_frame_width);
     }
+}
+
+void GuiTabInTitlebar::handleWindowResize()
+{
+    /*
+     * Not calling below api leads to tabbar, topleftmenu not
+     * respond to mouse clicks when it first opens
+     */
+    SetWindowPos((HWND)mainWindow->winId(),
+                 NULL,
+                 mainWindow->geometry().left(),
+                 mainWindow->geometry().top(),
+                 mainWindow->width(),
+                 mainWindow->height(),
+                 SWP_FRAMECHANGED);
 }

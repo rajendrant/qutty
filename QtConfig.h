@@ -7,6 +7,8 @@ extern "C" {
 #include <QIODevice>
 #include <QKeySequence>
 #include <QString>
+#include <QPoint>
+#include <QSize>
 #include <map>
 #include <vector>
 #include <string>
@@ -30,6 +32,15 @@ public:
     { }
 };
 
+typedef struct qutty_mainwindow_settings_t__ {
+    QSize size;
+    QPoint pos;
+    int state;
+    int flag;
+    bool menubar_visible;
+    bool titlebar_tabs;
+} qutty_mainwindow_settings_t;
+
 class QtConfig : public QObject {
 
     Q_OBJECT
@@ -38,6 +49,7 @@ public:
     map<string, string> ssh_host_keys;
     map<QString, Config> config_list;
     map<uint32_t, QtMenuActionConfig> menu_action_list;
+    qutty_mainwindow_settings_t mainwindow;
 
     QtConfig();
 

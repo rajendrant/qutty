@@ -99,6 +99,7 @@ public:
     void tabInsert(int tabind, QWidget *w, const QString &title);
     void tabRemove(int tabind);
     int setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType split, int tabind = -1);
+    void setupTerminalSize(GuiTerminalWindow *newTerm);
 
     int getTerminalTabInd(const QWidget *term);
 
@@ -108,8 +109,8 @@ private:
     void inittializeDragDropWidget();
     void populateMenu(QMenu &menu, qutty_menu_id_t menu_list[], int len);
 
-    void readSettings();
-    void writeSettings();
+    void readWindowSettings();
+    void writeWindowSettings();
 
 protected:
     bool nativeEvent(const QByteArray & eventType, void * message, long * result);
