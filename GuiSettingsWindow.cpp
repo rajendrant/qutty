@@ -768,5 +768,5 @@ void chkUnsupportedConfigs(Config &cfg)
 
 void GuiSettingsWindow::on_btn_sessionlog_filename_browse_clicked()
 {
-    ui->le_sessionlog_filename->setText(QFileDialog::getSaveFileName(this, tr("Select session log filename"), "putty", tr("log files (*.log)")));
+    ui->le_sessionlog_filename->setText(QFileDialog::getSaveFileName(this, tr("Select session log filename"), "qutty", tr("log files (*.log)")));
 }

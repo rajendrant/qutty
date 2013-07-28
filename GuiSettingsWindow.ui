@@ -638,7 +638,7 @@
               <item>
                <widget class="QLineEdit" name="le_sessionlog_filename">
                 <property name="text">
-                 <string>QuTTY.log</string>
+                 <string>qutty.log</string>
                 </property>
                </widget>
               </item>
