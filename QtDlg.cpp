@@ -43,7 +43,7 @@ int askalg(void *frontend, const char *algtype, const char *algname,
 int askappend(void *frontend, Filename filename,
           void (* /*callback*/)(void *ctx, int result), void * /*ctx*/)
 {
-    assert(frontend);
+    //assert(frontend);
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
     QString msg = 	QString("The session log file \"") + QString(filename.path)
             + QString("\" already exists.\n"
@@ -53,7 +53,7 @@ int askappend(void *frontend, Filename filename,
             "Hit Yes to wipe the file, No to append to it,\n"
             "or Cancel to disable logging.");
 
-    switch (QMessageBox::warning(f->getMainWindow(), QString(APPNAME " Log to File"),
+    switch (QMessageBox::warning(NULL, QString(APPNAME " Log to File"),
                          msg,
                          QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel,
                          QMessageBox::Cancel)) {

@@ -643,7 +643,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="pushButton_5">
+               <widget class="QPushButton" name="btn_sessionlog_filename_browse">
                 <property name="text">
                  <string>Browse...</string>
                 </property>
@@ -5314,7 +5314,7 @@
   <tabstop>rb_sessionlog_sshpacket</tabstop>
   <tabstop>rb_sessionlog_rawdata</tabstop>
   <tabstop>le_sessionlog_filename</tabstop>
-  <tabstop>pushButton_5</tabstop>
+  <tabstop>btn_sessionlog_filename_browse</tabstop>
   <tabstop>rb_sessionlog_overwrite</tabstop>
   <tabstop>rb_sessionlog_append</tabstop>
   <tabstop>rb_sessionlog_askuser</tabstop>

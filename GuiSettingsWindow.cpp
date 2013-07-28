@@ -765,3 +765,8 @@ void chkUnsupportedConfigs(Config &cfg)
                          QObject::tr("Following options are not yet supported in QuTTY.\n\n%1")
                          .arg(opt_unsupp));
 }
+
+void GuiSettingsWindow::on_btn_sessionlog_filename_browse_clicked()
+{
+    ui->le_sessionlog_filename->setText(QFileDialog::getSaveFileName(this, tr("Select session log filename"), "putty", tr("log files (*.log)")));
+}

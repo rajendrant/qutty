@@ -93,6 +93,8 @@ private slots:
 
     void on_b_sess_copy_clicked();
 
+    void on_btn_sessionlog_filename_browse_clicked();
+
 private:
     Ui::GuiSettingsWindow *ui;
 
