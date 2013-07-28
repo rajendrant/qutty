@@ -108,7 +108,7 @@ qutty_menu_links_t qutty_menu_links[MENU_MAX_MENU] = {
                                       MENU_NEW_TAB, MENU_RESTART_SESSION, MENU_DUPLICATE_SESSION,
                                       MENU_SAVED_SESSIONS, MENU_SPLIT_SESSION, MENU_CHANGE_SETTINGS,
                                       MENU_SEPARATOR, MENU_RENAME_TAB, MENU_SEPARATOR, MENU_CLOSE_SESSION} },
-{ "Menu Tabbar",                12, { MENU_NEW_TAB, MENU_NEW_WINDOW, MENU_SEPARATOR,
+{ "Menu Tabbar",                14, { MENU_NEW_TAB, MENU_NEW_WINDOW, MENU_SEPARATOR,
                                       MENU_SAVED_SESSIONS, MENU_SEPARATOR, MENU_SPLIT_SESSION, MENU_SEPARATOR,
                                       MENU_EXPORT_IMPORT, MENU_SEPARATOR, MENU_VIEW, MENU_SEPARATOR,
                                       MENU_EDIT, MENU_SEPARATOR, MENU_EXIT } },
@@ -127,10 +127,13 @@ public:
     QRect subElementRect ( SubElement element, const QStyleOption * option, const QWidget * widget = 0 ) const
     {
         QRect rc = QProxyStyle::subElementRect(element, option, widget);
-        if (element == QStyle::SE_TabWidgetLeftCorner) {
+        if (element == QStyle::SE_TabWidgetLeftCorner ||
+            element == QStyle::SE_TabWidgetRightCorner) {
             // This is a very bad hack we are doing
             // Reference: http://www.qtcentre.org/threads/12539-QTabWidget-corner-widget-is-not-shown
             QWidget *wid = mainWindow->tabArea->cornerWidget(Qt::TopLeftCorner);
+            if (element == QStyle::SE_TabWidgetRightCorner)
+                wid = mainWindow->tabArea->cornerWidget(Qt::TopRightCorner);
             if (wid)
                 rc.setSize(wid->size());
         }
@@ -173,16 +176,9 @@ void GuiMainWindow::initializeMenuSystem()
     menuGetActionById(MENU_FULLSCREEN)->setCheckable(true);
     menuGetActionById(MENU_ALWAYSONTOP)->setCheckable(true);
 
-    // setup main menubar
-    menuBar()->addMenu(&menuCommonMenus[MENU_FILE-MENU_SEPARATOR-1]);
-    menuBar()->addMenu(&menuCommonMenus[MENU_EDIT-MENU_SEPARATOR-1]);
-    menuBar()->addMenu(&menuCommonMenus[MENU_VIEW-MENU_SEPARATOR-1]);
-    menuGetActionById(MENU_MENUBAR)->setChecked(true);
-
     newTabToolButton.setMenu(menuGetMenuById(MENU_TAB_BAR));
     newTabToolButton.setPopupMode(QToolButton::InstantPopup);
 
-    tabInTitleBar.setTabAreaCornerWidget(&newTabToolButton);
     tabArea->setStyle(new MyStyle(this));   // TODO MEMLEAK
 
     connect(&qutty_config, SIGNAL(savedSessionsChanged()), this, SLOT(contextMenuSavedSessionsChanged()));
@@ -407,8 +403,10 @@ void GuiMainWindow::contextMenuMenuBar()
     if (qobject_cast<QShortcut*>(sender()))  // if invoked from keyboard-shortcut
         menuGetActionById(MENU_MENUBAR)->toggle();
     if(menuGetActionById(MENU_MENUBAR)->isChecked()) {
+        qutty_config.mainwindow.menubar_visible = true;
         menuBar()->show();
     } else {
+        qutty_config.mainwindow.menubar_visible = false;
         menuBar()->hide();
     }
 }

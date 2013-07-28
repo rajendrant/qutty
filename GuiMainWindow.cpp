@@ -64,7 +64,13 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
 
     resize(800, 600);   // initial size
     // read & restore the settings
-    readSettings();
+    readWindowSettings();
+
+    /*
+     * Initial resize should happen before setting up tabs-in-titlebar
+     */
+    tabInTitleBar.initialize();
+    tabInTitleBar.setTabAreaCornerWidget(&newTabToolButton);
 }
 
 GuiMainWindow::~GuiMainWindow()
@@ -142,7 +148,7 @@ void GuiMainWindow::closeEvent ( QCloseEvent * event )
             (*it)->reqCloseTerminal(true);
         }
         terminalList.clear();
-        writeSettings();
+        writeWindowSettings();
         event->accept();
     }
 }
@@ -431,35 +437,48 @@ GuiTerminalWindow *GuiMainWindow::getCurrentTerminalInTab(int tabIndex)
 }
 
 
-void GuiMainWindow::readSettings()
+void GuiMainWindow::readWindowSettings()
 {
-    bool menuBarVisible;
     QSettings settings(QSettings::IniFormat, QSettings::UserScope, APPNAME, APPNAME);
 
     settings.beginGroup("GuiMainWindow");
-    resize(settings.value("Size", size()).toSize());
-    move(settings.value("Position", pos()).toPoint());
-    setWindowState((Qt::WindowState)settings.value("WindowState", (int)windowState()).toInt());
-    setWindowFlags((Qt::WindowFlags)settings.value("WindowFlags", (int)windowFlags()).toInt());
-    menuBarVisible = settings.value("ShowMenuBar", true).toBool();
+    qutty_config.mainwindow.size    = settings.value("Size", size()).toSize();
+    qutty_config.mainwindow.pos     = settings.value("Position", pos()).toPoint();
+    qutty_config.mainwindow.state   = settings.value("WindowState", (int)windowState()).toInt();
+    qutty_config.mainwindow.flag    = settings.value("WindowFlags", (int)windowFlags()).toInt();
+    qutty_config.mainwindow.menubar_visible = settings.value("ShowMenuBar", false).toBool();
+    qutty_config.mainwindow.titlebar_tabs = settings.value("ShowTabsInTitlebar", true).toBool();
     settings.endGroup();
+
+    if (qutty_config.mainwindow.titlebar_tabs && qutty_config.mainwindow.menubar_visible)
+        qutty_config.mainwindow.menubar_visible = false;
+
+    resize(qutty_config.mainwindow.size);
+    move(qutty_config.mainwindow.pos);
+    setWindowState((Qt::WindowState)qutty_config.mainwindow.state);
+    setWindowFlags((Qt::WindowFlags)qutty_config.mainwindow.flag);
 
     menuGetActionById(MENU_FULLSCREEN)->setChecked((windowState() & Qt::WindowFullScreen));
     menuGetActionById(MENU_ALWAYSONTOP)->setChecked((windowFlags() & Qt::WindowStaysOnTopHint));
-    menuGetActionById(MENU_MENUBAR)->setChecked(menuBarVisible);
-    menuBarVisible ? menuBar()->show() : menuBar()->hide();
-
-    this->show();
+    menuGetActionById(MENU_MENUBAR)->setChecked(qutty_config.mainwindow.menubar_visible);
+    if (qutty_config.mainwindow.menubar_visible) {
+        // setup main menubar
+        menuBar()->show();
+        menuBar()->addMenu(&menuCommonMenus[MENU_FILE-MENU_SEPARATOR-1]);
+        menuBar()->addMenu(&menuCommonMenus[MENU_EDIT-MENU_SEPARATOR-1]);
+        menuBar()->addMenu(&menuCommonMenus[MENU_VIEW-MENU_SEPARATOR-1]);
+    }
 }
 
-void GuiMainWindow::writeSettings()
+void GuiMainWindow::writeWindowSettings()
 {
     QSettings settings(QSettings::IniFormat, QSettings::UserScope, APPNAME, APPNAME);
 
     settings.beginGroup("GuiMainWindow");
     settings.setValue("WindowState", (int)windowState());
     settings.setValue("WindowFlags", (int)windowFlags());
-    settings.setValue("ShowMenuBar", menuBar()->isVisible());
+    settings.setValue("ShowMenuBar", qutty_config.mainwindow.menubar_visible);
+    settings.setValue("ShowTabsInTitlebar", qutty_config.mainwindow.titlebar_tabs);
     if (!isMaximized()) {
         settings.setValue("Size", size());
         settings.setValue("Position", pos());
@@ -481,15 +500,7 @@ int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType sp
         tabArea->setCurrentWidget(newTerm);
         newTerm->setWindowState(newTerm->windowState() | Qt::WindowMaximized);
 
-        // resize according to config if window is smaller
-        if ( !(windowState() & Qt::WindowMaximized) &&
-              (tabArea->count()==1) /* only for 1st window */ &&
-             ( newTerm->viewport()->width() < newTerm->cfg.width*newTerm->getFontWidth() ||
-                newTerm->viewport()->height() < newTerm->cfg.height*newTerm->getFontHeight())) {
-            this->resize(newTerm->cfg.width*newTerm->getFontWidth() + width() - newTerm->viewport()->width(),
-                         newTerm->cfg.height*newTerm->getFontHeight() + height() - newTerm->viewport()->height());
-            term_size(newTerm->term, newTerm->cfg.height, newTerm->cfg.width, newTerm->cfg.savelines);
-        }
+        setupTerminalSize(newTerm);
         on_tabLayoutChanged();
         break;
     case GuiBase::TYPE_HORIZONTAL:
@@ -513,6 +524,20 @@ int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType sp
 
 err_exit:
     return -1;
+}
+
+void GuiMainWindow::setupTerminalSize(GuiTerminalWindow *newTerm)
+{
+    // resize according to config if window is smaller
+    if ( !(windowState() & Qt::WindowMaximized) &&
+          (tabArea->count()==1) /* only for 1st window */ &&
+         ( newTerm->viewport()->width() < newTerm->cfg.width*newTerm->getFontWidth() ||
+            newTerm->viewport()->height() < newTerm->cfg.height*newTerm->getFontHeight())) {
+        this->resize(newTerm->cfg.width*newTerm->getFontWidth() + width() - newTerm->viewport()->width(),
+                     newTerm->cfg.height*newTerm->getFontHeight() + height() - newTerm->viewport()->height());
+        tabInTitleBar.handleWindowResize();
+        term_size(newTerm->term, newTerm->cfg.height, newTerm->cfg.width, newTerm->cfg.savelines);
+    }
 }
 
 int GuiMainWindow::getTerminalTabInd(const QWidget *term)
