@@ -11,6 +11,11 @@
 /*
  * From the hack provided in below url:
  * http://www.developer.nokia.com/Community/Wiki/Implementing_QTreeView_in_QComboBox_using_Qt-_Part_2
+ *
+ * There are some bugs being worked on. Hopefully patch will reach Qt5
+ * and we can remove this file.
+ * https://bugreports.qt-project.org/browse/QTBUG-11660
+ * https://codereview.qt-project.org/#change,16716
  */
 
 class QtComboBoxWithTreeView : public QComboBox

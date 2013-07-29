@@ -26,6 +26,7 @@ private:
     int maxVisibleItems;
     int noItemsShown;
     FilterMode filterMode;
+    bool is_keypress;
 
     void init();
 
@@ -50,6 +51,7 @@ private slots:
 
 public slots:
     void completionSearchString(QString str);
+    void setText(QString str);
 
 };
 
