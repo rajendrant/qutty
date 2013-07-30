@@ -19,6 +19,7 @@
 #include "QtSessionTreeModel.h"
 
 class GuiMainWindow;
+class QtCompleterWithAdvancedCompletion;
 
 class GuiCompactSettingsWindow : public QDialog
 {
@@ -26,10 +27,14 @@ class GuiCompactSettingsWindow : public QDialog
 
     QtComboBoxWithTreeView *cb_session_list;
     QComboBox *cb_connection_type;
-    QLineEdit *le_hostname;
+    QComboBox *cb_hostname;
     GuiBase::SplitType openMode;
+    QtCompleterWithAdvancedCompletion *hostname_completer;
 
     QtSessionTreeModel *session_list_model;
+
+    void setConnectionType(int conntype);
+    int getConnectionType();
 
 public:
     explicit GuiCompactSettingsWindow(QWidget *parent, GuiBase::SplitType openmode = GuiBase::TYPE_LEAF);
@@ -44,6 +49,7 @@ public slots:
     void on_close_clicked();
     void on_details_clicked();
     void on_cb_session_list_activated(int);
+    void on_cb_hostname_activated(QString);
     void on_hostname_completion_activated(QString str);
 };
 

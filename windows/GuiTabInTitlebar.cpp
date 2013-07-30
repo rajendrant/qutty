@@ -231,11 +231,11 @@ void GuiTabInTitlebar::handleWindowResize()
      * Not calling below api leads to tabbar, topleftmenu not
      * respond to mouse clicks when it first opens
      */
-
     if (!isCompositionEnabled)
         return;
 
-    SetWindowPos((HWND)mainWindow->winId(),
+    HWND hwnd = mainWindow->winId();
+    SetWindowPos(hwnd,
                  NULL,
                  mainWindow->geometry().left(),
                  mainWindow->geometry().top(),

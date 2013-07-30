@@ -26,12 +26,14 @@ private:
     int maxVisibleItems;
     int noItemsShown;
     FilterMode filterMode;
+    bool is_keypress;
 
     void init();
 
 public:
     explicit QtCompleterWithAdvancedCompletion(QLineEdit *le);
     explicit QtCompleterWithAdvancedCompletion(QComboBox *cb);
+    ~QtCompleterWithAdvancedCompletion();
 
     void setModel(QStringList &completions);
     void setMaxVisibleItems(int maxItems) { maxVisibleItems = maxItems; }
@@ -50,6 +52,7 @@ private slots:
 
 public slots:
     void completionSearchString(QString str);
+    void setText(QString str);
 
 };
 

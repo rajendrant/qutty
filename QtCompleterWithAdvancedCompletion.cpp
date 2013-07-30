@@ -41,12 +41,20 @@ QtCompleterWithAdvancedCompletion::QtCompleterWithAdvancedCompletion(QComboBox *
 {
     init();
 
+    cb->setEditable(true);
+    cb->setAutoCompletion(false);
+    cb->installEventFilter(this);
+
     connect(popuplist, SIGNAL(clicked(QModelIndex)),
                      this, SLOT(slot_completerComplete(QModelIndex)));
     connect(cb, SIGNAL(editTextChanged(QString)), this, SLOT(completionSearchString(QString)));
     connect(this, SIGNAL(activated(QString)), cb, SLOT(setEditText(QString)));
 }
 
+QtCompleterWithAdvancedCompletion::~QtCompleterWithAdvancedCompletion()
+{
+    popuplist->deleteLater();
+}
 
 void QtCompleterWithAdvancedCompletion::init()
 {
@@ -67,10 +75,22 @@ void QtCompleterWithAdvancedCompletion::init()
 void QtCompleterWithAdvancedCompletion::setModel(QStringList &completions)
 {
     this->completions = completions;
+    QComboBox *c = qobject_cast<QComboBox*>(w);
+    if (c)
+        c->addItems(completions);
 }
 
 bool QtCompleterWithAdvancedCompletion::eventFilter(QObject *o, QEvent *e)
 {
+    if (o == w) {
+        switch (e->type()) {
+        case QEvent::MouseButtonPress:
+            is_keypress = false;
+            break;
+        }
+        return w->eventFilter(o, e);
+    }
+
     if (o != popuplist)
         return QObject::eventFilter(o, e);
 
@@ -160,6 +180,7 @@ bool QtCompleterWithAdvancedCompletion::eventFilter(QObject *o, QEvent *e)
 
 void QtCompleterWithAdvancedCompletion::slot_completerComplete(QModelIndex index)
 {
+    is_keypress = false;
     if (index.isValid()) {
         emit activated(index.data().toString());
     }
@@ -169,6 +190,11 @@ void QtCompleterWithAdvancedCompletion::slot_completerComplete(QModelIndex index
 void QtCompleterWithAdvancedCompletion::completionSearchString(QString str)
 {
     if (!w || str.isEmpty()) {
+        popuplist->hide();
+        return;
+    }
+    if (!is_keypress) {
+        is_keypress = true;
         popuplist->hide();
         return;
     }
@@ -204,4 +230,15 @@ void QtCompleterWithAdvancedCompletion::completionSearchString(QString str)
         popuplist->show();
         noItemsShown = itemsToShow;
     }
+}
+
+void QtCompleterWithAdvancedCompletion::setText(QString str)
+{
+    is_keypress = false;
+    QComboBox *c = qobject_cast<QComboBox*>(w);
+    if (c)
+        c->setEditText(str);
+    QLineEdit *le = qobject_cast<QLineEdit*>(w);
+    if (le)
+        le->setText(str);
 }
