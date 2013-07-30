@@ -33,6 +33,9 @@ class GuiCompactSettingsWindow : public QDialog
 
     QtSessionTreeModel *session_list_model;
 
+    void setConnectionType(int conntype);
+    int getConnectionType();
+
 public:
     explicit GuiCompactSettingsWindow(QWidget *parent, GuiBase::SplitType openmode = GuiBase::TYPE_LEAF);
 

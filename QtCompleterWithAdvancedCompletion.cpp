@@ -51,6 +51,10 @@ QtCompleterWithAdvancedCompletion::QtCompleterWithAdvancedCompletion(QComboBox *
     connect(this, SIGNAL(activated(QString)), cb, SLOT(setEditText(QString)));
 }
 
+QtCompleterWithAdvancedCompletion::~QtCompleterWithAdvancedCompletion()
+{
+    popuplist->deleteLater();
+}
 
 void QtCompleterWithAdvancedCompletion::init()
 {

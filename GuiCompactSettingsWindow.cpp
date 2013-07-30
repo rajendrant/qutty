@@ -59,22 +59,14 @@ GuiCompactSettingsWindow::GuiCompactSettingsWindow(QWidget *parent, GuiBase::Spl
     if (qutty_mru_sesslist.mru_list.size() > 0 &&
         qutty_config.config_list.find(qutty_mru_sesslist.mru_list[0].first) != qutty_config.config_list.end()) {
         QString sessname = qutty_mru_sesslist.mru_list[0].first;
-        cfg = &qutty_config.config_list[sessname];
-        cb_session_list->setCurrentIndex(cb_session_list->findText(sessname));
-        hostname_completer->setText(QString(qutty_mru_sesslist.mru_list[0].second));
-        if(cfg->protocol == PROT_TELNET)
-            cb_connection_type->setCurrentIndex(0);
-        else
-            cb_connection_type->setCurrentIndex(1);
+        on_hostname_completion_activated(completions.at(0));
+        setConnectionType(qutty_config.config_list[sessname].protocol);
     } else if(qutty_config.config_list.find(QUTTY_DEFAULT_CONFIG_SETTINGS) != qutty_config.config_list.end())
     {
         cfg = &qutty_config.config_list[QUTTY_DEFAULT_CONFIG_SETTINGS];
         cb_session_list->setCurrentIndex(cb_session_list->findText(QUTTY_DEFAULT_CONFIG_SETTINGS));
         hostname_completer->setText(QString(cfg->host));
-        if(cfg->protocol == PROT_TELNET)
-            cb_connection_type->setCurrentIndex(0);
-        else
-            cb_connection_type->setCurrentIndex(1);
+        setConnectionType(cfg->protocol);
     }
 
     connect(cb_session_list, SIGNAL(activated(int)), this, SLOT(on_cb_session_list_activated(int)));
@@ -119,10 +111,7 @@ void GuiCompactSettingsWindow::on_open_clicked()
     cfg = qutty_config.config_list[configName];
     qstring_to_char(cfg.host, cb_hostname->currentText(), sizeof(cfg.host));
 
-    if(cb_connection_type->currentText() == "SSH")
-        cfg.protocol = PROT_SSH;
-    else
-        cfg.protocol = PROT_TELNET;
+    cfg.protocol = getConnectionType();
 
     chkUnsupportedConfigs(cfg);
 
@@ -157,10 +146,7 @@ void GuiCompactSettingsWindow::on_cb_session_list_activated(int n)
         cfg = &(it->second);
         if(cfg->host[0] != '\0')
             hostname_completer->setText(QString(cfg->host));
-        if(cfg->protocol == PROT_TELNET)
-            cb_connection_type->setCurrentIndex(0);
-        else
-            cb_connection_type->setCurrentIndex(1);
+        setConnectionType(cfg->protocol);
     }
 }
 
@@ -198,4 +184,19 @@ void GuiCompactSettingsWindow::on_hostname_completion_activated(QString str)
         if (old)
             QApplication::setEffectEnabled(Qt::UI_AnimateCombo, true);
     }
+}
+
+void GuiCompactSettingsWindow::setConnectionType(int conntype)
+{
+    if(conntype == PROT_TELNET)
+        cb_connection_type->setCurrentIndex(0);
+    else
+        cb_connection_type->setCurrentIndex(1);
+}
+
+int GuiCompactSettingsWindow::getConnectionType()
+{
+    if(cb_connection_type->currentIndex() == 0)
+        return PROT_TELNET;
+    return PROT_SSH;
 }

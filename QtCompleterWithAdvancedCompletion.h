@@ -33,6 +33,7 @@ private:
 public:
     explicit QtCompleterWithAdvancedCompletion(QLineEdit *le);
     explicit QtCompleterWithAdvancedCompletion(QComboBox *cb);
+    ~QtCompleterWithAdvancedCompletion();
 
     void setModel(QStringList &completions);
     void setMaxVisibleItems(int maxItems) { maxVisibleItems = maxItems; }
