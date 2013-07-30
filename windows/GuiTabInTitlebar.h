@@ -23,12 +23,13 @@ class GuiTabInTitlebar
     bool hitTestNCA(MSG *msg, long *result);
 
 public:
-    GuiTabInTitlebar(QMainWindow *mainwindow, QTabWidget *tabarea, QTabBar *tabbar, bool enable=true);
-    void initialize();
+    GuiTabInTitlebar(QMainWindow *mainwindow, QTabWidget *tabarea, QTabBar *tabbar);
+    void initialize(bool enable);
     void handleWindowResize();
     bool handleWinEvent(MSG *msg, long *result);
     void handleWindowStateChangeEvent(Qt::WindowStates);
     void setTabAreaCornerWidget(QWidget *w);
+    bool getCompositionStatus() {return isCompositionEnabled; }
 };
 
 #endif // GUITABINTITLEBAR_H

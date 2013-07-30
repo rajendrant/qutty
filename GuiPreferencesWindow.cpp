@@ -84,7 +84,6 @@ GuiPreferencesWindow::GuiPreferencesWindow(GuiMainWindow *parent) :
     addItemToTree(item, MENU_CHANGE_SETTINGS);
     addItemToTree(item, MENU_RENAME_TAB);
     addItemToTree(item, MENU_PASTE);
-    addItemToTree(item, MENU_MENUBAR);
     addItemToTree(item, MENU_FULLSCREEN);
     addItemToTree(item, MENU_ALWAYSONTOP);
     addItemToTree(item, MENU_PREFERENCES);

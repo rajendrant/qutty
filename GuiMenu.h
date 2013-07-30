@@ -57,10 +57,10 @@ enum qutty_menu_id_t {
     MENU_FIND_CASE_INSENSITIVE,
     MENU_FIND_REGEX,
     MENU_FIND_HIGHLIGHT,
-
+    MENU_TAB_IN_TITLE_BAR,
 
     /*
-     * Insert any new actions here
+     * Insert any new actions before this comment
      */
 
     MENU_STATIC_ACTION_MAX,
@@ -89,7 +89,7 @@ enum qutty_menu_id_t {
     MENU_FIND_OPTIONS,
 
     /*
-     * Insert any new menus here
+     * Insert any new menus before this comment
      */
 
     MENU_ID_LAST

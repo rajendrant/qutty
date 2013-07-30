@@ -24,23 +24,21 @@
  * http://stackoverflow.com/questions/137005/auto-hide-taskbar-not-appearing-when-my-application-is-maximized
  */
 
-GuiTabInTitlebar::GuiTabInTitlebar(QMainWindow *mainwindow, QTabWidget *tabarea, QTabBar *tabbar, bool enable)
+GuiTabInTitlebar::GuiTabInTitlebar(QMainWindow *mainwindow, QTabWidget *tabarea, QTabBar *tabbar)
     : mainWindow(mainwindow),
       tabArea(tabarea),
       tabBar(tabbar),
       tabAreaLCornerWidget(NULL),
       isCompositionEnabled(false)
 {
+}
+
+void GuiTabInTitlebar::initialize(bool enable)
+{
     if (!enable || !dwmApi.dwmIsCompositionEnabled())
         return;
 
     isCompositionEnabled = true;
-}
-
-void GuiTabInTitlebar::initialize()
-{
-    if (!isCompositionEnabled)
-        return;
 
     tabbar_height = mainWindow->style()->pixelMetric(QStyle::PM_TitleBarHeight);
 
@@ -144,6 +142,9 @@ void GuiTabInTitlebar::setTabAreaCornerWidget(QWidget *w)
 
 bool GuiTabInTitlebar::hitTestNCA(MSG *msg, long *result)
 {
+    if (!isCompositionEnabled)
+        return false;
+
     // Get the window rectangle.
     RECT rcWindow;
     GetWindowRect(msg->hwnd, &rcWindow);
@@ -209,6 +210,9 @@ bool GuiTabInTitlebar::hitTestNCA(MSG *msg, long *result)
 
 void GuiTabInTitlebar::handleWindowStateChangeEvent(Qt::WindowStates state)
 {
+    if (!isCompositionEnabled)
+        return;
+
     if (state & Qt::WindowMaximized) {
         window_frame_width = 0;
         titlebar_frame_width = 0;
@@ -227,6 +231,10 @@ void GuiTabInTitlebar::handleWindowResize()
      * Not calling below api leads to tabbar, topleftmenu not
      * respond to mouse clicks when it first opens
      */
+
+    if (!isCompositionEnabled)
+        return;
+
     SetWindowPos((HWND)mainWindow->winId(),
                  NULL,
                  mainWindow->geometry().left(),

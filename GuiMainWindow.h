@@ -146,6 +146,7 @@ public slots:
     void contextMenuCloseSessionTriggered();
     void contextMenuCloseWindowTriggered();
     void contextMenuMenuBar();
+    void contextMenuTabInTitleBar();
     void contextMenuFullScreen();
     void contextMenuAlwaysOnTop();
     void contextMenuTermTopDragPaneTriggered();

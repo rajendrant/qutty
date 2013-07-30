@@ -37,7 +37,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
       tabNavigate(NULL),
       paneNavigate(NULL),
       tabArea(new GuiTabWidget(this)),
-      tabInTitleBar(this, tabArea, tabArea->getGuiTabBar(), true),
+      tabInTitleBar(this, tabArea, tabArea->getGuiTabBar()),
       settingsWindow(NULL),
       compactSettingsWindow(NULL),
       newTabToolButton()
@@ -69,7 +69,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
     /*
      * Initial resize should happen before setting up tabs-in-titlebar
      */
-    tabInTitleBar.initialize();
+    tabInTitleBar.initialize(qutty_config.mainwindow.titlebar_tabs);
     tabInTitleBar.setTabAreaCornerWidget(&newTabToolButton);
 }
 
@@ -461,6 +461,8 @@ void GuiMainWindow::readWindowSettings()
     menuGetActionById(MENU_FULLSCREEN)->setChecked((windowState() & Qt::WindowFullScreen));
     menuGetActionById(MENU_ALWAYSONTOP)->setChecked((windowFlags() & Qt::WindowStaysOnTopHint));
     menuGetActionById(MENU_MENUBAR)->setChecked(qutty_config.mainwindow.menubar_visible);
+    menuGetActionById(MENU_TAB_IN_TITLE_BAR)->setChecked(qutty_config.mainwindow.titlebar_tabs);
+
     if (qutty_config.mainwindow.menubar_visible) {
         // setup main menubar
         menuBar()->show();

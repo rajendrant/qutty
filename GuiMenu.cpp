@@ -90,6 +90,8 @@ qutty_menu_actions_t qutty_menu_actions[MENU_STATIC_ACTION_MAX] = {
     { "Case sensitive",         "",              "",                                             ""},
     { "Match regular expression","",             "",                                             ""},
     { "Highlight all matches",  "",              "",                                             ""},
+    { "Show Tabs in Titlebar",           "",     SLOT( contextMenuTabInTitleBar() ),
+      "Toggle viewing of tabs in titlebar"},
 };
 
 qutty_menu_links_t qutty_menu_links[MENU_MAX_MENU] = {
@@ -98,9 +100,9 @@ qutty_menu_links_t qutty_menu_links[MENU_MAX_MENU] = {
 { "Edit", 9,  {MENU_PASTE, MENU_SEPARATOR, MENU_RENAME_TAB, MENU_SEPARATOR,
                MENU_FIND, MENU_FIND_NEXT, MENU_FIND_PREVIOUS,
                MENU_SEPARATOR, MENU_PREFERENCES} },
-{ "View", 9,  { MENU_SWITCH_LEFT_TAB, MENU_SWITCH_RIGHT_TAB, MENU_SEPARATOR,
+{ "View", 10,  {MENU_SWITCH_LEFT_TAB, MENU_SWITCH_RIGHT_TAB, MENU_SEPARATOR,
                 MENU_SWITCH_UP_PANE, MENU_SWITCH_BOTTOM_PANE, MENU_SEPARATOR,
-                MENU_MENUBAR, MENU_ALWAYSONTOP, MENU_FULLSCREEN } },
+                MENU_MENUBAR, MENU_TAB_IN_TITLE_BAR, MENU_ALWAYSONTOP, MENU_FULLSCREEN} },
 { "Export/Import Settings",     3,  { MENU_IMPORT_FILE, MENU_IMPORT_REGISTRY, MENU_EXPORT_FILE} },
 { "Saved Sessions",             0,  {} },
 { "Split Session",              2,  { MENU_SPLIT_HORIZONTAL, MENU_SPLIT_VERTICAL } },
@@ -175,6 +177,7 @@ void GuiMainWindow::initializeMenuSystem()
     menuGetActionById(MENU_MENUBAR)->setCheckable(true);
     menuGetActionById(MENU_FULLSCREEN)->setCheckable(true);
     menuGetActionById(MENU_ALWAYSONTOP)->setCheckable(true);
+    menuGetActionById(MENU_TAB_IN_TITLE_BAR)->setCheckable(true);
 
     newTabToolButton.setMenu(menuGetMenuById(MENU_TAB_BAR));
     newTabToolButton.setPopupMode(QToolButton::InstantPopup);
@@ -400,15 +403,45 @@ void GuiMainWindow::contextMenuCloseWindowTriggered()
 
 void GuiMainWindow::contextMenuMenuBar()
 {
-    if (qobject_cast<QShortcut*>(sender()))  // if invoked from keyboard-shortcut
-        menuGetActionById(MENU_MENUBAR)->toggle();
     if(menuGetActionById(MENU_MENUBAR)->isChecked()) {
-        qutty_config.mainwindow.menubar_visible = true;
-        menuBar()->show();
-    } else {
-        qutty_config.mainwindow.menubar_visible = false;
+        if(tabInTitleBar.getCompositionStatus())
+        {
+            QMessageBox::warning(NULL, "Warning",
+                                 "Both menu bar and tabs on title bar together are not acceptable");
+            menuGetActionById(MENU_MENUBAR)->setChecked(qutty_config.mainwindow.menubar_visible = false);
+
+        }
+        else
+        {
+            menuBar()->show();
+            menuBar()->addMenu(&menuCommonMenus[MENU_FILE-MENU_SEPARATOR-1]);
+            menuBar()->addMenu(&menuCommonMenus[MENU_EDIT-MENU_SEPARATOR-1]);
+            menuBar()->addMenu(&menuCommonMenus[MENU_VIEW-MENU_SEPARATOR-1]);
+            menuGetActionById(MENU_MENUBAR)->setChecked(qutty_config.mainwindow.menubar_visible = true);
+
+        }
+    }
+    else {
+        menuGetActionById(MENU_MENUBAR)->setChecked(qutty_config.mainwindow.menubar_visible = false);
         menuBar()->hide();
     }
+}
+
+void GuiMainWindow::contextMenuTabInTitleBar()
+{
+    if(tabInTitleBar.getCompositionStatus()){
+        QMessageBox::warning(NULL, "Tabs on title bar warning",
+                             "You must restart your qutty terminal for tabs on title bar to hide");
+        menuGetActionById(MENU_TAB_IN_TITLE_BAR)->setChecked(qutty_config.mainwindow.titlebar_tabs = false);
+
+    }
+    else
+    {
+        QMessageBox::warning(NULL, "Tabs on title bar warning",
+                             "You must restart your qutty terminal for tabs on title bar to show");
+        menuGetActionById(MENU_TAB_IN_TITLE_BAR)->setChecked(qutty_config.mainwindow.titlebar_tabs = true);
+    }
+
 }
 
 void GuiMainWindow::contextMenuFullScreen()
