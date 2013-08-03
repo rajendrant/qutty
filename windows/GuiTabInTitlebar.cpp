@@ -113,7 +113,7 @@ bool GuiTabInTitlebar::handleWinEvent(MSG *msg, long *result)
 
     if (message == WM_GETMINMAXINFO) {
         MINMAXINFO *mmi = (MINMAXINFO*)lParam;
-        QRect rect = QApplication::desktop()->availableGeometry();
+        QRect rect = QApplication::desktop()->availableGeometry(mainWindow);
         mmi->ptMaxSize.x = rect.width();
         mmi->ptMaxSize.y = rect.height()-1;
         mmi->ptMaxPosition.x = 0;
@@ -234,7 +234,7 @@ void GuiTabInTitlebar::handleWindowResize()
     if (!isCompositionEnabled)
         return;
 
-    HWND hwnd = mainWindow->winId();
+    HWND hwnd = (HWND) mainWindow->winId();
     SetWindowPos(hwnd,
                  NULL,
                  mainWindow->geometry().left(),

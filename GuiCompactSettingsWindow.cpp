@@ -12,6 +12,7 @@ GuiCompactSettingsWindow::GuiCompactSettingsWindow(QWidget *parent, GuiBase::Spl
     : QDialog(parent),
       session_list_model(NULL)
 {
+    setModal(true);
     openMode = openmode;
 
     Config* cfg;
@@ -89,6 +90,10 @@ GuiCompactSettingsWindow::GuiCompactSettingsWindow(QWidget *parent, GuiBase::Spl
     layout->addLayout(hlayout, 10, 0, 1, 1);
 
     setLayout(layout);
+
+    // select the hostname text
+    cb_hostname->lineEdit()->selectAll();
+    cb_hostname->lineEdit()->setFocus();
 }
 
 void GuiCompactSettingsWindow::on_close_clicked()
