@@ -317,7 +317,13 @@ void GuiTerminalWindow::keyPressEvent ( QKeyEvent *e )
         wchar_t bufwchar[16];
         len = 0;
         // Treat Alt by just inserting an Esc before everything else
-        if (e->modifiers() & Qt::AltModifier){
+        if (!(e->modifiers() & Qt::ControlModifier) && e->modifiers() & Qt::AltModifier){
+            /*
+             * In PuTTY, Left and right Alt will act differently
+             * Ex: In english keybord layout, Left Alt + W = "" / Right Alt + W = "W"
+             * In QuTTY, Left and left Alt will act same
+             * Ex: In english keybord layout, Left Alt + W = "" / Right Alt + W = ""
+             */
             bufwchar[len++] = 0x1b;
         }
         len += e->text().toWCharArray(bufwchar+len);
@@ -588,7 +594,9 @@ void 	GuiTerminalWindow::mouseDoubleClickEvent ( QMouseEvent * e )
     button = e->button()==Qt::LeftButton ? MBT_LEFT :
              e->button()==Qt::RightButton ? MBT_RIGHT :
              e->button()==Qt::MidButton ? MBT_MIDDLE : MBT_NOTHING;
-    assert(button!=MBT_NOTHING);
+    // assert(button!=MBT_NOTHING);
+    if(button == MBT_NOTHING)
+        return;
     int x = e->x()/fontWidth, y = e->y()/fontHeight, mod=e->modifiers();
     bcooked = translate_button(&cfg, button);
 
@@ -624,7 +632,9 @@ void 	GuiTerminalWindow::mouseMoveEvent ( QMouseEvent * e )
     button = e->buttons()&Qt::LeftButton ? MBT_LEFT :
              e->buttons()&Qt::RightButton ? MBT_RIGHT :
              e->buttons()&Qt::MidButton ? MBT_MIDDLE : MBT_NOTHING;
-    assert(button!=MBT_NOTHING);
+    //assert(button!=MBT_NOTHING);
+    if(button == MBT_NOTHING)
+        return;
     int x = e->x()/fontWidth, y = e->y()/fontHeight, mod=e->modifiers();
     bcooked = translate_button(&cfg, button);
     term_mouse(term, button, bcooked, MA_DRAG,
@@ -657,7 +667,9 @@ void 	GuiTerminalWindow::mousePressEvent ( QMouseEvent * e )
     button = e->button()==Qt::LeftButton ? MBT_LEFT :
              e->button()==Qt::RightButton ? MBT_RIGHT :
              e->button()==Qt::MidButton ? MBT_MIDDLE : MBT_NOTHING;
-    assert(button!=MBT_NOTHING);
+    // assert(button!=MBT_NOTHING);
+    if(button == MBT_NOTHING)
+        return;
     int x = e->x()/fontWidth, y = e->y()/fontHeight, mod=e->modifiers();
     bcooked = translate_button(&cfg, button);
 
@@ -686,7 +698,9 @@ void 	GuiTerminalWindow::mouseReleaseEvent ( QMouseEvent * e )
     button = e->button()==Qt::LeftButton ? MBT_LEFT :
              e->button()==Qt::RightButton ? MBT_RIGHT :
              e->button()==Qt::MidButton ? MBT_MIDDLE : MBT_NOTHING;
-    assert(button!=MBT_NOTHING);
+    //assert(button!=MBT_NOTHING);
+    if(button == MBT_NOTHING)
+        return;
     int x = e->x()/fontWidth, y = e->y()/fontHeight, mod=e->modifiers();
     bcooked = translate_button(&cfg, button);
     term_mouse(term, button, bcooked, MA_RELEASE,

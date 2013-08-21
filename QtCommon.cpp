@@ -42,6 +42,7 @@ int GuiTerminalWindow::TranslateKey(QKeyEvent *keyevent, char *output)
 {
     Config *cfg = &term->cfg;
     char *p = output;
+
     int keystate = keyevent->modifiers();
     int ctrlshiftstate = keystate & (Qt::ControlModifier|Qt::ShiftModifier);
     int ctrlstate = keystate & Qt::ControlModifier;
@@ -98,10 +99,25 @@ int GuiTerminalWindow::TranslateKey(QKeyEvent *keyevent, char *output)
         *p++ = '\n';
         return p - output;
     }
-    if ( (ctrlshiftstate == Qt::ControlModifier) && (key >= Qt::Key_A) && (key <= Qt::Key_Z) ) {
+    if((keyevent->modifiers() & Qt::ControlModifier) &&
+       (keyevent->modifiers() & Qt::AltModifier))
+    {
+        if(keyevent->text().count() >= 1)
+        {
+            /* Printing values for Ctrl + Alt + some characters
+             * for diff keyboard layouts
+             */
+            if(keyevent->text().at(0) < 'A' ||
+               keyevent->text().at(0) > 'Z')
+            {
+                return -1;
+            }
+        }
+    }
+    if ((ctrlshiftstate == Qt::ControlModifier) && key >= Qt::Key_A && key <= Qt::Key_Z) {
         // Ctrl-a through Ctrl-z, when sent with a modifier
-        *p++ = (char) (key - Qt::Key_A + 1);
-        return p - output;
+            *p++ = (char) (key - Qt::Key_A + 1);
+            return p - output;
     }
     if ( (ctrlshiftstate & Qt::ControlModifier) && (key >= Qt::Key_BracketLeft) && (key <= Qt::Key_Underscore) ) {
         // Ctrl-[ through Ctrl-_
