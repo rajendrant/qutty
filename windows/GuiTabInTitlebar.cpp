@@ -116,8 +116,8 @@ bool GuiTabInTitlebar::handleWinEvent(MSG *msg, long *result)
         QRect rect = QApplication::desktop()->availableGeometry(mainWindow);
         mmi->ptMaxSize.x = rect.width();
         mmi->ptMaxSize.y = rect.height()-1;
-        mmi->ptMaxPosition.x = 0;
-        mmi->ptMaxPosition.y = 0;
+        mmi->ptMaxPosition.x = rect.x();
+        mmi->ptMaxPosition.y = rect.y();
         lRet = 0;
         fCallDWP = false;
     }

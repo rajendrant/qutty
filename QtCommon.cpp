@@ -76,7 +76,8 @@ int GuiTerminalWindow::TranslateKey(QKeyEvent *keyevent, char *output)
         *p++ = 0;
         return -2;
     }
-    if ( (key == Qt::Key_Tab) && (ctrlshiftstate == Qt::ShiftModifier) ) {
+    if ( ((key == Qt::Key_Tab) && (ctrlshiftstate == Qt::ShiftModifier))
+         || (key == Qt::Key_Backtab)) {
         // Shift-Tab
         *p++ = 0x1B;
         *p++ = '[';
