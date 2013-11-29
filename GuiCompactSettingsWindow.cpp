@@ -58,7 +58,8 @@ GuiCompactSettingsWindow::GuiCompactSettingsWindow(QWidget *parent, GuiBase::Spl
     cb_connection_type->addItem("SSH");
 
     if (qutty_mru_sesslist.mru_list.size() > 0 &&
-        qutty_config.config_list.find(qutty_mru_sesslist.mru_list[0].first) != qutty_config.config_list.end()) {
+        qutty_config.config_list.find(qutty_mru_sesslist.mru_list[0].first) != qutty_config.config_list.end() &&
+        !completions.isEmpty()) {
         QString sessname = qutty_mru_sesslist.mru_list[0].first;
         on_hostname_completion_activated(completions.at(0));
         setConnectionType(qutty_config.config_list[sessname].protocol);
