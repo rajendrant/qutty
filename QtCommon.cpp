@@ -89,7 +89,8 @@ int GuiTerminalWindow::TranslateKey(QKeyEvent *keyevent, char *output)
         *p++ = (ctrlshiftstate & Qt::ShiftModifier) ? 160 : 0;
         return p - output;
     }
-    if ( (ctrlshiftstate == Qt::ControlModifier) && (key >= Qt::Key_2) && (key <= Qt::Key_8) ) {
+    if ( (ctrlshiftstate == Qt::ControlModifier) && !(keystate & Qt::AltModifier) &&
+         (key >= Qt::Key_2) && (key <= Qt::Key_8) ) {
         // Ctrl-2 through Ctrl-8
         *p++ = "\000\033\034\035\036\037\177"[key - Qt::Key_2];
         return p - output;

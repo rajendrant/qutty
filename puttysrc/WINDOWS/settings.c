@@ -13,8 +13,8 @@
 #include "putty.h"
 #include "storage.h"
 
-int default_protocol;
-int default_port;
+int default_protocol = PROT_SSH;
+int default_port = 22;
 
 const struct keyvalwhere gsslibkeywords[] = {
     { "gssapi32", 0, -1, -1 },
