@@ -19,7 +19,7 @@ enum tmux_mode_t {
  * called to initalize tmux mode
  */
 int tmux_init_tmux_mode(void *frontend, char *tmux_version);
-int tmux_from_backend(void *frontend, int is_stderr, const char *data, int len);
+size_t tmux_from_backend(void *frontend, int is_stderr, const char *data, int len);
 
 #ifdef __cplusplus
 }

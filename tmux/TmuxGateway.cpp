@@ -28,7 +28,7 @@ TmuxGateway::~TmuxGateway()
 
 int TmuxGateway::performCallback(tmux_cb_index_t index, string &response)
 {
-    qDebug("TMUX resp %d %s", index, response.c_str());
+    qDebug("%s %s %s", __FUNCTION__, get_tmux_cb_index_str(index), response.c_str());
     switch(index) {
     case CB_NULL:
         return 0;
@@ -43,7 +43,7 @@ int TmuxGateway::performCallback(tmux_cb_index_t index, string &response)
     }
 }
 
-int TmuxGateway::fromBackend(int is_stderr, const char *data, int len)
+size_t TmuxGateway::fromBackend(int is_stderr, const char *data, size_t len)
 {
     size_t i;
     const char *buf = NULL;
@@ -51,8 +51,7 @@ int TmuxGateway::fromBackend(int is_stderr, const char *data, int len)
     size_t resp_len = 0;
     size_t rem_len;
 
-    term_data(termGatewayWnd->term, is_stderr, data, len);
-    qDebug("%s len %d %.*s", __FUNCTION__, len, len, data);
+    term_data(termGatewayWnd->term, is_stderr, data, (int)len);
 
     for (i=0; i<(size_t)len; i++) {
         if (data[i] == '\n') {
@@ -62,7 +61,7 @@ int TmuxGateway::fromBackend(int is_stderr, const char *data, int len)
     }
     if (resp_len == 0) {
         // complete response not received
-        bufchain_add(&buffer, data, len);
+        bufchain_add(&buffer, data, (int)len);
         return len;
     }
     rem_len = len - resp_len;
@@ -96,7 +95,7 @@ int TmuxGateway::fromBackend(int is_stderr, const char *data, int len)
     }
     if (resp_len < rem_len) {
         // pending data goes to buffer
-        bufchain_add(&buffer, buf+resp_len, rem_len-resp_len);
+        bufchain_add(&buffer, buf+resp_len, (int)(rem_len-resp_len));
     }
 
     return 0;
@@ -118,19 +117,25 @@ int TmuxGateway::parseCommand(const char *command, size_t len)
             _currentCommand.callback = CB_INDEX_MAX;
             _currentCommandResponse.clear();
         }
+        return 0;
     } else if (_currentCommand.receiver) {
         _currentCommandResponse.append(command, len);
+        return 0;
     } else if (strStartsWith("%begin", command, len)) {
         if (_currentCommand.receiver) {
             qFatal("TMUX %%begin command without end");
         } else if (_commandQueue.empty()) {
-            qDebug("TMUX %%begin command without command queue");
+            qFatal("TMUX %%begin command without command queue");
         } else {
             _currentCommand = _commandQueue.front();
             _commandQueue.pop();
             _currentCommandResponse.clear();
         }
-    } else if (strStartsWith("%output ", command, len)) {
+        return 0;
+    }
+    qDebug() << __FUNCTION__ << command;
+
+    if (strStartsWith("%output ", command, len)) {
         cmd_hdlr_output(command, len);
     } else if (strStartsWith("%noop", command, len)) {
         qDebug("tmux noop command %d len %.*s", len, len, command);
@@ -138,8 +143,6 @@ int TmuxGateway::parseCommand(const char *command, size_t len)
         cmd_hdlr_sessions_changed(command, len);
     } else if (strStartsWith("%session-changed ", command, len)) {
         cmd_hdlr_session_changed(command, len);
-    } else if (strStartsWith("%window-renamed ", command, len)) {
-        cmd_hdlr_window_renamed(command, len);
     } else if (strStartsWith("%window-renamed ", command, len)) {
         cmd_hdlr_window_renamed(command, len);
     } else if (strStartsWith("%window-add ", command, len)) {
@@ -154,12 +157,12 @@ int TmuxGateway::parseCommand(const char *command, size_t len)
     } else if (strStartsWith("%layout-change ", command, len)) {
         cmd_hdlr_layout_change(command, len);
     } else {
-        qDebug("TMUX unrecognized command %d len %.*s", len, len, command);
+        qFatal("TMUX unrecognized command %d len %.*s", len, len, command);
     }
     return 0;
 }
 
-int TmuxGateway::cmd_hdlr_sessions_changed(const char *command, int len)
+int TmuxGateway::cmd_hdlr_sessions_changed(const char *command, size_t len)
 {
     const char *cmd = command + 17;  // skip command prefix
     if (*cmd != '\n')
@@ -170,9 +173,9 @@ cu0:
     return -1;
 }
 
-int TmuxGateway::cmd_hdlr_session_changed(const char *command, int len)
+int TmuxGateway::cmd_hdlr_session_changed(const char *command, size_t len)
 {
-    const char *cmd = command + 17;  // skip command prefix
+    const char *cmd = command + 17 + 1;  // skip command prefix
     long sessid;
     char *sessname;
     sessid = strtol(cmd, &sessname, 10);
@@ -192,43 +195,72 @@ cu0:
     return -1;
 }
 
-int TmuxGateway::cmd_hdlr_output(const char *command, int len)
+int TmuxGateway::cmd_hdlr_output(const char *command, size_t len)
 {
     const char *cmd = command + 8;  // skip command prefix
     const char *fail_reason = NULL;
-    int paneid, b64len, datalen, i;
-    char *output;
+    char data[128];
+    int paneid, datalen = 0, i;
+    char *bytes;
     if (*cmd != '%') {
         fail_reason = "No %%";
         goto cu0;
     }
-    cmd++;
-    paneid = strtol(cmd, &output, 10);
-    if (paneid==0 && output==cmd) {
+    paneid = strtol(++cmd, &bytes, 10);
+    if (paneid==0 && bytes==cmd) {
         fail_reason = "No paneid";
         goto cu0;
     }
-    output++;     // skip single whitespace
     if (_mapPanes.find(paneid) == _mapPanes.end()) {
         fail_reason = "Invalid paneid";
         goto cu0;
     }
-    b64len = command + len - output - 1;
-    datalen = b64len / 2;
-    for (i=0; i<datalen; i++) {
-        output[i] = hex_to_char(output[2*i])<<4 | hex_to_char(output[2*i+1]);
+    if (!_mapPanes[paneid]->ready) {
+        fail_reason = "Not yet ready";
+        goto cu0;
     }
-    qDebug("TMUX output %.*s", datalen, output);
-    _mapPanes[paneid]->termWnd()->from_backend(0, output, datalen);
+    bytes++;     // skip single whitespace
+    int byteslen = command + len - bytes - 1;
+    for (i=0; i<byteslen; i++) {
+        char c = bytes[i];
+        if (c < ' ')
+            continue;
+        if (c == '\\') {
+            for (int j = 0; j < 3; j++) {
+                i++;
+                if (bytes[i] == '\r') {
+                    // Ignore \r's that the line driver sprinkles in at its pleasure.
+                    continue;
+                }
+                if (bytes[i] < '0' || bytes[i] > '7') {
+                    c = '?';
+                    i--;  // Back up in case bytes[i] is a null; we don't want to go off the end.
+                    break;
+                }
+                c *= 8;
+                c += bytes[i] - '0';
+            }
+        }
+        data[datalen++] = c;
+        if (datalen == sizeof(data)) {
+            qDebug("TMUX output %d %.*s", datalen, datalen, data);
+            _mapPanes[paneid]->termWnd()->from_backend(0, data, datalen);
+            datalen = 0;
+        }
+    }
+    if (datalen > 0) {
+        qDebug("TMUX output %d %.*s", datalen, datalen, data);
+        _mapPanes[paneid]->termWnd()->from_backend(0, data, datalen);
+    }
     return 0;
 cu0:
     qDebug("TMUX malformed command %s %.*s", fail_reason, len, command);
     return -1;
 }
 
-int TmuxGateway::cmd_hdlr_window_renamed(const char *command, int len)
+int TmuxGateway::cmd_hdlr_window_renamed(const char *command, size_t len)
 {
-    const char *cmd = command + 16;  // skip command prefix
+    const char *cmd = command + 16 + 1;  // skip command prefix
     istringstream iresp(cmd);
     const char *fail_reason;
     int paneid;
@@ -246,9 +278,9 @@ cu0:
     return -1;
 }
 
-int TmuxGateway::cmd_hdlr_window_add(const char *command, int len)
+int TmuxGateway::cmd_hdlr_window_add(const char *command, size_t len)
 {
-    const char *cmd = command + 12;  // skip command prefix
+    const char *cmd = command + 12 + 1;  // skip command prefix
     istringstream iresp(cmd);
     const char *fail_reason;
     int paneid;
@@ -269,9 +301,9 @@ cu0:
     return -1;
 }
 
-int TmuxGateway::cmd_hdlr_window_close(const char *command, int len)
+int TmuxGateway::cmd_hdlr_window_close(const char *command, size_t len)
 {
-    const char *cmd = command + 14;  // skip command prefix
+    const char *cmd = command + 14 + 1;  // skip command prefix
     istringstream iresp(cmd);
     const char *fail_reason;
     int paneid;
@@ -288,7 +320,7 @@ cu0:
     return -1;
 }
 
-int TmuxGateway::cmd_hdlr_layout_change(const char *command, int len)
+int TmuxGateway::cmd_hdlr_layout_change(const char *command, size_t len)
 {
     //TODO more work in removing deleted panes
     const char *cmd = command + 15;  // skip command prefix
@@ -304,10 +336,10 @@ int TmuxGateway::cmd_hdlr_layout_change(const char *command, int len)
     iresp>>wndid;
     iresp>>strlayout;
     layout.initLayout(strlayout.substr(5));
-    createNewWindowPane(wndid, "", layout);
+    //createNewWindowPane(wndid, "", layout);
     return 0;
 cu0:
-    qDebug("TMUX malformed command %s %.*s", fail_reason, len, command);
+    qCritical("TMUX malformed command %s %.*s", fail_reason, len, command);
     return -1;
 }
 
@@ -316,7 +348,7 @@ int TmuxGateway::openWindowsInitial()
     // TODO hiddenwindows, affinities, origins
     wchar_t set_client_size[128];
     wsprintf(set_client_size,
-             L"control set-client-size %d,%d\n",
+             L"refresh-client -C %d,%d\n",
              termGatewayWnd->term->cols, termGatewayWnd->term->rows);
     sendCommand(this, CB_NULL,
                 set_client_size);
@@ -329,12 +361,16 @@ int TmuxGateway::openWindowsInitial()
 }
 
 int TmuxGateway::sendCommand(TmuxCmdRespReceiver *recv, tmux_cb_index_t cb,
-                             const wchar_t cmd_str[], int cmd_str_len)
+                             const wchar_t cmd_str[])
 {
-    qDebug()<<__FUNCTION__<<QString::fromWCharArray(cmd_str, cmd_str_len);
-    if (cmd_str_len == -1)
-        cmd_str_len = wcslen(cmd_str);
-    luni_send(termGatewayWnd->ldisc, (wchar_t*)cmd_str, cmd_str_len, 0);
+    return sendCommand(recv, cb, cmd_str, wcslen(cmd_str));
+}
+
+int TmuxGateway::sendCommand(TmuxCmdRespReceiver *recv, tmux_cb_index_t cb,
+                             const wchar_t cmd_str[], size_t cmd_str_len)
+{
+    qDebug()<<__FUNCTION__<<QString::fromWCharArray(cmd_str, (int)cmd_str_len);
+    luni_send(termGatewayWnd->ldisc, (wchar_t*)cmd_str, (int)cmd_str_len, 0);
     _commandQueue.push(TmuxCmdResp(recv, cb));
     return 0;
 }
@@ -358,10 +394,11 @@ int TmuxGateway::resp_hdlr_list_windows(string &response)
         irec>>height;
         irec>>layout;
         irec>>wndactive;
-        createNewWindow(wndid, sessname.c_str(), width, height, layout);
+        createNewWindow(wndid, wndname.c_str(), width, height, layout);
     }
     return 0;
 cu0:
+    qCritical("TMUX malformed response %s %.*s", response);
     return -1;
 }
 
@@ -384,10 +421,11 @@ int TmuxGateway::resp_hdlr_open_listed_windows(string &response)
         irec>>height;
         irec>>layout;
         irec>>wndactive;
-        createNewWindow(wndid, sessname.c_str(), width, height, layout);
+        createNewWindow(wndid, wndname.c_str(), width, height, layout);
     }
     return 0;
 cu0:
+    qCritical("TMUX malformed response %s %.*s", response);
     return -1;
 }
 
@@ -396,7 +434,6 @@ int TmuxGateway::createNewWindow(int id, const char *name, int /*width*/, int /*
     if (!_mapLayout[id].initLayout(layout.substr(5)))
         goto cu0;
     createNewWindowPane(id, name, _mapLayout[id]);
-    sendCommand(this, CB_NULL, L"control set-ready\n");
     return 0;
 cu0:
     return -1;
@@ -413,16 +450,27 @@ int TmuxGateway::createNewWindowPane(int id, const char *name, TmuxLayout &layou
             TmuxWindowPane *tmuxPane = newtermwnd->
                     initTmuxClientTerminal(this, layout.paneid,
                                            layout.width, layout.height);
+            termGatewayWnd->getMainWindow()->setupLayout(newtermwnd, GuiBase::TYPE_LEAF, -1);
             tmuxPane->name = name;
-            wchar_t cmd_emu[256], cmd_hist[256], cmd_hist_alt[256];
-            wsprintf(cmd_emu, L"control -t %%%d get-emulator\n", layout.paneid);
-            wsprintf(cmd_hist, L"control -t %%%d -l %d get-history\n",
+            newtermwnd->setSessionTitle(name);
+            wchar_t modes[2000], cmd_state[2000], cmd_hist[256], cmd_hist_alt[256];
+            wchar_t *modesformat[] = {L"pane_id", L"alternate_on", L"alternate_saved_x", L"alternate_saved_y",
+                                     L"saved_cursor_x", L"saved_cursor_y", L"cursor_x", L"cursor_y",
+                                     L"scroll_region_upper", L"scroll_region_lower", L"pane_tabs", L"cursor_flag",
+                                     L"insert_flag", L"keypad_cursor_flag", L"keypad_flag", L"wrap_flag",
+                                     L"mouse_standard_flag", L"mouse_button_flag", L"mouse_any_flag",
+                                     L"mouse_utf8_flag"};
+            for(int i=0, l=0; i< sizeof(modesformat)/sizeof(modesformat[0]); i++)
+                l += wsprintf(modes+l, L"%s=#{%s}\t", modesformat[i], modesformat[i]);
+            modes[wcslen(modes)-1] = '\0';
+            wsprintf(cmd_state, L"list-panes -t %%%d -F \"%s\"\n", layout.paneid, modes);
+            wsprintf(cmd_hist, L"capture-pane -peqJ -t %%%d -S -%d\n",
                      layout.paneid, termGatewayWnd->cfg.savelines);
-            wsprintf(cmd_hist_alt, L"control -a -t %%%d -l %d get-history\n",
+            wsprintf(cmd_hist_alt, L"capture-pane -peqJ -a -t %%%d -S -%d\n",
                      layout.paneid, termGatewayWnd->cfg.savelines);
             sendCommand(tmuxPane, CB_DUMP_HISTORY, cmd_hist);
             sendCommand(tmuxPane, CB_DUMP_HISTORY_ALT, cmd_hist_alt);
-            sendCommand(tmuxPane, CB_DUMP_TERM_STATE, cmd_emu);
+            sendCommand(tmuxPane, CB_DUMP_TERM_STATE, cmd_state);
             _mapPanes[layout.paneid] = tmuxPane;
             break;
         } else {
@@ -472,4 +520,20 @@ void TmuxGateway::closePane(int paneid)
         _mapPanes.erase(paneid);
         delete pane;
     }
+}
+
+const char *get_tmux_cb_index_str(tmux_cb_index_t index)
+{
+    char *tmux_cb_index_str[] = {
+    #undef T
+    #define T(a) #a
+        TMUX_CB_INDEX_LIST
+    #undef T
+    };
+    if (index > CB_INDEX_MAX) {
+        static char tmp[100];
+        snprintf(tmp, sizeof(tmp), "Invalid cb index %d", index);
+        return tmp;
+    }
+    return tmux_cb_index_str[index];
 }

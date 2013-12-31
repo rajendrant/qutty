@@ -2552,7 +2552,7 @@ static void term_out(Terminal *term)
 		bufchain_prefix(&term->inbuf, &ret, &nchars);
 		if (nchars > sizeof(localbuf))
 		    nchars = sizeof(localbuf);
-		memcpy(localbuf, ret, nchars);
+        memcpy(localbuf, ret, nchars);
 		bufchain_consume(&term->inbuf, nchars);
 		chars = localbuf;
 		assert(chars != NULL);
@@ -3102,29 +3102,6 @@ static void term_out(Terminal *term)
 		    break;
 		}
         /* else fall through */
-        case ESC_MAYBE_ST:
-            if (c == '\\' && term->esc_buf_len>0) {
-                // APC sequence ended.
-                if ( !strncmp("tmux", term->esc_buf, 4) &&
-                     !tmux_init_tmux_mode(term->frontend, term->esc_buf)) {
-                    // entered tmux mode:
-                    // all data should goto tmux gateway
-                    int tmptmuxbuflen = nchars + bufchain_size(&term->inbuf);
-                    char *tmptmuxbuf = snewn(tmptmuxbuflen, char);
-                    memcpy(tmptmuxbuf, chars, nchars);
-                    bufchain_fetch(&term->inbuf, tmptmuxbuf+nchars,
-                                   bufchain_size(&term->inbuf));
-                    bufchain_consume(&term->inbuf, bufchain_size(&term->inbuf));
-                    tmux_from_backend(term->frontend, 0, tmptmuxbuf, tmptmuxbuflen);
-                    sfree(tmptmuxbuf);
-                    chars = NULL;
-                    nchars = 0;
-                }
-                term->esc_buf_len = 0;
-                term->termstate = TOPLEVEL;
-                break;
-            }
-		/* else fall through */
 	      case SEEN_ESC:
 		if (c >= ' ' && c <= '/') {
 		    if (term->esc_query)
@@ -3216,8 +3193,8 @@ static void term_out(Terminal *term)
 		    term->tabs[term->curs.x] = TRUE;
 		    break;
 
-          case '_':           /* APC sequence */
-            term->termstate = SEEN_APC;
+          case 'P':           /* DCS sequence */
+            term->termstate = SEEN_DCS;
             term->esc_buf_len = 0;
             break;
 
@@ -4264,13 +4241,30 @@ static void term_out(Terminal *term)
 		    term->osc_strlen = 0;
 		}
 		break;
-          case SEEN_APC:
-            if (c=='\033')
-                term->termstate = ESC_MAYBE_ST;
-            else if (term->esc_buf_len<sizeof(term->esc_buf))
-              term->esc_buf[term->esc_buf_len++] = c;
-            break;
-	      case VT52_ESC:
+        case SEEN_DCS:
+          if (term->esc_buf_len<sizeof(term->esc_buf)) {
+            term->esc_buf[term->esc_buf_len++] = c;
+            if (term->esc_buf_len == 5 &&
+              !strncmp("1000p", term->esc_buf, 5) &&
+              !tmux_init_tmux_mode(term->frontend, term->esc_buf)) {
+              // entered tmux mode:
+              // all data should goto tmux gateway
+              int tmptmuxbuflen = nchars + bufchain_size(&term->inbuf);
+              char *tmptmuxbuf = snewn(tmptmuxbuflen, char);
+              memcpy(tmptmuxbuf, chars, nchars);
+              bufchain_fetch(&term->inbuf, tmptmuxbuf+nchars,
+                             bufchain_size(&term->inbuf));
+              bufchain_consume(&term->inbuf, bufchain_size(&term->inbuf));
+              tmux_from_backend(term->frontend, 0, tmptmuxbuf, tmptmuxbuflen);
+              sfree(tmptmuxbuf);
+              chars = NULL;
+              nchars = 0;
+              term->esc_buf_len = 0;
+              term->termstate = TOPLEVEL;
+            }
+          }
+          break;
+          case VT52_ESC:
 		term->termstate = TOPLEVEL;
 		seen_disp_event(term);
 		switch (c) {

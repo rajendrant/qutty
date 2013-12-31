@@ -23,15 +23,23 @@ using namespace std;
                          ((ch)>='a' && (ch)<='f') ? 10+(ch)-'a' : \
                          ((ch)>='A' && (ch)<='F') ? 10+(ch)-'A' : 0)
 
+#define TMUX_CB_INDEX_LIST \
+    T(CB_NULL), \
+    T(CB_LIST_WINDOWS), \
+    T(CB_OPEN_LISTED_WINDOWS), \
+    T(CB_DUMP_TERM_STATE), \
+    T(CB_DUMP_HISTORY), \
+    T(CB_DUMP_HISTORY_ALT), \
+    T(CB_INDEX_MAX)
+
 enum tmux_cb_index_t {
-    CB_NULL,
-    CB_LIST_WINDOWS,
-    CB_OPEN_LISTED_WINDOWS,
-    CB_DUMP_TERM_STATE,
-    CB_DUMP_HISTORY,
-    CB_DUMP_HISTORY_ALT,
-    CB_INDEX_MAX
+#undef T
+#define T(a) a
+    TMUX_CB_INDEX_LIST
+#undef T
 };
+
+extern const char *get_tmux_cb_index_str(tmux_cb_index_t index);
 
 class TmuxCmdRespReceiver
 {
@@ -67,13 +75,13 @@ class TmuxGateway : public TmuxCmdRespReceiver
     void closeAllPanes();
     void closePane(int paneid);
 
-    int cmd_hdlr_sessions_changed(const char *command, int len);
-    int cmd_hdlr_session_changed(const char *command, int len);
-    int cmd_hdlr_output(const char *command, int len);
-    int cmd_hdlr_window_renamed(const char *command, int len);
-    int cmd_hdlr_window_add(const char *command, int len);
-    int cmd_hdlr_window_close(const char *command, int len);
-    int cmd_hdlr_layout_change(const char *command, int len);
+    int cmd_hdlr_sessions_changed(const char *command, size_t len);
+    int cmd_hdlr_session_changed(const char *command, size_t len);
+    int cmd_hdlr_output(const char *command, size_t len);
+    int cmd_hdlr_window_renamed(const char *command, size_t len);
+    int cmd_hdlr_window_add(const char *command, size_t len);
+    int cmd_hdlr_window_close(const char *command, size_t len);
+    int cmd_hdlr_layout_change(const char *command, size_t len);
 
     int resp_hdlr_list_windows(string &response);
     int resp_hdlr_open_listed_windows(string &response);
@@ -82,13 +90,15 @@ public:
     TmuxGateway(GuiTerminalWindow *termWindow);
     virtual ~TmuxGateway();
     int performCallback(tmux_cb_index_t index, string &response);
-    int fromBackend(int is_stderr, const char *data, int len);
+    size_t fromBackend(int is_stderr, const char *data, size_t len);
     int parseCommand(const char *command, size_t len);
     int openWindowsInitial();
     int createNewWindow(int id, const char *name, int width, int height, string layout);
     int createNewWindowPane(int id, const char *name, TmuxLayout &layout);
     int sendCommand(TmuxCmdRespReceiver *recv, tmux_cb_index_t cb,
-                    const wchar_t cmd_str[], int cmd_str_len=-1);
+                    const wchar_t cmd_str[], size_t cmd_str_len);
+    int sendCommand(TmuxCmdRespReceiver *recv, tmux_cb_index_t cb,
+                    const wchar_t cmd_str[]);
     int sendCommand(TmuxCmdResp cmd_list[], wstring cmd_str[], int len=1);
 
     void initiateDetach();

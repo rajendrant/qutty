@@ -33,7 +33,7 @@ private:
 
 class QtSessionTreeItemDelegate : public QStyledItemDelegate
 {
-    QString displayText(const QVariant &value, const QLocale &locale) const{
+    QString displayText(const QVariant &value, const QLocale &/*locale*/) const{
         QString s = value.toString();
         int i = s.lastIndexOf('/');
         if (i != -1)

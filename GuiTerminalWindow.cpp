@@ -77,7 +77,8 @@ GuiTerminalWindow::~GuiTerminalWindow()
         backend = NULL;
         term_provide_resize_fn(term, NULL, NULL);
         term_free(term);
-        qtsock->close();
+        if (qtsock)
+            qtsock->close();
         term = NULL;
         qtsock = NULL;
     }
@@ -483,18 +484,18 @@ void GuiTerminalWindow::paintCursor(QPainter &painter, int row, int col,
     }
 }
 
-int GuiTerminalWindow::from_backend(int is_stderr, const char *data, int len)
+int GuiTerminalWindow::from_backend(int is_stderr, const char *data, size_t len)
 {
     if (_tmuxMode==TMUX_MODE_GATEWAY && _tmuxGateway) {
-        int rc = _tmuxGateway->fromBackend(is_stderr, data, len);
+        size_t rc = _tmuxGateway->fromBackend(is_stderr, data, len);
         if (rc) {
             if (rc >= 0 && rc < len && _tmuxMode == TMUX_MODE_GATEWAY_DETACH_INIT) {
                 detachTmuxControllerMode();
-                return term_data(term, is_stderr, data+rc, len-rc);
+                return term_data(term, is_stderr, data+rc, (int)(len-rc));
             }
         }
     }
-    return term_data(term, is_stderr, data, len);
+    return term_data(term, is_stderr, data, (int)len);
 }
 
 void GuiTerminalWindow::preDrawTerm()
@@ -761,11 +762,10 @@ void 	GuiTerminalWindow::resizeEvent ( QResizeEvent * )
 
     if (_tmuxMode==TMUX_MODE_CLIENT) {
         wchar_t cmd_resize[128];
-        int cmd_resize_len = wsprintf(cmd_resize, L"control set-client-size %d,%d\n",
+        wsprintf(cmd_resize, L"refresh-client -C %d,%d\n",
                                       viewport()->size().width()/fontWidth,
                                       viewport()->size().height()/fontHeight);
-        _tmuxGateway->sendCommand(_tmuxGateway, CB_NULL,
-                                  cmd_resize, cmd_resize_len);
+        _tmuxGateway->sendCommand(_tmuxGateway, CB_NULL, cmd_resize);
         // %layout-change tmux command does the actual resize
         return;
     }

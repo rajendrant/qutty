@@ -197,8 +197,7 @@ struct terminal_tag {
 
 	SEEN_OSC_P,
 	OSC_STRING, OSC_MAYBE_ST,
-    SEEN_APC,
-    ESC_MAYBE_ST,
+    SEEN_DCS,
     VT52_ESC,
 	VT52_Y1,
 	VT52_Y2,

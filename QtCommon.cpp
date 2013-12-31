@@ -401,7 +401,7 @@ int from_backend_untrusted(void *frontend, const char *data, int len)
 int from_backend(void *frontend, int is_stderr, const char *data, int len)
 {
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
-    return f->from_backend(is_stderr, data, len);
+    return f->from_backend(is_stderr, data, (size_t)len);
 }
 
 
@@ -485,7 +485,7 @@ int tmux_init_tmux_mode(void *frontend, char *tmux_version) {
     return f->initTmuxControllerMode(tmux_version);
 }
 
-int tmux_from_backend(void *frontend, int is_stderr, const char *data, int len)
+size_t tmux_from_backend(void *frontend, int is_stderr, const char *data, int len)
 {
     GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
     return f->tmuxGateway()->fromBackend(is_stderr, data, len);

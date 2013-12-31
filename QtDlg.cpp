@@ -40,11 +40,10 @@ int askalg(void *frontend, const char *algtype, const char *algname,
  * Ask whether to wipe a session log file before writing to it.
  * Returns 2 for wipe, 1 for append, 0 for cancel (don't log).
  */
-int askappend(void *frontend, Filename filename,
+int askappend(void * /*frontend*/, Filename filename,
           void (* /*callback*/)(void *ctx, int result), void * /*ctx*/)
 {
     //assert(frontend);
-    GuiTerminalWindow *f = static_cast<GuiTerminalWindow*>(frontend);
     QString msg = 	QString("The session log file \"") + QString(filename.path)
             + QString("\" already exists.\n"
             "You can overwrite it with a new session log,\n"

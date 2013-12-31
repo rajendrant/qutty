@@ -250,7 +250,7 @@ bool GuiMainWindow::winEvent ( MSG *msg, long *result )
     return tabInTitleBar.handleWinEvent(msg, result);
 }
 
-bool GuiMainWindow::nativeEvent(const QByteArray & eventType, void * message, long * result)
+bool GuiMainWindow::nativeEvent(const QByteArray & /*eventType*/, void * message, long * result)
 {
     return winEvent((MSG*)message, result);
 }

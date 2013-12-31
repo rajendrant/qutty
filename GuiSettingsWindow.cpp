@@ -483,7 +483,7 @@ void GuiSettingsWindow::loadSessionNames()
     }
 }
 
-void GuiSettingsWindow::on_l_saved_sess_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous)
+void GuiSettingsWindow::on_l_saved_sess_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem * /*previous*/)
 {
     if (isChangeSettingsMode)
         return;
