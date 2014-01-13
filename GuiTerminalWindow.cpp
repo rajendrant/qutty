@@ -16,7 +16,7 @@
 #include "GuiSplitter.h"
 #include "GuiMenu.h"
 #include "GuiTabWidget.h"
-
+#include "GuiFindToolBar.h"
 GuiTerminalWindow::GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow) :
     QAbstractScrollArea(parent),
     clipboard_contents(NULL),
@@ -310,6 +310,10 @@ void GuiTerminalWindow::keyPressEvent ( QKeyEvent *e )
     int len = TranslateKey(e, buf);
     assert(len<16);
     if (len>0 || len==-2) {
+        if(mainWindow->findToolBar) {
+            mainWindow->findToolBar->findTextFlag = false;
+            viewport()->repaint();
+        }
         term_nopaste(term);
         term_seen_key_event(term);
         ldisc_send(ldisc, buf, len, 1);
@@ -329,6 +333,10 @@ void GuiTerminalWindow::keyPressEvent ( QKeyEvent *e )
         }
         len += e->text().toWCharArray(bufwchar+len);
         if (len>0 && len<16) {
+            if(mainWindow->findToolBar) {
+                mainWindow->findToolBar->findTextFlag = false;
+                viewport()->repaint();
+            }
             term_nopaste(term);
             term_seen_key_event(term);
             luni_send(ldisc, bufwchar, len, 1);
@@ -349,6 +357,39 @@ void GuiTerminalWindow::readyRead ()
     (*as->plug)->receive(as->plug, 0, buf, len);
 
     if(qtsock->bytesAvailable()>0) readyRead();
+}
+
+void GuiTerminalWindow::highlightSearchedText(QPainter &painter)
+{
+    if (mainWindow->getCurrentTerminal() != this)
+        return;
+
+    assert(mainWindow->findToolBar);
+    QString text = mainWindow->findToolBar->currentSearchedText;
+    unsigned long attr = 0;
+    QString str = "";
+    for(int row = 0; row < term->rows; row++)
+    {
+        str = QString::fromWCharArray(&term->dispstr[row * term->cols], term->cols);
+        int index = 0;
+        while((index = str.indexOf(text, index, Qt::CaseInsensitive)) >= 0)
+        {
+            attr |= (8 << ATTR_FGSHIFT | (3 << ATTR_BGSHIFT));
+            paintText(painter, row, index, str.mid(index, text.length()), attr);
+            index = index + (text.length());
+        }
+    }
+    str = QString::fromWCharArray(&term->dispstr[(mainWindow->findToolBar->currentRow-verticalScrollBar()->value()) * term->cols], term->cols);
+    if(str.indexOf(text, mainWindow->findToolBar->currentCol, Qt::CaseInsensitive) >= 0)
+    {
+        paintText(painter,
+                 (mainWindow->findToolBar->currentRow - verticalScrollBar()->value()),
+                  mainWindow->findToolBar->currentCol,
+                  mainWindow->findToolBar->currentSearchedText,
+                          ((5 << ATTR_FGSHIFT) | (7 << ATTR_BGSHIFT)));
+    }
+
+
 }
 
 void GuiTerminalWindow::paintEvent (QPaintEvent *e)
@@ -382,6 +423,10 @@ void GuiTerminalWindow::paintEvent (QPaintEvent *e)
                     paintCursor(painter, row, col, str, attr);
                 col = coldiff;
             }
+        }
+        if(mainWindow->findToolBar && mainWindow->findToolBar->findTextFlag)
+        {
+            highlightSearchedText(painter);
         }
     }
 }

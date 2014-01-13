@@ -634,7 +634,7 @@ static void makeliteral_cc(struct buf *b, termchar *c, unsigned long *state)
     makeliteral_chr(b, &z, &zstate);
 }
 
-static termline *decompressline(unsigned char *data, int *bytes_used);
+termline *decompressline(unsigned char *data, int *bytes_used);
 
 static unsigned char *compressline(termline *ldata)
 {
@@ -844,7 +844,7 @@ static void readliteral_cc(struct buf *b, termchar *c, termline *ldata,
     }
 }
 
-static termline *decompressline(unsigned char *data, int *bytes_used)
+termline *decompressline(unsigned char *data, int *bytes_used)
 {
     int ncols, byte, shift;
     struct buf buffer, *b = &buffer;

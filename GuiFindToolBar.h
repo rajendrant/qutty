@@ -17,13 +17,22 @@ class GuiFindToolBar : public QToolBar
     Q_OBJECT
 
     GuiMainWindow *mainWnd;
+    QLineEdit *searchedText;
 
 public:
+    bool findTextFlag;
+    int currentRow;
+    int currentCol;
+    int pageStartPosition;
+    QString currentSearchedText;
     GuiFindToolBar(GuiMainWindow *p);
     virtual ~GuiFindToolBar() { }
+    QString getSearchedText();
+
+
 public slots:
-    void on_findNext();
-    void on_findPrevious();
+    void on_findUp();
+    void on_findDown();
     void on_findClose();
 };
 

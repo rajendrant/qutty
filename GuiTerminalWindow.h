@@ -130,7 +130,7 @@ public:
 
     void closeTerminal();
     void reqCloseTerminal(bool userConfirm);
-
+    void highlightSearchedText(QPainter &painter);
     int getFontWidth() { return fontWidth; };
     int getFontHeight() { return fontHeight; };
 
