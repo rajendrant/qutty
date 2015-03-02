@@ -9,6 +9,7 @@
 #include "GuiMainWindow.h"
 #include "GuiTerminalWindow.h"
 #include "GuiSettingsWindow.h"
+#include "windows/GuiBorderlessMainWindow.h"
 
 #ifdef QUTTY_ENABLE_BREAKPAD_SUPPORT
 #include "client/windows/handler/exception_handler.h"
@@ -35,10 +36,8 @@ int main(int argc, char *argv[])
     // restore all settings from qutty.xml
     qutty_config.restoreConfig();
 
-    GuiMainWindow *mainWindow = new GuiMainWindow();
-
-    mainWindow->on_openNewTab();
-    mainWindow->show();
+    // Create window
+    GuiBorderlessMainWindow window(&app, CreateSolidBrush( RGB( 0, 0, 255 ) ), 0, 0, 800, 600 );
 
     return app.exec();
 }

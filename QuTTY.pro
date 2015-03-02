@@ -90,7 +90,7 @@ SOURCES +=  \
     tmux/TmuxWindowPane.cpp \
     tmux/TmuxLayout.cpp \
     serialize/QtMRUSessionList.cpp \
-    windows/GuiTabInTitlebar.cpp
+    windows/GuiBorderlessMainWindow.cpp
 
 HEADERS +=  \
     GuiMainWindow.h \
@@ -139,8 +139,7 @@ HEADERS +=  \
     tmux/TmuxWindowPane.h \
     tmux/TmuxLayout.h \
     serialize/QtMRUSessionList.h \
-    windows/dwm/GuiDwmApi.h \
-    windows/GuiTabInTitlebar.h
+    windows/GuiBorderlessMainWindow.h
 
 
 INCLUDEPATH += ./ puttysrc/
@@ -160,7 +159,8 @@ RESOURCES += \
 
 
 win32-msvc* {
-    LIBS += user32.lib advapi32.lib
+    include("windows/QtWinMigrate.pri")
+    LIBS += user32.lib advapi32.lib gdi32.lib dwmapi.lib
     QMAKE_CFLAGS    += -D_CRT_SECURE_NO_WARNINGS
     QMAKE_CXXFLAGS  += -D_CRT_SECURE_NO_WARNINGS
 }

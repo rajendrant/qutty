@@ -27,8 +27,8 @@ extern "C" {
 #include "ssh.h"
 }
 
-GuiMainWindow::GuiMainWindow(QWidget *parent)
-    : QMainWindow(parent),
+GuiMainWindow::GuiMainWindow(HWND hWnd, QWidget *parent)
+    : QWinWidget(hWnd),
       menuCookieTermWnd(NULL),
       toolBarTerminalTop(this),
       dragDropSite(),
@@ -37,7 +37,6 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
       tabNavigate(NULL),
       paneNavigate(NULL),
       tabArea(new GuiTabWidget(this)),
-      tabInTitleBar(this, tabArea, tabArea->getGuiTabBar()),
       settingsWindow(NULL),
       compactSettingsWindow(NULL),
       newTabToolButton()
@@ -66,11 +65,42 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
     // read & restore the settings
     readWindowSettings();
 
+#if 1  // TODO cleanup 5.4-tab-in-titlebar
     /*
-     * Initial resize should happen before setting up tabs-in-titlebar
+     * top left icon in tabbar
      */
-    tabInTitleBar.initialize(qutty_config.mainwindow.titlebar_tabs);
-    tabInTitleBar.setTabAreaCornerWidget(&newTabToolButton);
+    tabArea->setCornerWidget(&newTabToolButton, Qt::TopLeftCorner);
+
+    setAcceptDrops(true);
+    this->setAttribute(Qt::WA_TranslucentBackground, true);
+
+    /*
+     * add spacer to stop Qt from using the area of
+     * the min, max, close buttons in titlebar
+     */
+    int titlebar_captionbtn_width = 4 * this->style()->pixelMetric(QStyle::PM_TitleBarHeight);
+    NONCLIENTMETRICS ncm;
+    ncm.cbSize = sizeof(NONCLIENTMETRICS);
+    BOOL ok=SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &ncm, 0);
+    if (ok) {
+        titlebar_captionbtn_width = 3 * (ncm.iCaptionWidth + 2*ncm.iBorderWidth) + 2 * ncm.iBorderWidth;
+        QWidget *w = new QWidget;
+        QHBoxLayout *hboxlayout = new QHBoxLayout;
+        hboxlayout->setContentsMargins(0,0,0,0);
+        w->setLayout(hboxlayout);
+        hboxlayout->addSpacing(titlebar_captionbtn_width);
+        tabArea->setCornerWidget(w, Qt::TopRightCorner);
+        //w->setAttribute(Qt::WA_TranslucentBackground, true);
+    }
+    //tabArea->tabBar()->setAttribute(Qt::WA_TranslucentBackground, false);
+    //tabArea->tabBar()->setStyleSheet("background-color:black;");
+    tabArea->tabBar()->setAutoFillBackground(true);
+    //tabArea->tabBar()->setStyleSheet("QWidget { background: lightblue; } ");
+    //tabArea->tabBar()->setStyleSheet("background-color:black; QTabBar::tab:selected { background: red; }");
+#endif
+
+    this->on_openNewTab();
+    this->show();
 }
 
 GuiMainWindow::~GuiMainWindow()
@@ -136,11 +166,7 @@ void GuiMainWindow::closeTerminal(GuiTerminalWindow *termWnd)
 void GuiMainWindow::closeEvent ( QCloseEvent * event )
 {
     event->ignore();
-    if (tabArea->count() == 0 ||
-        QMessageBox::Yes == QMessageBox::question(this, "Exit Confirmation?",
-                                  "Are you sure you want to close all the sessions?",
-                                  QMessageBox::Yes|QMessageBox::No))
-    {
+    if (closeRequest()) {
         // at least close the open sessions
         QList<GuiTerminalWindow*> child(terminalList);
         for (auto it = child.begin();
@@ -151,6 +177,24 @@ void GuiMainWindow::closeEvent ( QCloseEvent * event )
         writeWindowSettings();
         event->accept();
     }
+}
+
+bool GuiMainWindow::closeRequest ()
+{
+    static bool ret = false;
+
+    if (ret)
+        return true;
+
+    if (tabArea->count() == 0 ||
+        QMessageBox::Yes == QMessageBox::question(NULL, "Exit Confirmation?",
+                                  "Are you sure you want to close all the sessions?",
+                                  QMessageBox::Yes|QMessageBox::No))
+    {
+        ret = true;
+        return true;
+    }
+    return false;
 }
 
 void GuiMainWindow::tabCloseRequested (int index)
@@ -182,7 +226,8 @@ void GuiMainWindow::on_openNewSession(Config cfg, GuiBase::SplitType splittype)
         QMessageBox::information(this, tr("Cannot open"), tr("Close the existing settings window"));
         return;
     }
-    settingsWindow = new GuiSettingsWindow(this, splittype);
+    /* TODO fix for 5.4 tab-in-titlebar */
+    settingsWindow = new GuiSettingsWindow(NULL, splittype);
     connect(settingsWindow, SIGNAL(signal_session_open(Config, GuiBase::SplitType)), SLOT(on_createNewSession(Config, GuiBase::SplitType)));
     connect(settingsWindow, SIGNAL(signal_session_close()), SLOT(on_settingsWindowClose()));
     settingsWindow->loadInitialSettings(cfg);
@@ -201,7 +246,8 @@ void GuiMainWindow::on_openNewCompactSession(GuiBase::SplitType splittype)
         QMessageBox::information(this, tr("Cannot open"), tr("Close the existing settings window"));
         return;
     }
-    compactSettingsWindow = new GuiCompactSettingsWindow(this, splittype);
+    /* TODO fix for 5.4 tab-in-titlebar */
+    compactSettingsWindow = new GuiCompactSettingsWindow(NULL, splittype);
     connect(compactSettingsWindow, SIGNAL(signal_on_open(Config, GuiBase::SplitType)), SLOT(on_createNewSession(Config, GuiBase::SplitType)));
     connect(compactSettingsWindow, SIGNAL(signal_on_close()), SLOT(on_settingsWindowClose()));
     connect(compactSettingsWindow, SIGNAL(signal_on_detail(Config, GuiBase::SplitType)), SLOT(on_openNewSession(Config, GuiBase::SplitType)));
@@ -216,9 +262,7 @@ void GuiMainWindow::on_settingsWindowClose()
 
 void GuiMainWindow::on_openNewWindow()
 {
-    GuiMainWindow *mainWindow = new GuiMainWindow;
-    mainWindow->on_openNewTab();
-    mainWindow->show();
+    GuiMainWindow *mainWindow = new GuiMainWindow(0);
 }
 
 void GuiMainWindow::on_changeSettingsTab(GuiTerminalWindow *termWnd)
@@ -228,7 +272,8 @@ void GuiMainWindow::on_changeSettingsTab(GuiTerminalWindow *termWnd)
         return;
     }
     assert(terminalList.indexOf(termWnd) != -1);
-    settingsWindow = new GuiSettingsWindow(this);
+    /* TODO fix for 5.4 tab-in-titlebar */
+    settingsWindow = new GuiSettingsWindow(NULL);
     settingsWindow->enableModeChangeSettings(&termWnd->cfg, termWnd);
     connect(settingsWindow, SIGNAL(signal_session_change(Config, GuiTerminalWindow*)), SLOT(on_changeSettingsTabComplete(Config, GuiTerminalWindow*)));
     connect(settingsWindow, SIGNAL(signal_session_close()), SLOT(on_settingsWindowClose()));
@@ -244,16 +289,6 @@ void GuiMainWindow::on_changeSettingsTabComplete(Config cfg, GuiTerminalWindow *
 
 extern "C" Socket get_ssh_socket(void *handle);
 extern "C" Socket get_telnet_socket(void *handle);
-
-bool GuiMainWindow::winEvent ( MSG *msg, long *result )
-{
-    return tabInTitleBar.handleWinEvent(msg, result);
-}
-
-bool GuiMainWindow::nativeEvent(const QByteArray & /*eventType*/, void * message, long * result)
-{
-    return winEvent((MSG*)message, result);
-}
 
 void GuiMainWindow::currentChanged(int index)
 {
@@ -444,7 +479,8 @@ void GuiMainWindow::readWindowSettings()
     settings.beginGroup("GuiMainWindow");
     qutty_config.mainwindow.size    = settings.value("Size", size()).toSize();
     qutty_config.mainwindow.pos     = settings.value("Position", pos()).toPoint();
-    qutty_config.mainwindow.state   = settings.value("WindowState", (int)windowState()).toInt();
+    // TODO - commented for 5.4 tab-in-titlebar change
+    //qutty_config.mainwindow.state   = settings.value("WindowState", (int)windowState()).toInt();
     qutty_config.mainwindow.flag    = settings.value("WindowFlags", (int)windowFlags()).toInt();
     qutty_config.mainwindow.menubar_visible = settings.value("ShowMenuBar", false).toBool();
     qutty_config.mainwindow.titlebar_tabs = settings.value("ShowTabsInTitlebar", true).toBool();
@@ -537,7 +573,6 @@ void GuiMainWindow::setupTerminalSize(GuiTerminalWindow *newTerm)
             newTerm->viewport()->height() < newTerm->cfg.height*newTerm->getFontHeight())) {
         this->resize(newTerm->cfg.width*newTerm->getFontWidth() + width() - newTerm->viewport()->width(),
                      newTerm->cfg.height*newTerm->getFontHeight() + height() - newTerm->viewport()->height());
-        tabInTitleBar.handleWindowResize();
         term_size(newTerm->term, newTerm->cfg.height, newTerm->cfg.width, newTerm->cfg.savelines);
     }
 }
@@ -583,9 +618,6 @@ void GuiMainWindow::on_tabLayoutChanged()
 
 void GuiMainWindow::changeEvent(QEvent *e)
 {
-    if (e->type() == QEvent::WindowStateChange) {
-        tabInTitleBar.handleWindowStateChangeEvent(windowState());
-    }
     QMainWindow::changeEvent(e);
 }
 

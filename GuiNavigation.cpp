@@ -46,6 +46,7 @@ void GuiTabNavigation::acceptNavigation()
 {
     int sel;
     if ((sel = currentRow()) != -1) {
+        mainWindow->getCurrentTerminal()->setFocus();
         mainWindow->tabArea->setCurrentIndex(currentItem()->data(Qt::UserRole).toInt());
     }
     this->close();

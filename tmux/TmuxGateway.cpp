@@ -454,7 +454,7 @@ int TmuxGateway::createNewWindowPane(int id, const char *name, TmuxLayout &layou
             tmuxPane->name = name;
             newtermwnd->setSessionTitle(name);
             wchar_t modes[2000], cmd_state[2000], cmd_hist[256], cmd_hist_alt[256];
-            wchar_t *modesformat[] = {L"pane_id", L"alternate_on", L"alternate_saved_x", L"alternate_saved_y",
+            const wchar_t *modesformat[] = {L"pane_id", L"alternate_on", L"alternate_saved_x", L"alternate_saved_y",
                                      L"saved_cursor_x", L"saved_cursor_y", L"cursor_x", L"cursor_y",
                                      L"scroll_region_upper", L"scroll_region_lower", L"pane_tabs", L"cursor_flag",
                                      L"insert_flag", L"keypad_cursor_flag", L"keypad_flag", L"wrap_flag",
@@ -524,7 +524,7 @@ void TmuxGateway::closePane(int paneid)
 
 const char *get_tmux_cb_index_str(tmux_cb_index_t index)
 {
-    char *tmux_cb_index_str[] = {
+    const char *tmux_cb_index_str[] = {
     #undef T
     #define T(a) #a
         TMUX_CB_INDEX_LIST
