@@ -404,22 +404,11 @@ void GuiMainWindow::contextMenuCloseWindowTriggered()
 void GuiMainWindow::contextMenuMenuBar()
 {
     if(menuGetActionById(MENU_MENUBAR)->isChecked()) {
-        if(tabInTitleBar.getCompositionStatus())
-        {
-            QMessageBox::warning(NULL, "Warning",
-                                 "Both menu bar and tabs on title bar together are not acceptable");
-            menuGetActionById(MENU_MENUBAR)->setChecked(qutty_config.mainwindow.menubar_visible = false);
-
-        }
-        else
-        {
-            menuBar()->show();
-            menuBar()->addMenu(&menuCommonMenus[MENU_FILE-MENU_SEPARATOR-1]);
-            menuBar()->addMenu(&menuCommonMenus[MENU_EDIT-MENU_SEPARATOR-1]);
-            menuBar()->addMenu(&menuCommonMenus[MENU_VIEW-MENU_SEPARATOR-1]);
-            menuGetActionById(MENU_MENUBAR)->setChecked(qutty_config.mainwindow.menubar_visible = true);
-
-        }
+        menuBar()->show();
+        menuBar()->addMenu(&menuCommonMenus[MENU_FILE-MENU_SEPARATOR-1]);
+        menuBar()->addMenu(&menuCommonMenus[MENU_EDIT-MENU_SEPARATOR-1]);
+        menuBar()->addMenu(&menuCommonMenus[MENU_VIEW-MENU_SEPARATOR-1]);
+        menuGetActionById(MENU_MENUBAR)->setChecked(qutty_config.mainwindow.menubar_visible = true);
     }
     else {
         menuGetActionById(MENU_MENUBAR)->setChecked(qutty_config.mainwindow.menubar_visible = false);
@@ -429,19 +418,9 @@ void GuiMainWindow::contextMenuMenuBar()
 
 void GuiMainWindow::contextMenuTabInTitleBar()
 {
-    if(tabInTitleBar.getCompositionStatus()){
-        QMessageBox::warning(NULL, "Tabs on title bar warning",
-                             "You must restart your qutty terminal for tabs on title bar to hide");
-        menuGetActionById(MENU_TAB_IN_TITLE_BAR)->setChecked(qutty_config.mainwindow.titlebar_tabs = false);
-
-    }
-    else
-    {
-        QMessageBox::warning(NULL, "Tabs on title bar warning",
-                             "You must restart your qutty terminal for tabs on title bar to show");
-        menuGetActionById(MENU_TAB_IN_TITLE_BAR)->setChecked(qutty_config.mainwindow.titlebar_tabs = true);
-    }
-
+    QMessageBox::warning(NULL, "Tabs on title bar warning",
+                         "You must restart your qutty terminal for tabs on title bar to show");
+    menuGetActionById(MENU_TAB_IN_TITLE_BAR)->setChecked(qutty_config.mainwindow.titlebar_tabs = true);
 }
 
 void GuiMainWindow::contextMenuFullScreen()

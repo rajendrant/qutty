@@ -20,7 +20,6 @@
 #include "GuiMenu.h"
 #include "GuiDrag.h"
 #include "GuiNavigation.h"
-#include "windows/GuiTabInTitlebar.h"
 
 class GuiCompactSettingsWindow;
 class GuiSettingsWindow;
@@ -59,9 +58,6 @@ public:
 
     GuiTabWidget *tabArea;
 
-    // wrapper member to handle Tabs in Titlebar
-    GuiTabInTitlebar tabInTitleBar;
-
 private:
     GuiCompactSettingsWindow *compactSettingsWindow;
     GuiSettingsWindow *settingsWindow;
@@ -82,7 +78,6 @@ public:
     GuiMainWindow(QWidget *parent = 0);
     ~GuiMainWindow();
     void createNewTab(Config *cfg, GuiBase::SplitType splittype=GuiBase::TYPE_LEAF);
-    bool winEvent ( MSG * msg, long * result );
     void closeEvent ( QCloseEvent * event );
     GuiTerminalWindow *getCurrentTerminal();
     GuiTerminalWindow *getCurrentTerminalInTab(int tabIndex);
@@ -111,10 +106,6 @@ private:
 
     void readWindowSettings();
     void writeWindowSettings();
-
-protected:
-    bool nativeEvent(const QByteArray & eventType, void * message, long * result);
-    void changeEvent(QEvent *e);
 
 public slots:
     void on_openNewWindow();

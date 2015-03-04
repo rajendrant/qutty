@@ -21,6 +21,7 @@ GuiTabWidget::GuiTabWidget(GuiMainWindow * parent) :
 {
     this->setTabBar(guiTabBar);
     this->setContextMenuPolicy(Qt::CustomContextMenu);
+    guiTabBar->setCursor(Qt::ArrowCursor);
     connect(this, SIGNAL(customContextMenuRequested(QPoint)),
             SLOT(showContextMenu(QPoint)));
 }

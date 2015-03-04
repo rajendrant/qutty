@@ -37,7 +37,6 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
       tabNavigate(NULL),
       paneNavigate(NULL),
       tabArea(new GuiTabWidget(this)),
-      tabInTitleBar(this, tabArea, tabArea->getGuiTabBar()),
       settingsWindow(NULL),
       compactSettingsWindow(NULL),
       newTabToolButton()
@@ -66,11 +65,6 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
     // read & restore the settings
     readWindowSettings();
 
-    /*
-     * Initial resize should happen before setting up tabs-in-titlebar
-     */
-    tabInTitleBar.initialize(qutty_config.mainwindow.titlebar_tabs);
-    tabInTitleBar.setTabAreaCornerWidget(&newTabToolButton);
 }
 
 GuiMainWindow::~GuiMainWindow()
@@ -244,16 +238,6 @@ void GuiMainWindow::on_changeSettingsTabComplete(Config cfg, GuiTerminalWindow *
 
 extern "C" Socket get_ssh_socket(void *handle);
 extern "C" Socket get_telnet_socket(void *handle);
-
-bool GuiMainWindow::winEvent ( MSG *msg, long *result )
-{
-    return tabInTitleBar.handleWinEvent(msg, result);
-}
-
-bool GuiMainWindow::nativeEvent(const QByteArray & /*eventType*/, void * message, long * result)
-{
-    return winEvent((MSG*)message, result);
-}
 
 void GuiMainWindow::currentChanged(int index)
 {
@@ -537,7 +521,6 @@ void GuiMainWindow::setupTerminalSize(GuiTerminalWindow *newTerm)
             newTerm->viewport()->height() < newTerm->cfg.height*newTerm->getFontHeight())) {
         this->resize(newTerm->cfg.width*newTerm->getFontWidth() + width() - newTerm->viewport()->width(),
                      newTerm->cfg.height*newTerm->getFontHeight() + height() - newTerm->viewport()->height());
-        tabInTitleBar.handleWindowResize();
         term_size(newTerm->term, newTerm->cfg.height, newTerm->cfg.width, newTerm->cfg.savelines);
     }
 }
@@ -580,14 +563,6 @@ void GuiMainWindow::on_tabLayoutChanged()
     }
 }
 
-
-void GuiMainWindow::changeEvent(QEvent *e)
-{
-    if (e->type() == QEvent::WindowStateChange) {
-        tabInTitleBar.handleWindowStateChangeEvent(windowState());
-    }
-    QMainWindow::changeEvent(e);
-}
 
 void GuiToolButton::paintEvent(QPaintEvent *e)
 {
