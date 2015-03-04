@@ -170,6 +170,7 @@ void GuiTerminalWindow::dragStartEvent (QMouseEvent *)
     drag->setPixmap(pixmap);
     drag->setHotSpot(QPoint(0,0));
 
+    //TODO tab-in-titlebar-qt5.4 drag & drop of terminal not working
     viewport()->setCursor(Qt::DragMoveCursor);
     drag->exec(Qt::MoveAction);
     viewport()->setCursor(Qt::IBeamCursor);

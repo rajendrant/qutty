@@ -67,7 +67,22 @@ LRESULT CALLBACK GuiBorderlessMainWindow::WndProc( HWND hWnd, UINT message, WPAR
   //qDebug() << "msg " << std::hex << message << " " << window;
   if ( !window ) return DefWindowProc( hWnd, message, wParam, lParam );
 
+  LRESULT lRet;
+  DwmDefWindowProc( hWnd, message, wParam, lParam, &lRet );
+
   switch ( message ) {
+    case WM_CREATE: {
+      RECT rcClient;
+      GetWindowRect(hWnd, &rcClient);
+
+      // Inform the application of the frame change.
+      SetWindowPos(hWnd,
+                   NULL,
+                   rcClient.left, rcClient.top,
+                   rcClient.right, rcClient.bottom,
+                   SWP_FRAMECHANGED);
+      break;
+    }
     case WM_KEYDOWN: {
       if ( wParam != VK_TAB ) return DefWindowProc( hWnd, message, wParam, lParam );
 
@@ -106,7 +121,7 @@ LRESULT CALLBACK GuiBorderlessMainWindow::WndProc( HWND hWnd, UINT message, WPAR
       //this kills the window frame and title bar we added with
       //WS_THICKFRAME and WS_CAPTION
       if (window->borderless) {
-          return 0;
+        return 0;
       }
       break;
     }
@@ -140,7 +155,12 @@ LRESULT CALLBACK GuiBorderlessMainWindow::WndProc( HWND hWnd, UINT message, WPAR
       {
         if ( window->borderlessResizeable )
         {
-          const LONG borderWidth = 8; //in pixels
+          LRESULT lRet = 0;
+          if (DwmDefWindowProc(hWnd, message, wParam, lParam, &lRet)) {
+              return lRet;    // handled for Titlebar min-max-close-button area
+          }
+
+          const LONG borderWidth = 4; //in pixels
           RECT winrect;
           GetWindowRect( hWnd, &winrect );
           long x = GET_X_LPARAM( lParam );
@@ -190,24 +210,34 @@ LRESULT CALLBACK GuiBorderlessMainWindow::WndProc( HWND hWnd, UINT message, WPAR
           {
             return HTTOP;
           }
+          if (y < winrect.top + 20) {
+              if (x < winrect.right - 50) {
+                  return HTCAPTION;
+              }
+              return HTCAPTION;
+          }
         }
 
-        return HTCAPTION;
+        return HTNOWHERE;
       }
       break;
     }
 
     case WM_SIZE: {
-      RECT winrect;
-      GetClientRect( hWnd, &winrect );
 
       WINDOWPLACEMENT wp;
       wp.length = sizeof( WINDOWPLACEMENT );
       GetWindowPlacement( hWnd, &wp );
       if ( wp.showCmd == SW_MAXIMIZE ) {
-        mainPanel->setGeometry( 9, 0, winrect.right-18, winrect.bottom-18 );
+          HMONITOR mon = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+          MONITORINFO moninfo;
+          moninfo.cbSize = sizeof(MONITORINFO);
+          GetMonitorInfo(mon, &moninfo);
+          mainPanel->setGeometry( 9, 0, moninfo.rcWork.right-moninfo.rcWork.left, moninfo.rcWork.bottom-moninfo.rcWork.top);
       } else {
-        mainPanel->setGeometry( 4, 30, winrect.right - 8, winrect.bottom - 8 );
+          RECT winrect;
+          GetClientRect( hWnd, &winrect );
+          mainPanel->setGeometry( 4, 40, winrect.right - 8, winrect.bottom - 44 );
       }
       break;
     }
