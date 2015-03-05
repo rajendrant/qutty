@@ -163,7 +163,7 @@ win32-msvc* {
 }
 
 win32-g++ {
-    QMAKE_CXXFLAGS  += -std=gnu++0x
+    QMAKE_CXXFLAGS  += -std=gnu++0x -Wreorder -Wunused -fpermissive -Wdelete-non-virtual-dtor
 }
 
 Release: {

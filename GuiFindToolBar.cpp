@@ -22,6 +22,8 @@ GuiFindToolBar::GuiFindToolBar(GuiMainWindow *p)
     currentSearchedText = "";
     addWidget(searchedText);
 
+    searchedText->installEventFilter(this);
+
     b = new QToolButton(this);
     b->setText("Up");
     connect(b, SIGNAL(clicked()), this, SLOT(on_findUp()));
@@ -49,6 +51,28 @@ GuiFindToolBar::GuiFindToolBar(GuiMainWindow *p)
     adjustSize();
 
     searchedText->setFocus();
+}
+
+bool GuiFindToolBar::eventFilter(QObject  *obj, QEvent * event)
+{
+
+    if(obj == searchedText) {
+        if (event->type()==QEvent::KeyPress) {
+            QKeyEvent *ke = (QKeyEvent*)event;
+            if (ke->key() == Qt::Key_Escape ) {
+                this->on_findClose();
+                return true;
+            } else if (ke->key() == Qt::Key_Return) {
+                if (ke->modifiers() & Qt::ShiftModifier)
+                    this->on_findUp();
+                else
+                    this->on_findDown();
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 void GuiMainWindow::contextMenuFind()
@@ -160,7 +184,7 @@ void GuiFindToolBar::on_findUp()
             whichtree =term->screen;
             line = (termline*)index234(whichtree, currentRow - count234(term->scrollback));
         }
-        for(int i = 0; i < line->size; i++)
+        for(int i = 0; line && i < line->size; i++)
         {
             tchar = line->chars[i].chr;
             switch (tchar & CSET_MASK)
@@ -266,7 +290,7 @@ void GuiFindToolBar::on_findDown()
             whichtree = term->screen;
             line = (termline*)index234(whichtree, abs(currentRow - count234(term->scrollback)));
         }
-        for(int i = 0; i < line->size; i++)
+        for(int i = 0; line && i < line->size; i++)
         {
             //qDebug() << line->chars[i].chr;
             tchar = line->chars[i].chr;

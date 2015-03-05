@@ -28,7 +28,7 @@ public:
     GuiFindToolBar(GuiMainWindow *p);
     virtual ~GuiFindToolBar() { }
     QString getSearchedText();
-
+    bool eventFilter(QObject  *obj, QEvent * event);
 
 public slots:
     void on_findUp();

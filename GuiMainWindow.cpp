@@ -59,6 +59,8 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
     inittializeDragDropWidget();
     toolBarTerminalTop.initializeToolbarTerminalTop(this);
 
+    tabArea->setCornerWidget(&newTabToolButton, Qt::TopLeftCorner);
+
     this->setCentralWidget(tabArea);
 
     resize(800, 600);   // initial size
@@ -91,6 +93,8 @@ void GuiMainWindow::createNewTab(Config *cfg, GuiBase::SplitType splittype)
     int rc;
     GuiTerminalWindow *newWnd = new GuiTerminalWindow(tabArea, this);
     newWnd->cfg = *cfg;
+    auto config_name = QString(cfg->config_name);
+    auto hostname = QString(cfg->host);
 
     if ((rc=newWnd->initTerminal()))
         goto err_exit;
@@ -99,7 +103,7 @@ void GuiMainWindow::createNewTab(Config *cfg, GuiBase::SplitType splittype)
         goto err_exit;
 
     // To set the current session to MRU list
-    qutty_mru_sesslist.insertSession(QString(cfg->config_name), QString(cfg->host));
+    qutty_mru_sesslist.insertSession(config_name, hostname);
 
     return;
 

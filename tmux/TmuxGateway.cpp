@@ -200,7 +200,7 @@ int TmuxGateway::cmd_hdlr_output(const char *command, size_t len)
     const char *cmd = command + 8;  // skip command prefix
     const char *fail_reason = NULL;
     char data[128];
-    int paneid, datalen = 0, i;
+    int paneid, datalen = 0, i, byteslen;
     char *bytes;
     if (*cmd != '%') {
         fail_reason = "No %%";
@@ -220,7 +220,7 @@ int TmuxGateway::cmd_hdlr_output(const char *command, size_t len)
         goto cu0;
     }
     bytes++;     // skip single whitespace
-    int byteslen = command + len - bytes - 1;
+    byteslen = command + len - bytes - 1;
     for (i=0; i<byteslen; i++) {
         char c = bytes[i];
         if (c < ' ')
@@ -398,7 +398,7 @@ int TmuxGateway::resp_hdlr_list_windows(string &response)
     }
     return 0;
 cu0:
-    qCritical("TMUX malformed response %s %.*s", response);
+    qCritical("TMUX malformed response %s %.*s", response.c_str());
     return -1;
 }
 
@@ -425,7 +425,7 @@ int TmuxGateway::resp_hdlr_open_listed_windows(string &response)
     }
     return 0;
 cu0:
-    qCritical("TMUX malformed response %s %.*s", response);
+    qCritical("TMUX malformed response %s %.*s", response.c_str());
     return -1;
 }
 

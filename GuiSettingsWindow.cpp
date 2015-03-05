@@ -29,7 +29,7 @@ static int QUTTY_ROLE_FULL_SESSNAME = Qt::UserRole + 3;
 
 void adjust_sessname_hierarchy(QTreeWidgetItem *item);
 
-vector<string> qutty_string_split(string &str, char delim)
+vector<string> qutty_string_split(const string &str, char delim)
 {
     stringstream ss(str);
     string tmp;
