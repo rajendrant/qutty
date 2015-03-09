@@ -58,6 +58,9 @@ enum qutty_menu_id_t {
     MENU_FIND_REGEX,
     MENU_FIND_HIGHLIGHT,
     MENU_TAB_IN_TITLE_BAR,
+    MENU_AUTO_COMPLETE_LIST,
+    MENU_PASTE_HISTORY,
+    MENU_CALCULATOR,
 
     /*
      * Insert any new actions before this comment

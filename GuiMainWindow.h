@@ -20,6 +20,7 @@
 #include "GuiMenu.h"
 #include "GuiDrag.h"
 #include "GuiNavigation.h"
+#include "plugin/GuiWebPlugin.h"
 
 class GuiCompactSettingsWindow;
 class GuiSettingsWindow;
@@ -57,6 +58,9 @@ public:
     GuiPaneNavigation *paneNavigate;
 
     GuiTabWidget *tabArea;
+
+    // webpluging window
+    GuiWebPlugin *webPluginWnd;
 
 private:
     GuiCompactSettingsWindow *compactSettingsWindow;
@@ -159,6 +163,7 @@ public slots:
     void contextMenuImportFromFile();
     void contextMenuImportFromPuttySessions();
     void contextMenuExportToFile();
+    void contextMenuAutoComplete();
 };
 
 #endif // MAINWINDOW_H

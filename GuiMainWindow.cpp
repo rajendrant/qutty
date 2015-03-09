@@ -33,6 +33,7 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
       toolBarTerminalTop(this),
       dragDropSite(),
       findToolBar(NULL),
+      webPluginWnd(NULL),
       mru_count_last(0),
       tabNavigate(NULL),
       paneNavigate(NULL),

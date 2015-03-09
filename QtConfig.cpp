@@ -12,6 +12,7 @@
 #include <QString>
 #include "GuiImportExportFile.h"
 #include "serialize/QtMRUSessionList.h"
+#include "serialize/QtWebPluginMap.h"
 
 extern "C" {
 #include "WINDOWS\STORAGE.H"
@@ -280,6 +281,7 @@ bool QtConfig::restoreConfig()
     // restore any other serialized data strcutures
     qutty_mru_sesslist.initialize();
 
+    qutty_web_plugin_map.initialize();
     return rc;
 }
 

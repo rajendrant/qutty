@@ -5,5 +5,7 @@
         <file>images/x_14x14.png</file>
         <file>images/drag.png</file>
         <file>images/menu-hover.png</file>
+        <file>web/autocomplete.html</file>
+        <file>web/jquery-2.1.3.min.js</file>
     </qresource>
 </RCC>

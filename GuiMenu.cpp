@@ -92,6 +92,9 @@ qutty_menu_actions_t qutty_menu_actions[MENU_STATIC_ACTION_MAX] = {
     { "Highlight all matches",  "",              "",                                             ""},
     { "Show Tabs in Titlebar",           "",     SLOT( contextMenuTabInTitleBar() ),
       "Toggle viewing of tabs in titlebar"},
+    { "Auto complete from predefined list", "Ctrl+'", SLOT( contextMenuAutoComplete() ), ""},
+    { "Paste history",          "Ctrl+;",        SLOT( contextMenuPasteHistory() ), ""},
+    { "Calculator",             "",              SLOT( contextMenuCalculator() ), ""},
 };
 
 qutty_menu_links_t qutty_menu_links[MENU_MAX_MENU] = {

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  .hlight {
+    background-color: lightblue;
+  }
+</style>
+<script src="qrc:/web/jquery-2.1.3.min.js"></script>
+<script>
+/*
+ * Fuzzy searches 'filter' in the 'str'
+ * and returns the score for the match
+ */
+function getFuzzyMatchScore(str, filter) {
+    if (str.length == 0 || filter.length == 0)
+        return 0;
+    var bestscore = new Array(filter.length);
+    for(var i=0, lenfilter = filter.length; i < lenfilter; i++) {
+        bestscore[i] = new Array(str.length);
+        bestscore[i][0] = 0;
+    }
+    bestscore[0][0] = (str[0] == filter[0]) ? 1 : 0;
+    for(var i=0, lenfilter = filter.length; i < lenfilter; i++) {
+        for (var j = 1, lenstr = str.length; j < lenstr; j++) {
+            if (str[j] == filter[i]) {
+                bestscore[i][j] = bestscore[i][j-1];
+                if (i>0)
+                    bestscore[i][j] = Math.max(bestscore[i][j], bestscore[i-1][j-1] + 1);
+            } else {
+                bestscore[i][j] = bestscore[i][j-1];
+            }
+        }
+    }
+    return bestscore[filter.length-1][str.length-1];
+}
+
+function getFuzzySearchMatches(array, filter) {
+    console.log(array, filter);
+    if (filter.length == 0)
+        return array;
+    scores = [];
+    $.each(array, function(ind, val) {
+        scores.push([val, getFuzzyMatchScore(val, filter)]);
+    });
+    console.log(scores);
+    scores.sort(function(a, b) {
+        return b[1]-a[1];
+    });
+    ret = [];
+    $.each(scores, function(ind, val) {
+        if (val[1] > 0)
+            ret.push(val[0]);
+    });
+    return ret;
+}
+
+function itemSelected()
+{
+    var hlight = $('#matches div.hlight');
+    guiwebcurrentterm.sendKeys(hlight.text());
+    origarr.splice(origarr.indexOf(hlight.text()), 1);
+    origarr.splice(0, 0, hlight.text());
+    guiwebplugin.savePersistentList("autocompletelist", origarr);
+    guiwebplugin.closeMe();
+}
+
+var origarr;
+
+ $(document).ready(function() {
+   guiwebplugin.resizeMe(300, 400);
+   $("#filter").focus();
+   origarr = guiwebplugin.getPersistentList("autocompletelist");
+   $('#filter').keyup(function(e) {
+       var newarr = getFuzzySearchMatches(origarr, $("#filter").val());
+       items = [];
+       $.each(newarr, function(i, item) {
+         items.push('<div class="listitem">' + item + '</div>');
+       });
+       $("#matches").html( items.join('') );
+       $('#matches div').first().addClass('hlight')
+       $('div.listitem').click(function(e) {
+          $('#matches div.hlight').removeClass('hlight');
+          $(this).addClass('hlight');
+          itemSelected();
+       });
+   });
+   $('form').submit(function(e) {
+       itemSelected();
+       return false;
+   });
+   $('#filter').keyup();
+ });
+ $(document).keyup(function(e) {
+    if (e.keyCode == 27) {
+        guiwebplugin.closeMe();
+    } else if (e.keyCode == 40) { // key-down
+        var $hlight = $('#matches div.hlight'), $div = $('#matches div');
+        $hlight.removeClass('hlight').next().addClass('hlight');
+        if ($hlight.next().length == 0) {
+            $div.first().addClass('hlight')
+        }
+    } else if (e.keyCode === 38) { // key-up
+        var $hlight = $('#matches div.hlight'), $div = $('#matches div');
+        $hlight.removeClass('hlight').prev().addClass('hlight');
+        if ($hlight.prev().length == 0) {
+            $div.last().addClass('hlight')
+        }
+    }
+ });
+</script>
+</head>
+<body>
+<form align="center">
+<input id="filter" placeholder="filter"></input>
+<div id="matches"></div>
+</form>
+<div id="dbg"></div>
+</body>
+</html>
