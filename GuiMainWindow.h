@@ -168,6 +168,7 @@ public slots:
     void contextMenuImportFromPuttySessions();
     void contextMenuExportToFile();
     void contextMenuAutoComplete();
+    void contextMenuPasteHistory();
 };
 
 #endif // MAINWINDOW_H

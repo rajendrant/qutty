@@ -104,3 +104,15 @@ void GuiMainWindow::contextMenuAutoComplete()
     textFilterWnd->show();
     textFilterWnd->init();
 }
+
+void GuiMainWindow::contextMenuPasteHistory()
+{
+    if (!this->getCurrentTerminal())
+        return;
+    if (!textFilterWnd)
+        textFilterWnd = new GuiTextFilterWindow(this, true, "PASTE_HISTORY");
+    textFilterWnd->move((this->width()-textFilterWnd->width())/2,
+               (this->height()-textFilterWnd->height())/2);
+    textFilterWnd->show();
+    textFilterWnd->init();
+}

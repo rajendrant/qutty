@@ -17,6 +17,8 @@
 #include "GuiMenu.h"
 #include "GuiTabWidget.h"
 #include "GuiFindToolBar.h"
+#include "serialize/QtWebPluginMap.h"
+
 GuiTerminalWindow::GuiTerminalWindow(QWidget *parent, GuiMainWindow *mainWindow) :
     QAbstractScrollArea(parent),
     clipboard_contents(NULL),
@@ -788,6 +790,10 @@ void GuiTerminalWindow::getClip(wchar_t **p, int *len)
 void GuiTerminalWindow::requestPaste()
 {
     term_do_paste(term);
+
+    // Save the paste in our persistent list.
+    qutty_web_plugin_map.hash_map["PASTE_HISTORY"].prepend(QApplication::clipboard()->text());
+    qutty_web_plugin_map.save();
 }
 
 void GuiTerminalWindow::writeClip(wchar_t * data, int * /*attr*/, int len, int /*must_deselect*/)

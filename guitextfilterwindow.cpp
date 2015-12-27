@@ -52,19 +52,16 @@ QSize GuiTextFilterWindow::sizeHint() const
 QStringList GuiTextFilterWindow::getCompletions()
 {
     QStringList completions;
-    auto &entry = qutty_web_plugin_map.hash_map[label];
-    if (!entry.empty())
-        completions = entry[0].toStringList();
+    for(auto &e : qutty_web_plugin_map.hash_map[label])
+        completions.append(e.toString());
     return completions;
 }
 
 void GuiTextFilterWindow::setCompletions(QString str)
 {
     QVariantList varl;
-    QStringList strl;
-    for(auto e : str.split("\n"))
-        strl.append(e);
-    varl.append(strl);
+    for(auto &e : str.split("\n"))
+        varl.append(e);
     qutty_web_plugin_map.hash_map[label] = varl;
     qutty_web_plugin_map.save();
 }
@@ -105,7 +102,7 @@ void GuiTextFilterWindow::on_editList()
     addWidget(save);
 
     QString v;
-    for(auto e : getCompletions())
+    for(auto &e : getCompletions())
         v.append(e+"\n");
     editor->setPlainText(v);
 
