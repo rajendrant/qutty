@@ -2,7 +2,11 @@
 #define QTSTUFF_H
 
 #include <stdio.h>
+#ifdef __linux
+#include "unix/unix.h"
+#else
 #include <windows.h>
+#endif
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -42,11 +46,14 @@ void init_ucs(Config *, unicode_data_t *);
  */
 #define SEL_NL { 13, 10 }
 
+#ifdef __linux
+#include <time.h>
+#include "unix/unix.h"
+#else
 #define DEFAULT_CODEPAGE CP_ACP
+#endif
 
 #define TICKSPERSEC 1000	       /* GetTickCount returns milliseconds */
-
-#define GETTICKCOUNT GetTickCount
 
 #define f_open(filename, mode, isprivate) ( fopen((filename).path, (mode)) )
 
@@ -85,6 +92,10 @@ void notify_remote_exit(void *frontend);
     _snprintf(buf, sizeof(buf), fmt, __VA_ARGS__); \
     qutty_connection_fatal(frontend, buf); \
 } while(0);
+
+#ifdef __linux
+#define _snprintf snprintf
+#endif
 
 #ifdef __cplusplus
 }

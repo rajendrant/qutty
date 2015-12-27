@@ -349,7 +349,7 @@ void GuiFindToolBar::on_findClose()
     mainWnd->findToolBar = NULL;
     this->deleteLater();
 
-    if (t=mainWnd->getCurrentTerminal()) {
+    if ((t=mainWnd->getCurrentTerminal())) {
         t->viewport()->repaint();
         t->setFocus();
     }

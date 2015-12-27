@@ -21,7 +21,7 @@ public:
 
     void startTimerForTick(long nextTick)
     {
-        long ticks = nextTick - GetTickCount();
+        long ticks = nextTick - GETTICKCOUNT();
         if (ticks <= 0) ticks = 1;	       /* just in case */
         if (timerId != -1)
             this->killTimer(timerId);

@@ -33,13 +33,13 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
       toolBarTerminalTop(this),
       dragDropSite(),
       findToolBar(NULL),
-      webPluginWnd(NULL),
       mru_count_last(0),
       tabNavigate(NULL),
       paneNavigate(NULL),
       tabArea(new GuiTabWidget(this)),
-      settingsWindow(NULL),
+      webPluginWnd(NULL),
       compactSettingsWindow(NULL),
+      settingsWindow(NULL),
       newTabToolButton()
 {
     setWindowTitle(APPNAME);
@@ -274,7 +274,7 @@ int initConfigDefaults(Config *cfg)
 {
     memset(cfg, 0, sizeof(Config));
     cfg->protocol = PROT_SSH;
-    cfg->port = 23;
+    cfg->port = 22;
     cfg->width = 80;
     cfg->height = 30;
     //cfg->savelines = 1000;

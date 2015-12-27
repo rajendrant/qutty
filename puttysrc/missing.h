@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-#include "PUTTY.H"
+#include "putty.h"
 
 //void update_specials_menu(void *frontend)
 #define update_specials_menu(a)

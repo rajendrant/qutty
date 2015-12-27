@@ -4,7 +4,7 @@
 #include <QWebView>
 class GuiWebPlugin;
 #include "GuiMainWindow.h"
-#include "GuiWebTerminal.h"
+#include "guiwebterminal.h"
 
 class GuiWebPlugin : public QToolBar
 {

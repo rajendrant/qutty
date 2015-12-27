@@ -13,7 +13,9 @@ extern "C" {
 #include "terminal.h"
 #include "ssh.h"
 }
+#ifndef __linux
 #include "windows.h"
+#endif
 
 using namespace Qt;
 

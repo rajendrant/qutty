@@ -7,8 +7,12 @@
 
 #include "putty.h"
 #include "ssh.h"
+#ifndef __linux
 #include "windows.h"
-//#include "storage.h"
+#include "storage.h"
+#else
+typedef uint32_t DWORD;
+#endif
 
 /*
  * This function is called once, at PuTTY startup, and will do some

@@ -43,12 +43,8 @@ SOURCES +=  \
     GuiCompactSettingsWindow.cpp \
     QtSessionTreeModel.cpp \
     QtCompleterWithAdvancedCompletion.cpp \
-    puttysrc/WINDOWS/winnoise.c \
-    puttysrc/WINDOWS/winstore.c \
-    puttysrc/WINDOWS/windefs.c \
-    puttysrc/WINDOWS/settings.c \
-    puttysrc/PGSSAPI.C \
-    puttysrc/INT64.C \
+    puttysrc/pgssapi.c \
+    puttysrc/int64.c \
     puttysrc/ssh.c \
     puttysrc/proxy.c \
     puttysrc/portfwd.c \
@@ -84,14 +80,16 @@ SOURCES +=  \
     puttysrc/wcwidth.c \
     puttysrc/sshcrc.c \
     puttysrc/wildcard.c \
-    puttysrc/BE_ALL_S.C \
+    puttysrc/be_all_s.c \
     tmux/TmuxBackend.cpp \
     tmux/TmuxGateway.cpp \
     tmux/TmuxWindowPane.cpp \
     tmux/TmuxLayout.cpp \
     serialize/QtMRUSessionList.cpp \
     plugin/GuiWebPlugin.cpp \
-    serialize/QtWebPluginMap.cpp
+    serialize/QtWebPluginMap.cpp \
+    puttysrc/settings.c \
+    puttysrc/unix/gtkwin.c
 
 HEADERS +=  \
     GuiMainWindow.h \
@@ -118,30 +116,29 @@ HEADERS +=  \
     QtSessionTreeItem.h \
     QtComboBoxWithTreeView.h \
     QtCompleterWithAdvancedCompletion.h \
-    puttysrc/WINDOWS/STORAGE.H \
-    puttysrc/TREE234.H \
-    puttysrc/TERMINAL.H \
-    puttysrc/SSHGSSC.H \
-    puttysrc/SSHGSS.H \
-    puttysrc/SSH.H \
-    puttysrc/PUTTYPS.H \
-    puttysrc/PUTTYMEM.H \
-    puttysrc/PUTTY.H \
-    puttysrc/PROXY.H \
-    puttysrc/PGSSAPI.H \
-    puttysrc/NETWORK.H \
+    puttysrc/ssh.h \
+    puttysrc/putty.h \
     puttysrc/missing.h \
-    puttysrc/LDISC.H \
-    puttysrc/INT64.H \
     puttysrc/QtStuff.h \
-    puttysrc/MISC.H \
+    puttysrc/puttyps.h \
+    puttysrc/network.h \
+    puttysrc/misc.h \
+    puttysrc/puttymem.h \
+    puttysrc/terminal.h \
+    puttysrc/tree234.h \
+    puttysrc/sshgss.h \
+    puttysrc/pgssapi.h \
+    puttysrc/sshgssc.h \
+    puttysrc/proxy.h \
+    puttysrc/int64.h \
+    puttysrc/ldisc.h \
     tmux/tmux.h \
     tmux/TmuxGateway.h \
     tmux/TmuxWindowPane.h \
     tmux/TmuxLayout.h \
     serialize/QtMRUSessionList.h \
     plugin/GuiWebPlugin.h \
-    plugin/GuiWebTerminal.h \
+    plugin/guiwebterminal.h \
     serialize/QtWebPluginMap.h
 
 
@@ -160,6 +157,16 @@ RC_FILE = qutty.rc
 RESOURCES += \
     QuTTY.qrc
 
+win32-* {
+SOURCES +=  \
+    puttysrc/windows/winnoise.c \
+    puttysrc/windows/winstore.c \
+    puttysrc/windows/windefs.c \
+    puttysrc/windows/settings.c
+
+HEADERS +=  \
+    puttysrc/windows/STORAGE.H
+}
 
 win32-msvc* {
     LIBS += user32.lib advapi32.lib
@@ -208,4 +215,14 @@ HEADERS +=  \
 
     DEFINES += QUTTY_ENABLE_BREAKPAD_SUPPORT="1"
 }
+}
+
+linux-g++ {
+QMAKE_CXXFLAGS += -std=c++11
+SOURCES +=  \
+    puttysrc/unix/uxnoise.c \
+    puttysrc/unix/uxstore.c
+HEADERS +=  \
+    puttysrc/unix/storage.h \
+    puttysrc/unix/unix.h
 }

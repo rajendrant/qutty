@@ -27,7 +27,7 @@ public:
     bool ready;
 
     TmuxWindowPane(TmuxGateway *gateway, GuiTerminalWindow *termwnd);
-    ~TmuxWindowPane();
+    virtual ~TmuxWindowPane();
 
     TmuxGateway *gateway() { return _gateway; }
     GuiTerminalWindow *termWnd() { return _termWnd; }

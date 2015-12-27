@@ -16,7 +16,7 @@
 
 #else
 
-#include "unix.h"
+#include "QtStuff.h"
 
 #endif
 

@@ -17,7 +17,13 @@ extern "C" {
 
 #define SUCCESS 0
 
+#ifdef __linux
+#define _snprintf snprintf
+#define wsprintf(dst, fmt...) swprintf(dst, sizeof(dst), fmt)
+#define _snwprintf swprintf
+#else
 #define snprintf _snprintf
+#endif
 
 class GuiMainWindow;
 class GuiTerminalWindow;

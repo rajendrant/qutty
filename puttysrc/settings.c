@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "putty.h"
-#include "storage.h"
+#include "unix/storage.h"
 
 int default_protocol = PROT_SSH;
 int default_port = 22;

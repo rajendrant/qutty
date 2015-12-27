@@ -15,7 +15,11 @@
 #include "serialize/QtWebPluginMap.h"
 
 extern "C" {
-#include "WINDOWS\STORAGE.H"
+#ifdef __linux
+#include "unix/storage.h"
+#else
+#include "windows/storage.h"
+#endif
 }
 
 QtConfig::QtConfig()
@@ -290,6 +294,7 @@ bool QtConfig::restoreConfig()
  */
 bool QtConfig::restoreFromPuttyWinRegistry()
 {
+#ifdef _MSC_VER
     bool rc = true;
     struct sesslist savedSess;
     void *sesskey;
@@ -325,6 +330,9 @@ bool QtConfig::restoreFromPuttyWinRegistry()
     get_sesslist(&savedSess, FALSE);    /* free */
 
     return rc;
+#else
+    return true;
+#endif
 }
 
 bool QtConfig::saveConfig()

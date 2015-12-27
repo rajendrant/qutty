@@ -4,6 +4,10 @@
 #include "puttymem.h"
 #include "tree234.h"
 #include "network.h"
+#ifdef __linux
+#include <stdint.h>
+typedef uint32_t uint32;
+#endif
 #include "int64.h"
 #include "misc.h"
 #include "puttyps.h"
