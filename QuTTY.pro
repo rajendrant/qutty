@@ -41,6 +41,7 @@ SOURCES +=  \
     GuiTreeWidget.cpp \
     GuiImportExportFile.cpp \
     GuiCompactSettingsWindow.cpp \
+    guitextfilterwindow.cpp \
     QtSessionTreeModel.cpp \
     QtCompleterWithAdvancedCompletion.cpp \
     puttysrc/pgssapi.c \
@@ -81,15 +82,14 @@ SOURCES +=  \
     puttysrc/sshcrc.c \
     puttysrc/wildcard.c \
     puttysrc/be_all_s.c \
+    puttysrc/settings.c \
     tmux/TmuxBackend.cpp \
     tmux/TmuxGateway.cpp \
     tmux/TmuxWindowPane.cpp \
     tmux/TmuxLayout.cpp \
     serialize/QtMRUSessionList.cpp \
     plugin/GuiWebPlugin.cpp \
-    serialize/QtWebPluginMap.cpp \
-    puttysrc/settings.c \
-    puttysrc/unix/gtkwin.c
+    serialize/QtWebPluginMap.cpp
 
 HEADERS +=  \
     GuiMainWindow.h \
@@ -97,6 +97,7 @@ HEADERS +=  \
     GuiSettingsWindow.h \
     GuiPreferencesWindow.h \
     GuiTreeWidget.h \
+    guitextfilterwindow.h \
     GuiImportExportFile.h \
     QtCommon.h \
     QtLogDbg.h \
@@ -220,6 +221,7 @@ HEADERS +=  \
 linux-g++ {
 QMAKE_CXXFLAGS += -std=c++11
 SOURCES +=  \
+    puttysrc/unix/gtkwin.c \
     puttysrc/unix/uxnoise.c \
     puttysrc/unix/uxstore.c
 HEADERS +=  \

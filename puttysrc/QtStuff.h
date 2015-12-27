@@ -41,11 +41,6 @@ typedef struct unicode_data unicode_data_t;
 
 void init_ucs(Config *, unicode_data_t *);
 
-/*
- * On Windows, copying to the clipboard terminates lines with CRLF.
- */
-#define SEL_NL { 13, 10 }
-
 #ifdef __linux
 #include <time.h>
 #include "unix/unix.h"

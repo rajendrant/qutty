@@ -26,6 +26,7 @@ class GuiCompactSettingsWindow;
 class GuiSettingsWindow;
 class GuiFindToolBar;
 class GuiTabWidget;
+class GuiTextFilterWindow;
 
 class GuiToolButton : public QToolButton
 {
@@ -59,8 +60,11 @@ public:
 
     GuiTabWidget *tabArea;
 
-    // webpluging window
+    // webplugin window
     GuiWebPlugin *webPluginWnd;
+
+    // text filter window.
+    GuiTextFilterWindow *textFilterWnd;
 
 private:
     GuiCompactSettingsWindow *compactSettingsWindow;

@@ -2,6 +2,7 @@
 #include "GuiTerminalWindow.h"
 #include <QWebFrame>
 #include "serialize/QtWebPluginMap.h"
+#include "guitextfilterwindow.h"
 
 GuiWebPlugin::GuiWebPlugin(GuiMainWindow *p)
     : QToolBar(p),
@@ -71,6 +72,7 @@ void GuiWebPlugin::savePersistentList(QString key, QVariantList list)
 }
 
 
+#if 0
 void GuiMainWindow::contextMenuAutoComplete()
 {
 #ifndef NDEBUG
@@ -89,4 +91,16 @@ void GuiMainWindow::contextMenuAutoComplete()
         webPluginWnd = NULL;
     }
 }
+#endif
 
+void GuiMainWindow::contextMenuAutoComplete()
+{
+    if (!this->getCurrentTerminal())
+        return;
+    if (!textFilterWnd)
+        textFilterWnd = new GuiTextFilterWindow(this, true, "PREDEFINED_LIST");
+    textFilterWnd->move((this->width()-textFilterWnd->width())/2,
+               (this->height()-textFilterWnd->height())/2);
+    textFilterWnd->show();
+    textFilterWnd->init();
+}

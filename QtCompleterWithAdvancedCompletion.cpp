@@ -20,7 +20,8 @@ QtCompleterWithAdvancedCompletion::QtCompleterWithAdvancedCompletion(QLineEdit *
     model(new QStringListModel),
     maxVisibleItems(10),
     noItemsShown(0),
-    filterMode(QtCompleterWithAdvancedCompletion::ContainsWord)
+    filterMode(QtCompleterWithAdvancedCompletion::ContainsWord),
+    always_show_popup(false)
 {
     init();
 
@@ -37,7 +38,8 @@ QtCompleterWithAdvancedCompletion::QtCompleterWithAdvancedCompletion(QComboBox *
     model(new QStringListModel),
     maxVisibleItems(10),
     noItemsShown(0),
-    filterMode(QtCompleterWithAdvancedCompletion::ContainsWord)
+    filterMode(QtCompleterWithAdvancedCompletion::ContainsWord),
+    always_show_popup(false)
 {
     init();
 
@@ -70,6 +72,8 @@ void QtCompleterWithAdvancedCompletion::init()
     popuplist->installEventFilter(this);
 
     popuplist->setModel(model);
+    if (always_show_popup)
+        popuplist->show();
 }
 
 void QtCompleterWithAdvancedCompletion::setModel(QStringList &completions)
@@ -78,6 +82,11 @@ void QtCompleterWithAdvancedCompletion::setModel(QStringList &completions)
     QComboBox *c = qobject_cast<QComboBox*>(w);
     if (c)
         c->addItems(completions);
+    int itemsToShow = completions.size();
+    QPoint pos = w->mapToGlobal(QPoint(0, w->height()));
+    popuplist->setGeometry(pos.x(), pos.y(), w->width(), itemsToShow*w->height());
+    popuplist->show();
+    noItemsShown = itemsToShow;
 }
 
 bool QtCompleterWithAdvancedCompletion::eventFilter(QObject *o, QEvent *e)
@@ -162,6 +171,7 @@ bool QtCompleterWithAdvancedCompletion::eventFilter(QObject *o, QEvent *e)
         case Qt::Key_Backtab:
         case Qt::Key_Escape:
             popuplist->hide();
+            emit deactivated();
             break;
         }
         return true;
@@ -189,11 +199,11 @@ void QtCompleterWithAdvancedCompletion::slot_completerComplete(QModelIndex index
 
 void QtCompleterWithAdvancedCompletion::completionSearchString(QString str)
 {
-    if (!w || str.isEmpty()) {
+    if (!always_show_popup && (!w || str.isEmpty())) {
         popuplist->hide();
         return;
     }
-    if (!is_keypress) {
+    if (!always_show_popup && !is_keypress) {
         is_keypress = true;
         popuplist->hide();
         return;
@@ -224,12 +234,14 @@ void QtCompleterWithAdvancedCompletion::completionSearchString(QString str)
     }
     model->setStringList(tmp);
     int itemsToShow = qMin(tmp.length(), maxVisibleItems);
-    if (popuplist->isHidden() || noItemsShown != itemsToShow) {
+    if (always_show_popup || popuplist->isHidden() || noItemsShown != itemsToShow) {
         QPoint pos = w->mapToGlobal(QPoint(0, w->height()));
         popuplist->setGeometry(pos.x(), pos.y(), w->width(), itemsToShow*w->height());
         popuplist->show();
         noItemsShown = itemsToShow;
     }
+    if (always_show_popup && !popuplist->currentIndex().isValid())
+        popuplist->setCurrentIndex(popuplist->model()->index(0, 0));
 }
 
 void QtCompleterWithAdvancedCompletion::setText(QString str)

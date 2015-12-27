@@ -27,6 +27,7 @@ private:
     int noItemsShown;
     FilterMode filterMode;
     bool is_keypress;
+    bool always_show_popup;
 
     void init();
 
@@ -41,11 +42,14 @@ public:
 
     QListView *popup() const { return popuplist; }
 
+    void set_always_show_popup(bool b) { always_show_popup=b; }
+
 protected:
     bool eventFilter(QObject *o, QEvent *e);
 
 signals:
     void activated(const QString & text);
+    void deactivated();
 
 private slots:
     void slot_completerComplete(QModelIndex index);
