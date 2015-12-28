@@ -133,6 +133,16 @@ void GuiMainWindow::closeTerminal(GuiTerminalWindow *termWnd)
     on_tabLayoutChanged();
 }
 
+void GuiMainWindow::hideTerminal(GuiTerminalWindow *termWnd)
+{
+    assert(termWnd);
+    int ind = tabArea->indexOf(termWnd);
+    if (ind != -1) {
+        tabRemove(ind);
+        on_tabLayoutChanged();
+    }
+}
+
 void GuiMainWindow::closeEvent ( QCloseEvent * event )
 {
     event->ignore();

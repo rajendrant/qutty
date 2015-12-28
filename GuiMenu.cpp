@@ -341,7 +341,10 @@ void GuiMainWindow::contextMenuDuplicateSessionTriggered()
     if ((term || (term = this->getCurrentTerminal())) &&
         terminalList.indexOf(term)==-1)
         return;
-    this->createNewTab(&term->cfg);
+    if (!term->tmuxGateway())
+        this->createNewTab(&term->cfg);
+    else
+        term->tmuxGateway()->sendCommandNewWindowInSession();
 }
 
 void GuiMainWindow::contextMenuOpenDuplicateHSplit()

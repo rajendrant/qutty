@@ -36,11 +36,13 @@ int TmuxWindowPane::performCallback(tmux_cb_index_t index, string &response)
 
 int TmuxWindowPane::resp_hdlr_dump_term_state(string &response)
 {
-    string key, tstr;
+    string keyval, key, val, tstr;
     int n;
-    istringstream iresp(response);
+    istringstream respstream(response);
 
-    while (std::getline(iresp, key, '=')) {
+    while (std::getline(respstream, keyval, '\t')) {
+        istringstream iresp(keyval);
+        std::getline(iresp, key, '=');
         if (!key.compare("pane_id")) {
             char ch;
             iresp>>ch;
@@ -111,7 +113,6 @@ int TmuxWindowPane::resp_hdlr_dump_term_state(string &response)
             qCritical()<<"Invalid key "<<key.c_str();
             goto cu0;
         }
-        iresp.ignore(128, '\t');
     }
     ready = true;
     return 0;

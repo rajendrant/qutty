@@ -101,6 +101,8 @@ public:
                     const wchar_t cmd_str[]);
     int sendCommand(TmuxCmdResp cmd_list[], wstring cmd_str[], int len=1);
 
+    void sendCommandNewWindowInSession();
+
     void initiateDetach();
     void detach();
 };

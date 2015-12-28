@@ -51,6 +51,7 @@ size_t TmuxGateway::fromBackend(int is_stderr, const char *data, size_t len)
     size_t resp_len = 0;
     size_t rem_len;
 
+    //qDebug() << "fromBackend " << len << " data " << QString::fromUtf8(data, len);
     term_data(termGatewayWnd->term, is_stderr, data, (int)len);
 
     for (i=0; i<(size_t)len; i++) {
@@ -125,7 +126,7 @@ int TmuxGateway::parseCommand(const char *command, size_t len)
         if (_currentCommand.receiver) {
             qFatal("TMUX %%begin command without end");
         } else if (_commandQueue.empty()) {
-            qFatal("TMUX %%begin command without command queue");
+            //qFatal("TMUX %%begin command without command queue");
         } else {
             _currentCommand = _commandQueue.front();
             _commandQueue.pop();
@@ -133,7 +134,7 @@ int TmuxGateway::parseCommand(const char *command, size_t len)
         }
         return 0;
     }
-    qDebug() << __FUNCTION__ << command;
+    //qDebug() << __FUNCTION__ << QString::fromUtf8(command, len);
 
     if (strStartsWith("%output ", command, len)) {
         cmd_hdlr_output(command, len);
@@ -290,9 +291,10 @@ int TmuxGateway::cmd_hdlr_window_add(const char *command, size_t len)
         goto cu0;
     }
     wchar_t cmd_display_pane[256];
-    wsprintf(cmd_display_pane, L"display -p -F %s -t @%d\n",
+    wsprintf(cmd_display_pane, L"display -p -F "
              L"\"#{session_name}\t#{window_id}\t#{window_name}\t"
-             L"#{window_width}\t#{window_height}\t#{window_layout}\t#{?window_active,1,0}\"",
+             L"#{window_width}\t#{window_height}\t#{window_layout}\t#{?window_active,1,0}\""
+             L" -t @%d\n",
              paneid);
     sendCommand(this, CB_OPEN_LISTED_WINDOWS, cmd_display_pane);
     return 0;
@@ -356,7 +358,8 @@ int TmuxGateway::openWindowsInitial()
                 L"list-sessions -F \"#{session_name}\"\n");
     sendCommand(this, CB_LIST_WINDOWS,
                 L"list-windows -F \"#{session_name}\t#{window_id}\t#{window_name}\t"
-                L"#{window_width}\t#{window_height}\t#{window_layout}\t#{?window_active,1,0}\"\n");
+                L"#{window_width}\t#{window_height}\t#{window_layout}\t#{window_flags}\t"
+                L"#{?window_active,1,0}\"\n");
     return 0;
 }
 
@@ -369,7 +372,7 @@ int TmuxGateway::sendCommand(TmuxCmdRespReceiver *recv, tmux_cb_index_t cb,
 int TmuxGateway::sendCommand(TmuxCmdRespReceiver *recv, tmux_cb_index_t cb,
                              const wchar_t cmd_str[], size_t cmd_str_len)
 {
-    qDebug()<<__FUNCTION__<<QString::fromWCharArray(cmd_str, (int)cmd_str_len);
+    //qDebug()<<__FUNCTION__<<QString::fromWCharArray(cmd_str, (int)cmd_str_len);
     luni_send(termGatewayWnd->ldisc, (wchar_t*)cmd_str, (int)cmd_str_len, 0);
     _commandQueue.push(TmuxCmdResp(recv, cb));
     return 0;
@@ -379,7 +382,7 @@ int TmuxGateway::resp_hdlr_list_windows(string &response)
 {
     string respline;
     char ch;
-    string sessname, wndname, layout;
+    string sessname, wndname, layout, wndflags;
     int wndid, width, height, wndactive;
     istringstream iresp(response);
     while (std::getline(iresp, respline)) {
@@ -393,6 +396,7 @@ int TmuxGateway::resp_hdlr_list_windows(string &response)
         irec>>width;
         irec>>height;
         irec>>layout;
+        irec>>wndflags;
         irec>>wndactive;
         createNewWindow(wndid, wndname.c_str(), width, height, layout);
     }
@@ -453,21 +457,21 @@ int TmuxGateway::createNewWindowPane(int id, const char *name, TmuxLayout &layou
             termGatewayWnd->getMainWindow()->setupLayout(newtermwnd, GuiBase::TYPE_LEAF, -1);
             tmuxPane->name = name;
             newtermwnd->setSessionTitle(name);
-            wchar_t modes[2000], cmd_state[2000], cmd_hist[256], cmd_hist_alt[256];
-            const wchar_t *modesformat[] = {L"pane_id", L"alternate_on", L"alternate_saved_x", L"alternate_saved_y",
-                                     L"saved_cursor_x", L"saved_cursor_y", L"cursor_x", L"cursor_y",
-                                     L"scroll_region_upper", L"scroll_region_lower", L"pane_tabs", L"cursor_flag",
-                                     L"insert_flag", L"keypad_cursor_flag", L"keypad_flag", L"wrap_flag",
-                                     L"mouse_standard_flag", L"mouse_button_flag", L"mouse_any_flag",
-                                     L"mouse_utf8_flag"};
-            for(int i=0, l=0; i< sizeof(modesformat)/sizeof(modesformat[0]); i++)
-                l += wsprintf(modes+l, L"%s=#{%s}\t", modesformat[i], modesformat[i]);
-            modes[wcslen(modes)-1] = '\0';
-            wsprintf(cmd_state, L"list-panes -t %%%d -F \"%s\"\n", layout.paneid, modes);
+            wchar_t cmd_state[2000], cmd_hist[256], cmd_hist_alt[256];
             wsprintf(cmd_hist, L"capture-pane -peqJ -t %%%d -S -%d\n",
                      layout.paneid, termGatewayWnd->cfg.savelines);
             wsprintf(cmd_hist_alt, L"capture-pane -peqJ -a -t %%%d -S -%d\n",
                      layout.paneid, termGatewayWnd->cfg.savelines);
+            wsprintf(cmd_state, L"list-panes -t %%%d -F \""
+                                L"pane_id=#{pane_id}\talternate_on=#{alternate_on}\talternate_saved_x=#{alternate_saved_x}\t"
+                                L"alternate_saved_y=#{alternate_saved_y}\tsaved_cursor_x=#{saved_cursor_x}\t"
+                                L"saved_cursor_y=#{saved_cursor_y}\tcursor_x=#{cursor_x}\tcursor_y=#{cursor_y}\t"
+                                L"scroll_region_upper=#{scroll_region_upper}\tscroll_region_lower=#{scroll_region_lower}\t"
+                                L"pane_tabs=#{pane_tabs}\tcursor_flag=#{cursor_flag}\tinsert_flag=#{insert_flag}\t"
+                                L"keypad_cursor_flag=#{keypad_cursor_flag}\tkeypad_flag=#{keypad_flag}\twrap_flag=#{wrap_flag}\t"
+                                L"mouse_standard_flag=#{mouse_standard_flag}\tmouse_button_flag=#{mouse_button_flag}\t"
+                                L"mouse_any_flag=#{mouse_any_flag}\tmouse_utf8_flag=#{mouse_utf8_flag}"
+                                L"\"\n", layout.paneid);
             sendCommand(tmuxPane, CB_DUMP_HISTORY, cmd_hist);
             sendCommand(tmuxPane, CB_DUMP_HISTORY_ALT, cmd_hist_alt);
             sendCommand(tmuxPane, CB_DUMP_TERM_STATE, cmd_state);
@@ -510,6 +514,11 @@ void TmuxGateway::closeAllPanes()
         delete it->second;
     }
     _mapPanes.clear();
+}
+
+void TmuxGateway::sendCommandNewWindowInSession()
+{
+    sendCommand(this, CB_NULL, L"new-window -PF '#{window_id}'\n");
 }
 
 void TmuxGateway::closePane(int paneid)

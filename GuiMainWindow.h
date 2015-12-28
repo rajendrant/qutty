@@ -127,6 +127,7 @@ public slots:
     void on_changeSettingsTab(GuiTerminalWindow *termWnd);
     void on_changeSettingsTabComplete(Config cfg, GuiTerminalWindow *termWnd);
     void closeTerminal(GuiTerminalWindow *termWnd);
+    void hideTerminal(GuiTerminalWindow *termWnd);
     void tabCloseRequested (int index);
     void currentChanged(int index);
     void on_tabLayoutChanged();

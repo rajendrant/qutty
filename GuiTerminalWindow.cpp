@@ -904,6 +904,7 @@ int GuiTerminalWindow::initTmuxControllerMode(char * /*tmux_version*/)
     _tmuxMode = TMUX_MODE_GATEWAY;
     _tmuxGateway = new TmuxGateway(this);
 
+    mainWindow->hideTerminal(this);
     return 0;
 }
 
