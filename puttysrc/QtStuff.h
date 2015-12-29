@@ -50,7 +50,7 @@ void init_ucs(Config *, unicode_data_t *);
 
 #define TICKSPERSEC 1000	       /* GetTickCount returns milliseconds */
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined __MINGW32__
 #define GETTICKCOUNT GetTickCount
 
 /*
