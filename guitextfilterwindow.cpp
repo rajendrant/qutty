@@ -3,6 +3,7 @@
 #include <QToolButton>
 
 #include "serialize/QtWebPluginMap.h"
+#include "GuiTerminalWindow.h"
 
 GuiTextFilterWindow::GuiTextFilterWindow(GuiMainWindow *p, bool isEditable, QString lbl)
     : QToolBar(p),
@@ -70,9 +71,10 @@ void GuiTextFilterWindow::on_text_completion_activated(QString str)
 {
     GuiTerminalWindow *t=mainWnd->getCurrentTerminal();
 
-    wchar_t buf[str.length()+1];
+	wchar_t *buf = new wchar_t[str.length()+1];
     str.toWCharArray(buf);
     luni_send(t->term->ldisc, buf, str.length(), 0);
+	delete buf;
 
     on_deactivated();
 }

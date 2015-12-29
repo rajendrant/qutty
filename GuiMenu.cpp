@@ -19,6 +19,8 @@
 #include "GuiImportExportFile.h"
 #include "QtConfig.h"
 #include "GuiTabBar.h"
+#include "serialize/QtWebPluginMap.h"
+#include "guitextfilterwindow.h"
 
 qutty_menu_actions_t qutty_menu_actions[MENU_STATIC_ACTION_MAX] = {
     { "Restart Session",        "",              SLOT( contextMenuRestartSessionTriggered() ),
@@ -597,4 +599,28 @@ void GuiMainWindow::contextMenuExportToFile()
 {
     GuiImportExportFile *importExportFile = new GuiImportExportFile(this, NULL);
     importExportFile->show();
+}
+
+void GuiMainWindow::contextMenuAutoComplete()
+{
+    if (!this->getCurrentTerminal())
+        return;
+    if (!textFilterWnd)
+        textFilterWnd = new GuiTextFilterWindow(this, true, "PREDEFINED_LIST");
+    textFilterWnd->move((this->width()-textFilterWnd->width())/2,
+               (this->height()-textFilterWnd->height())/2);
+    textFilterWnd->show();
+    textFilterWnd->init();
+}
+
+void GuiMainWindow::contextMenuPasteHistory()
+{
+    if (!this->getCurrentTerminal())
+        return;
+    if (!textFilterWnd)
+        textFilterWnd = new GuiTextFilterWindow(this, true, "PASTE_HISTORY");
+    textFilterWnd->move((this->width()-textFilterWnd->width())/2,
+               (this->height()-textFilterWnd->height())/2);
+    textFilterWnd->show();
+    textFilterWnd->init();
 }

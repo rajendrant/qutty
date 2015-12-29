@@ -50,6 +50,15 @@ void init_ucs(Config *, unicode_data_t *);
 
 #define TICKSPERSEC 1000	       /* GetTickCount returns milliseconds */
 
+#ifdef _MSC_VER
+#define GETTICKCOUNT GetTickCount
+
+/*
+ * On Windows, copying to the clipboard terminates lines with CRLF.
+ */
+#define SEL_NL { 13, 10 }
+#endif
+
 #define f_open(filename, mode, isprivate) ( fopen((filename).path, (mode)) )
 
 /*

@@ -37,7 +37,6 @@ GuiMainWindow::GuiMainWindow(QWidget *parent)
       tabNavigate(NULL),
       paneNavigate(NULL),
       tabArea(new GuiTabWidget(this)),
-      webPluginWnd(NULL),
       textFilterWnd(NULL),
       compactSettingsWindow(NULL),
       settingsWindow(NULL),

@@ -20,7 +20,6 @@
 #include "GuiMenu.h"
 #include "GuiDrag.h"
 #include "GuiNavigation.h"
-#include "plugin/GuiWebPlugin.h"
 
 class GuiCompactSettingsWindow;
 class GuiSettingsWindow;
@@ -59,9 +58,6 @@ public:
     GuiPaneNavigation *paneNavigate;
 
     GuiTabWidget *tabArea;
-
-    // webplugin window
-    GuiWebPlugin *webPluginWnd;
 
     // text filter window.
     GuiTextFilterWindow *textFilterWnd;

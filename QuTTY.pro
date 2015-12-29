@@ -10,7 +10,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network widgets webkitwidgets
+QT       += core gui network widgets
 
 TARGET = QuTTY
 TEMPLATE = app
@@ -88,7 +88,6 @@ SOURCES +=  \
     tmux/TmuxWindowPane.cpp \
     tmux/TmuxLayout.cpp \
     serialize/QtMRUSessionList.cpp \
-    plugin/GuiWebPlugin.cpp \
     serialize/QtWebPluginMap.cpp
 
 HEADERS +=  \
@@ -138,8 +137,6 @@ HEADERS +=  \
     tmux/TmuxWindowPane.h \
     tmux/TmuxLayout.h \
     serialize/QtMRUSessionList.h \
-    plugin/GuiWebPlugin.h \
-    plugin/guiwebterminal.h \
     serialize/QtWebPluginMap.h
 
 
@@ -162,8 +159,7 @@ win32-* {
 SOURCES +=  \
     puttysrc/windows/winnoise.c \
     puttysrc/windows/winstore.c \
-    puttysrc/windows/windefs.c \
-    puttysrc/windows/settings.c
+    puttysrc/windows/windefs.c
 
 HEADERS +=  \
     puttysrc/windows/STORAGE.H
