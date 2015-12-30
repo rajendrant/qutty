@@ -132,6 +132,7 @@ HEADERS +=  \
     puttysrc/proxy.h \
     puttysrc/int64.h \
     puttysrc/ldisc.h \
+    puttysrc/storage.h \
     tmux/tmux.h \
     tmux/TmuxGateway.h \
     tmux/TmuxWindowPane.h \
@@ -160,15 +161,13 @@ SOURCES +=  \
     puttysrc/windows/winnoise.c \
     puttysrc/windows/winstore.c \
     puttysrc/windows/windefs.c
-
-HEADERS +=  \
-    puttysrc/windows/STORAGE.H
 }
 
 win32-msvc* {
-    LIBS += user32.lib advapi32.lib
-    QMAKE_CFLAGS    += -D_CRT_SECURE_NO_WARNINGS
-    QMAKE_CXXFLAGS  += -D_CRT_SECURE_NO_WARNINGS
+LIBS += user32.lib advapi32.lib
+QMAKE_CFLAGS    += -D_CRT_SECURE_NO_WARNINGS
+QMAKE_CXXFLAGS  += -D_CRT_SECURE_NO_WARNINGS
+CONFIG += embedded_manifest_exe
 }
 
 win32-g++ {
@@ -221,6 +220,5 @@ SOURCES +=  \
     puttysrc/unix/uxnoise.c \
     puttysrc/unix/uxstore.c
 HEADERS +=  \
-    puttysrc/unix/storage.h \
     puttysrc/unix/unix.h
 }

@@ -110,7 +110,7 @@ int verify_host_key(const char *hostname, int port,
  * Functions to access PuTTY's random number seed file.
  */
 
-//typedef void (*noise_consumer_t) (void *data, int len);
+typedef void (*noise_consumer_t) (void *data, int len);
 
 /*
  * Read PuTTY's random seed file and pass its contents to a noise
