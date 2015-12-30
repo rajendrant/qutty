@@ -15,11 +15,7 @@
 #include "serialize/QtWebPluginMap.h"
 
 extern "C" {
-#ifdef __linux
-#include "unix/storage.h"
-#else
-#include "windows/storage.h"
-#endif
+#include "storage.h"
 }
 
 QtConfig::QtConfig()
