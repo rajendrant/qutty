@@ -128,9 +128,11 @@ typedef void (*noise_consumer_t) (void *data, int len);
  */
 //void cleanup_all(void);
 
+#ifdef _MSC_VER
 void *enum_sshhostkey_start(void);
 int enum_sshhostkey_next(void *handle, unsigned char *hostkey, DWORD hostkeylen,
                          unsigned char *hostkey_val, DWORD hostkey_val_len);
 void enum_sshhostkey_finish(void *handle);
+#endif
 
 #endif
