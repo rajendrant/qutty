@@ -497,6 +497,7 @@ int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiSplitter *splitter
         terminalList.append(newTerm);
         on_tabLayoutChanged();
     }
+    return 0;
 }
 
 int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType split, int tabind)
