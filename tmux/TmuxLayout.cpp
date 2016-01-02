@@ -8,8 +8,8 @@ bool TmuxLayout::parseLayoutChildren(istringstream &iresp)
         char ch = iresp.get();
         if (ch != ']' && ch != '}' && ch != ',')
             goto cu0;
-        child.push_back(tchild);
         tchild.parent = this;
+        child.push_back(tchild);
         if (ch == ']' || ch == '}')
             break;
     }
@@ -37,7 +37,7 @@ bool TmuxLayout::parseLayout(istringstream &iresp)
     //cout<<this<<" Layout "<<width<<"  "<<height<<"  "<<x<<"  "<<y<<endl;
     if (iresp.peek()=='{' || iresp.peek()=='[') {
         char openChar = iresp.get();
-        layoutType = (openChar == '{') ?
+        layoutType = (openChar == '[') ?
                     TmuxLayout::TMUX_LAYOUT_TYPE_VERTICAL :
                     TmuxLayout::TMUX_LAYOUT_TYPE_HORIZONTAL;
         if (!parseLayoutChildren(iresp))

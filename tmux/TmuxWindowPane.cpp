@@ -36,83 +36,91 @@ int TmuxWindowPane::performCallback(tmux_cb_index_t index, string &response)
 
 int TmuxWindowPane::resp_hdlr_dump_term_state(string &response)
 {
-    string keyval, key, val, tstr;
+    string per_pane, keyval, key, val, tstr;
     int n;
     istringstream respstream(response);
+    bool found = false;
 
-    while (std::getline(respstream, keyval, '\t')) {
-        istringstream iresp(keyval);
-        std::getline(iresp, key, '=');
-        if (!key.compare("pane_id")) {
-            char ch;
-            iresp>>ch;
-            if(ch != '%') {
-                qCritical() << "Invalid value for key paneid";
+    while (std::getline(respstream, per_pane, '\n')) {
+        istringstream resp_per_pane(per_pane);
+        while (std::getline(resp_per_pane, keyval, '\t')) {
+            istringstream iresp(keyval);
+            std::getline(iresp, key, '=');
+            if (!key.compare("pane_id")) {
+                char ch;
+                iresp>>ch;
+                if(ch != '%') {
+                    qCritical() << "Invalid value for key paneid";
+                    goto cu0;
+                }
+                iresp>>n;
+                if(n == id)
+                    found = true;
+                else
+                    break;
+            } else if (!key.compare("alternate_on")) {
+                iresp>>n;
+                _termWnd->term->alt_which = n;
+            } else if (!key.compare("alternate_saved_x")) {
+                iresp>>n;
+                _termWnd->term->alt_x = n;
+                _termWnd->term->alt_savecurs.x = n;
+            } else if (!key.compare("alternate_saved_y")) {
+                iresp>>n;
+                _termWnd->term->alt_y = n;
+                _termWnd->term->alt_savecurs.y = n;
+            } else if (!key.compare("saved_cursor_x")) {
+                iresp>>n;
+                _termWnd->term->savecurs.x = n;
+            } else if (!key.compare("saved_cursor_y")) {
+                iresp>>n;
+                _termWnd->term->savecurs.y = n;
+            } else if (!key.compare("cursor_x")) {
+                iresp>>n;
+                _termWnd->term->curs.x = n;
+            } else if (!key.compare("cursor_y")) {
+                iresp>>n;
+                _termWnd->term->curs.y = n;
+            } else if (!key.compare("scroll_region_upper")) {
+                iresp>>n;
+                _termWnd->term->marg_t = n;
+            } else if (!key.compare("scroll_region_lower")) {
+                iresp>>n;
+                _termWnd->term->marg_b = n;
+            } else if (!key.compare("pane_tabs")) {
+                string tabstops;
+                iresp>>tabstops;
+            } else if (!key.compare("cursor_flag")) {
+                iresp>>n;
+            } else if (!key.compare("insert_flag")) {
+                iresp>>n;
+                _termWnd->term->insert = n;
+            } else if (!key.compare("keypad_cursor_flag")) {
+                iresp>>n;
+                _termWnd->term->app_cursor_keys = n;
+            } else if (!key.compare("keypad_flag")) {
+                iresp>>n;
+                _termWnd->term->app_keypad_keys = n;
+            } else if (!key.compare("wrap_flag")) {
+                iresp>>n;
+                _termWnd->term->wrap = n;
+            } else if (!key.compare("mouse_standard_flag")) {
+                iresp>>n;
+            } else if (!key.compare("mouse_button_flag")) {
+                iresp>>n;
+            } else if (!key.compare("mouse_any_flag")) {
+                iresp>>n;
+            } else if (!key.compare("mouse_utf8_flag")) {
+                iresp>>n;
+            } else {
+                qCritical()<<"Invalid key "<<key.c_str();
                 goto cu0;
             }
-            iresp>>n;
-            if(n != id) {
-                qCritical() << "Invalid paneid" << id << n;
-                goto cu0;
-            }
-        } else if (!key.compare("alternate_on")) {
-            iresp>>n;
-            _termWnd->term->alt_which = n;
-        } else if (!key.compare("alternate_saved_x")) {
-            iresp>>n;
-            _termWnd->term->alt_x = n;
-            _termWnd->term->alt_savecurs.x = n;
-        } else if (!key.compare("alternate_saved_y")) {
-            iresp>>n;
-            _termWnd->term->alt_y = n;
-            _termWnd->term->alt_savecurs.y = n;
-        } else if (!key.compare("saved_cursor_x")) {
-            iresp>>n;
-            _termWnd->term->savecurs.x = n;
-        } else if (!key.compare("saved_cursor_y")) {
-            iresp>>n;
-            _termWnd->term->savecurs.y = n;
-        } else if (!key.compare("cursor_x")) {
-            iresp>>n;
-            _termWnd->term->curs.x = n;
-        } else if (!key.compare("cursor_y")) {
-            iresp>>n;
-            _termWnd->term->curs.y = n;
-        } else if (!key.compare("scroll_region_upper")) {
-            iresp>>n;
-            _termWnd->term->marg_t = n;
-        } else if (!key.compare("scroll_region_lower")) {
-            iresp>>n;
-            _termWnd->term->marg_b = n;
-        } else if (!key.compare("pane_tabs")) {
-            string tabstops;
-            iresp>>tabstops;
-        } else if (!key.compare("cursor_flag")) {
-            iresp>>n;
-        } else if (!key.compare("insert_flag")) {
-            iresp>>n;
-            _termWnd->term->insert = n;
-        } else if (!key.compare("keypad_cursor_flag")) {
-            iresp>>n;
-            _termWnd->term->app_cursor_keys = n;
-        } else if (!key.compare("keypad_flag")) {
-            iresp>>n;
-            _termWnd->term->app_keypad_keys = n;
-        } else if (!key.compare("wrap_flag")) {
-            iresp>>n;
-            _termWnd->term->wrap = n;
-        } else if (!key.compare("mouse_standard_flag")) {
-            iresp>>n;
-        } else if (!key.compare("mouse_button_flag")) {
-            iresp>>n;
-        } else if (!key.compare("mouse_any_flag")) {
-            iresp>>n;
-        } else if (!key.compare("mouse_utf8_flag")) {
-            iresp>>n;
-        } else {
-            qCritical()<<"Invalid key "<<key.c_str();
-            goto cu0;
         }
+    }
+    if (!found) {
+        qCritical() << "Cannot find term_state for pane_id" << id;
+        goto cu0;
     }
     ready = true;
     return 0;

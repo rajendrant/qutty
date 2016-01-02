@@ -1,7 +1,9 @@
 #ifndef TMUXGATEWAY_H
 #define TMUXGATEWAY_H
 
+class GuiSplitter;
 class TmuxGateway;
+
 #include "GuiTerminalWindow.h"
 extern "C" {
 #include "misc.h"
@@ -93,8 +95,8 @@ public:
     size_t fromBackend(int is_stderr, const char *data, size_t len);
     int parseCommand(const char *command, size_t len);
     int openWindowsInitial();
-    int createNewWindow(int id, const char *name, int width, int height, string layout);
-    int createNewWindowPane(int id, const char *name, TmuxLayout &layout);
+    int createNewWindow(int id, const char *name, int width, int height, const string &layout);
+    int createNewWindowPane(int id, const char *name, const TmuxLayout &layout, GuiSplitter *splitter);
     int sendCommand(TmuxCmdRespReceiver *recv, tmux_cb_index_t cb,
                     const wchar_t cmd_str[], size_t cmd_str_len);
     int sendCommand(TmuxCmdRespReceiver *recv, tmux_cb_index_t cb,

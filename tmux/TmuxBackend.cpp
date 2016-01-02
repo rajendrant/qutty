@@ -50,10 +50,11 @@ extern "C" const char *tmux_client_init(void *frontend_handle, void **backend_ha
                    int /*nodelay*/, int /*keepalive*/)
 {
     static const struct plug_function_table fn_table = {
-        tmux_log,
-        tmux_closing,
-        tmux_receive,
-        tmux_sent
+        .log = tmux_log,
+        .closing = tmux_closing,
+        .receive = tmux_receive,
+        .sent = tmux_sent,
+        .accepting = NULL
     };
 
     GuiTerminalWindow *termWnd = static_cast<GuiTerminalWindow*>(frontend_handle);

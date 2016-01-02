@@ -5,6 +5,7 @@
 #include "tmux/TmuxGateway.h"
 #include "GuiMainWindow.h"
 #include "GuiTabWidget.h"
+#include "GuiSplitter.h"
 
 using namespace std;
 
@@ -28,7 +29,7 @@ TmuxGateway::~TmuxGateway()
 
 int TmuxGateway::performCallback(tmux_cb_index_t index, string &response)
 {
-    qDebug("%s %s %s", __FUNCTION__, get_tmux_cb_index_str(index), response.c_str());
+    qDebug() << __FUNCTION__ << get_tmux_cb_index_str(index) << QString::fromStdString(response);
     switch(index) {
     case CB_NULL:
         return 0;
@@ -51,7 +52,7 @@ size_t TmuxGateway::fromBackend(int is_stderr, const char *data, size_t len)
     size_t resp_len = 0;
     size_t rem_len;
 
-    //qDebug() << "fromBackend " << len << " data " << QString::fromUtf8(data, len);
+    qDebug() << "fromBackend " << len << " data " << QString::fromUtf8(data, len);
     term_data(termGatewayWnd->term, is_stderr, data, (int)len);
 
     for (i=0; i<(size_t)len; i++) {
@@ -134,7 +135,7 @@ int TmuxGateway::parseCommand(const char *command, size_t len)
         }
         return 0;
     }
-    //qDebug() << __FUNCTION__ << QString::fromUtf8(command, len);
+    qDebug() << __FUNCTION__ << QString::fromUtf8(command, len);
 
     if (strStartsWith("%output ", command, len)) {
         cmd_hdlr_output(command, len);
@@ -372,7 +373,7 @@ int TmuxGateway::sendCommand(TmuxCmdRespReceiver *recv, tmux_cb_index_t cb,
 int TmuxGateway::sendCommand(TmuxCmdRespReceiver *recv, tmux_cb_index_t cb,
                              const wchar_t cmd_str[], size_t cmd_str_len)
 {
-    //qDebug()<<__FUNCTION__<<QString::fromWCharArray(cmd_str, (int)cmd_str_len);
+    qDebug()<<__FUNCTION__<<QString::fromWCharArray(cmd_str, (int)cmd_str_len);
     luni_send(termGatewayWnd->ldisc, (wchar_t*)cmd_str, (int)cmd_str_len, 0);
     _commandQueue.push(TmuxCmdResp(recv, cb));
     return 0;
@@ -433,17 +434,17 @@ cu0:
     return -1;
 }
 
-int TmuxGateway::createNewWindow(int id, const char *name, int /*width*/, int /*height*/, string layout)
+int TmuxGateway::createNewWindow(int id, const char *name, int /*width*/, int /*height*/, const string &layout)
 {
     if (!_mapLayout[id].initLayout(layout.substr(5)))
         goto cu0;
-    createNewWindowPane(id, name, _mapLayout[id]);
+    createNewWindowPane(id, name, _mapLayout[id], NULL);
     return 0;
 cu0:
     return -1;
 }
 
-int TmuxGateway::createNewWindowPane(int id, const char *name, TmuxLayout &layout)
+int TmuxGateway::createNewWindowPane(int id, const char *name, const TmuxLayout &layout, GuiSplitter *splitter)
 {
     switch (layout.layoutType) {
       case TmuxLayout::TMUX_LAYOUT_TYPE_LEAF:
@@ -454,7 +455,7 @@ int TmuxGateway::createNewWindowPane(int id, const char *name, TmuxLayout &layou
             TmuxWindowPane *tmuxPane = newtermwnd->
                     initTmuxClientTerminal(this, layout.paneid,
                                            layout.width, layout.height);
-            termGatewayWnd->getMainWindow()->setupLayout(newtermwnd, GuiBase::TYPE_LEAF, -1);
+            termGatewayWnd->getMainWindow()->setupLayout(newtermwnd, splitter);
             tmuxPane->name = name;
             newtermwnd->setSessionTitle(name);
             wchar_t cmd_state[2000], cmd_hist[256], cmd_hist_alt[256];
@@ -484,11 +485,16 @@ int TmuxGateway::createNewWindowPane(int id, const char *name, TmuxLayout &layou
         }
         break;
       case TmuxLayout::TMUX_LAYOUT_TYPE_HORIZONTAL:
-      case TmuxLayout::TMUX_LAYOUT_TYPE_VERTICAL:
+      case TmuxLayout::TMUX_LAYOUT_TYPE_VERTICAL: {
+        const auto orientation = layout.layoutType==TmuxLayout::TMUX_LAYOUT_TYPE_HORIZONTAL ?
+                    Qt::Horizontal : Qt::Vertical;
+        GuiSplitter *childsplitter = new GuiSplitter(orientation, splitter);
+        termGatewayWnd->getMainWindow()->tabInsert(-1, childsplitter, "");
         for (int i=0; i<(signed)layout.child.size(); i++) {
-            createNewWindowPane(id, name, layout.child[i]);
+            createNewWindowPane(id, name, layout.child[i], childsplitter);
         }
         break;
+      }
       default:
         assert(0);
     }

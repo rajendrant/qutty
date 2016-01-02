@@ -97,6 +97,7 @@ public:
 
     void tabInsert(int tabind, QWidget *w, const QString &title);
     void tabRemove(int tabind);
+    int setupLayout(GuiTerminalWindow *newTerm, GuiSplitter *splitter);
     int setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType split, int tabind = -1);
     void setupTerminalSize(GuiTerminalWindow *newTerm);
 

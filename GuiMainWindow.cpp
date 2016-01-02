@@ -487,6 +487,18 @@ void GuiMainWindow::writeWindowSettings()
     settings.endGroup();
 }
 
+int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiSplitter *splitter)
+{
+    if (!splitter) {
+        setupLayout(newTerm, GuiBase::TYPE_LEAF, -1);
+    } else {
+        splitter->addBaseWidget(-1, newTerm);
+        newTerm->setFocus();
+        terminalList.append(newTerm);
+        on_tabLayoutChanged();
+    }
+}
+
 int GuiMainWindow::setupLayout(GuiTerminalWindow *newTerm, GuiBase::SplitType split, int tabind)
 {
     // fallback to create tab

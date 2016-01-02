@@ -535,11 +535,9 @@ int GuiTerminalWindow::from_backend(int is_stderr, const char *data, size_t len)
 {
     if (_tmuxMode==TMUX_MODE_GATEWAY && _tmuxGateway) {
         size_t rc = _tmuxGateway->fromBackend(is_stderr, data, len);
-        if (rc) {
-            if (rc >= 0 && rc < len && _tmuxMode == TMUX_MODE_GATEWAY_DETACH_INIT) {
-                detachTmuxControllerMode();
-                return term_data(term, is_stderr, data+rc, (int)(len-rc));
-            }
+        if (rc && rc < len && _tmuxMode == TMUX_MODE_GATEWAY_DETACH_INIT) {
+            detachTmuxControllerMode();
+            return term_data(term, is_stderr, data+rc, (int)(len-rc));
         }
     }
     return term_data(term, is_stderr, data, (int)len);
