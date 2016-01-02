@@ -19,7 +19,7 @@ extern "C" {
 
 #ifdef __linux
 #define _snprintf snprintf
-#define wsprintf(dst, fmt...) swprintf(dst, sizeof(dst), fmt)
+#define wsprintf(dst, fmt...) swprintf(dst, sizeof(dst)/sizeof(wchar_t), fmt)
 #define _snwprintf swprintf
 #else
 #define snprintf _snprintf
