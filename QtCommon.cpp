@@ -186,6 +186,11 @@ int GuiTerminalWindow::TranslateKey(QKeyEvent *keyevent, char *output)
             p += sprintf((char *) p, "\x1B%c", xkey);
         else {
             int modifier_code = -1;
+            int app_flg = (term->app_cursor_keys && !cfg->no_applic_c);
+
+            /* Useful mapping of Ctrl-arrows */
+            if ( ctrlshiftstate == Qt::ControlModifier )
+                app_flg = !app_flg;
 
             if (keystate==(Qt::AltModifier | Qt::ShiftModifier))
                 modifier_code = 10;
@@ -197,7 +202,7 @@ int GuiTerminalWindow::TranslateKey(QKeyEvent *keyevent, char *output)
                 modifier_code = 5;
 
             if (modifier_code == -1)
-                return sprintf((char *) output, "\x1B[%c", xkey);
+                return sprintf((char *) output, app_flg ? "\x1BO%c" : "\x1B[%c", xkey);
             else
                 return sprintf((char *) output, "\x1B[1;%d%c", modifier_code, xkey);
         }
