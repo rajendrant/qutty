@@ -810,10 +810,14 @@ void 	GuiTerminalWindow::resizeEvent ( QResizeEvent * )
     }
 
     if (_tmuxMode==TMUX_MODE_CLIENT) {
+        int width = viewport()->size().width()/fontWidth;
+        int height = viewport()->size().height()/fontHeight;
+        if (parentSplit) {
+            width = parentSplit->width()/fontWidth;
+            height = parentSplit->height()/fontHeight;
+        }
         wchar_t cmd_resize[128];
-        wsprintf(cmd_resize, L"refresh-client -C %d,%d\n",
-                                      viewport()->size().width()/fontWidth,
-                                      viewport()->size().height()/fontHeight);
+        wsprintf(cmd_resize, L"refresh-client -C %d,%d\n", width, height);
         _tmuxGateway->sendCommand(_tmuxGateway, CB_NULL, cmd_resize);
         // %layout-change tmux command does the actual resize
         return;

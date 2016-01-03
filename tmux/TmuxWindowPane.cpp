@@ -17,7 +17,7 @@ TmuxWindowPane::~TmuxWindowPane()
 
 int TmuxWindowPane::performCallback(tmux_cb_index_t index, string &response)
 {
-    qDebug("%s %s %s", __FUNCTION__, get_tmux_cb_index_str(index), response.c_str());
+    qDebug() << __FUNCTION__ << get_tmux_cb_index_str(index) << QString::fromStdString(response);
     switch(index) {
     case CB_NULL:
         return 0;
