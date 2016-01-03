@@ -9,200 +9,183 @@
 #include <QStringList>
 
 GuiCompactSettingsWindow::GuiCompactSettingsWindow(QWidget *parent, GuiBase::SplitType openmode)
-    : QDialog(parent),
-      session_list_model(NULL)
-{
-    setModal(true);
-    openMode = openmode;
+    : QDialog(parent), session_list_model(NULL) {
+  setModal(true);
+  openMode = openmode;
 
-    Config* cfg;
+  Config *cfg;
 
-    QPushButton *details = new QPushButton(tr("Details"));
-    connect(details, SIGNAL(clicked()), this, SLOT(on_details_clicked()));
+  QPushButton *details = new QPushButton(tr("Details"));
+  connect(details, SIGNAL(clicked()), this, SLOT(on_details_clicked()));
 
-    QDialogButtonBox *btn_box = new QDialogButtonBox(QDialogButtonBox::Cancel);
+  QDialogButtonBox *btn_box = new QDialogButtonBox(QDialogButtonBox::Cancel);
 
-    btn_box->addButton(tr("Open"), QDialogButtonBox::AcceptRole);
-    connect(btn_box, SIGNAL(accepted()), this, SLOT(on_open_clicked()));
-    connect(btn_box, SIGNAL(rejected()), this, SLOT(on_close_clicked()));
-    connect(this, SIGNAL(rejected()), this, SLOT(on_close_clicked()));
+  btn_box->addButton(tr("Open"), QDialogButtonBox::AcceptRole);
+  connect(btn_box, SIGNAL(accepted()), this, SLOT(on_open_clicked()));
+  connect(btn_box, SIGNAL(rejected()), this, SLOT(on_close_clicked()));
+  connect(this, SIGNAL(rejected()), this, SLOT(on_close_clicked()));
 
-    cb_hostname = new QComboBox(this);
-    cb_hostname->setMinimumWidth(500);
+  cb_hostname = new QComboBox(this);
+  cb_hostname->setMinimumWidth(500);
 
-    QStringList completions;
-    for(auto it = qutty_mru_sesslist.mru_list.begin();
-        it != qutty_mru_sesslist.mru_list.end();
-        ++it) {
-        if (it->second[0] == '\0')
-            continue;
-        // in 'hostname|sessname' format
-        completions << it->second + "|" + it->first;
-    }
-    hostname_completer = new QtCompleterWithAdvancedCompletion(cb_hostname);
-    hostname_completer->setModel(completions);
-    hostname_completer->popup()->setItemDelegate(new QtHostNameCompleterItemDelegate);
-    connect(hostname_completer, SIGNAL(activated(QString)), this, SLOT(on_hostname_completion_activated(QString)));
-    cb_hostname->setItemDelegate(new QtHostNameCompleterItemDelegate);
-    connect(cb_hostname, SIGNAL(activated(QString)), SLOT(on_cb_hostname_activated(QString)));
+  QStringList completions;
+  for (auto it = qutty_mru_sesslist.mru_list.begin(); it != qutty_mru_sesslist.mru_list.end();
+       ++it) {
+    if (it->second[0] == '\0') continue;
+    // in 'hostname|sessname' format
+    completions << it->second + "|" + it->first;
+  }
+  hostname_completer = new QtCompleterWithAdvancedCompletion(cb_hostname);
+  hostname_completer->setModel(completions);
+  hostname_completer->popup()->setItemDelegate(new QtHostNameCompleterItemDelegate);
+  connect(hostname_completer, SIGNAL(activated(QString)), this,
+          SLOT(on_hostname_completion_activated(QString)));
+  cb_hostname->setItemDelegate(new QtHostNameCompleterItemDelegate);
+  connect(cb_hostname, SIGNAL(activated(QString)), SLOT(on_cb_hostname_activated(QString)));
 
-    cb_session_list = new QtComboBoxWithTreeView(this);
-    cb_session_list->setItemDelegate(new QtSessionTreeItemDelegate);
-    session_list_model = new QtSessionTreeModel(this, qutty_config.config_list);
-    cb_session_list->setModel(session_list_model);
-    cb_session_list->setMaxVisibleItems(25);
+  cb_session_list = new QtComboBoxWithTreeView(this);
+  cb_session_list->setItemDelegate(new QtSessionTreeItemDelegate);
+  session_list_model = new QtSessionTreeModel(this, qutty_config.config_list);
+  cb_session_list->setModel(session_list_model);
+  cb_session_list->setMaxVisibleItems(25);
 
-    cb_connection_type = new QComboBox(this);
-    cb_connection_type->setMaximumWidth(100);
-    cb_connection_type->addItem("Telnet");
-    cb_connection_type->addItem("SSH");
+  cb_connection_type = new QComboBox(this);
+  cb_connection_type->setMaximumWidth(100);
+  cb_connection_type->addItem("Telnet");
+  cb_connection_type->addItem("SSH");
 
-    if (qutty_mru_sesslist.mru_list.size() > 0 &&
-        qutty_config.config_list.find(qutty_mru_sesslist.mru_list[0].first) != qutty_config.config_list.end() &&
-        !completions.isEmpty()) {
-        QString sessname = qutty_mru_sesslist.mru_list[0].first;
-        on_hostname_completion_activated(completions.at(0));
-        setConnectionType(qutty_config.config_list[sessname].protocol);
-    } else if(qutty_config.config_list.find(QUTTY_DEFAULT_CONFIG_SETTINGS) != qutty_config.config_list.end())
-    {
-        cfg = &qutty_config.config_list[QUTTY_DEFAULT_CONFIG_SETTINGS];
-        cb_session_list->setCurrentIndex(cb_session_list->findText(QUTTY_DEFAULT_CONFIG_SETTINGS));
-        hostname_completer->setText(QString(cfg->host));
-        setConnectionType(cfg->protocol);
-    }
+  if (qutty_mru_sesslist.mru_list.size() > 0 &&
+      qutty_config.config_list.find(qutty_mru_sesslist.mru_list[0].first) !=
+          qutty_config.config_list.end() &&
+      !completions.isEmpty()) {
+    QString sessname = qutty_mru_sesslist.mru_list[0].first;
+    on_hostname_completion_activated(completions.at(0));
+    setConnectionType(qutty_config.config_list[sessname].protocol);
+  } else if (qutty_config.config_list.find(QUTTY_DEFAULT_CONFIG_SETTINGS) !=
+             qutty_config.config_list.end()) {
+    cfg = &qutty_config.config_list[QUTTY_DEFAULT_CONFIG_SETTINGS];
+    cb_session_list->setCurrentIndex(cb_session_list->findText(QUTTY_DEFAULT_CONFIG_SETTINGS));
+    hostname_completer->setText(QString(cfg->host));
+    setConnectionType(cfg->protocol);
+  }
 
-    connect(cb_session_list, SIGNAL(activated(int)), this, SLOT(on_cb_session_list_activated(int)));
+  connect(cb_session_list, SIGNAL(activated(int)), this, SLOT(on_cb_session_list_activated(int)));
 
-    QGridLayout *layout = new QGridLayout(this);
+  QGridLayout *layout = new QGridLayout(this);
 
-    layout->addWidget(new QLabel("Hostname : ", this));
-    layout->addWidget(cb_hostname);
+  layout->addWidget(new QLabel("Hostname : ", this));
+  layout->addWidget(cb_hostname);
 
-    layout->addWidget(new QLabel("Session profiles : ", this));
-    layout->addWidget(cb_session_list);
+  layout->addWidget(new QLabel("Session profiles : ", this));
+  layout->addWidget(cb_session_list);
 
-    layout->addWidget(new QLabel("Connection type : ", this));
-    layout->addWidget(cb_connection_type);
+  layout->addWidget(new QLabel("Connection type : ", this));
+  layout->addWidget(cb_connection_type);
 
-    QHBoxLayout *hlayout = new QHBoxLayout();
-    hlayout->addWidget(details);
-    hlayout->addWidget(btn_box, 1);
+  QHBoxLayout *hlayout = new QHBoxLayout();
+  hlayout->addWidget(details);
+  hlayout->addWidget(btn_box, 1);
 
-    layout->addLayout(hlayout, 10, 0, 1, 1);
+  layout->addLayout(hlayout, 10, 0, 1, 1);
 
-    setLayout(layout);
+  setLayout(layout);
 
-    // select the hostname text
-    cb_hostname->lineEdit()->selectAll();
-    cb_hostname->lineEdit()->setFocus();
+  // select the hostname text
+  cb_hostname->lineEdit()->selectAll();
+  cb_hostname->lineEdit()->setFocus();
 }
 
-void GuiCompactSettingsWindow::on_close_clicked()
-{
-    emit signal_on_close();
-    this->close();
-    this->deleteLater();
+void GuiCompactSettingsWindow::on_close_clicked() {
+  emit signal_on_close();
+  this->close();
+  this->deleteLater();
 }
 
-void GuiCompactSettingsWindow::on_open_clicked()
-{
-    Config cfg;
-    QString configName;
-    if (cb_hostname->currentText() == "" &&
-        cb_session_list->currentText() == QUTTY_DEFAULT_CONFIG_SETTINGS)
-        return;
-    configName = cb_session_list->currentText();
-    if (qutty_config.config_list.find(configName) == qutty_config.config_list.end())
-        return;
-    cfg = qutty_config.config_list[configName];
-    qstring_to_char(cfg.host, cb_hostname->currentText(), sizeof(cfg.host));
+void GuiCompactSettingsWindow::on_open_clicked() {
+  Config cfg;
+  QString configName;
+  if (cb_hostname->currentText() == "" &&
+      cb_session_list->currentText() == QUTTY_DEFAULT_CONFIG_SETTINGS)
+    return;
+  configName = cb_session_list->currentText();
+  if (qutty_config.config_list.find(configName) == qutty_config.config_list.end()) return;
+  cfg = qutty_config.config_list[configName];
+  qstring_to_char(cfg.host, cb_hostname->currentText(), sizeof(cfg.host));
 
-    cfg.protocol = getConnectionType();
+  cfg.protocol = getConnectionType();
 
-    chkUnsupportedConfigs(cfg);
+  chkUnsupportedConfigs(cfg);
 
-    emit signal_on_open(cfg, openMode);
-    this->close();
-    this->deleteLater();
+  emit signal_on_open(cfg, openMode);
+  this->close();
+  this->deleteLater();
 }
 
-void GuiCompactSettingsWindow::on_details_clicked()
-{
-    Config cfg;
-    QString configName;
+void GuiCompactSettingsWindow::on_details_clicked() {
+  Config cfg;
+  QString configName;
 
-    configName = cb_session_list->currentText();
-    if (qutty_config.config_list.find(configName) == qutty_config.config_list.end())
-        return;
-    cfg = qutty_config.config_list[configName];
-    emit signal_on_detail(cfg, openMode);
-    this->close();
-    this->deleteLater();
+  configName = cb_session_list->currentText();
+  if (qutty_config.config_list.find(configName) == qutty_config.config_list.end()) return;
+  cfg = qutty_config.config_list[configName];
+  emit signal_on_detail(cfg, openMode);
+  this->close();
+  this->deleteLater();
 }
 
-void GuiCompactSettingsWindow::on_cb_session_list_activated(int n)
-{
-    QString configName;
-    Config *cfg;
-    configName = cb_session_list->currentText();
-    map<QString, Config>::iterator it = qutty_config.config_list.find(configName);
+void GuiCompactSettingsWindow::on_cb_session_list_activated(int n) {
+  QString configName;
+  Config *cfg;
+  configName = cb_session_list->currentText();
+  map<QString, Config>::iterator it = qutty_config.config_list.find(configName);
 
-    if(it != qutty_config.config_list.end())
-    {
-        cfg = &(it->second);
-        if(cfg->host[0] != '\0')
-            hostname_completer->setText(QString(cfg->host));
-        setConnectionType(cfg->protocol);
-    }
+  if (it != qutty_config.config_list.end()) {
+    cfg = &(it->second);
+    if (cfg->host[0] != '\0') hostname_completer->setText(QString(cfg->host));
+    setConnectionType(cfg->protocol);
+  }
 }
 
-void GuiCompactSettingsWindow::on_cb_hostname_activated(QString str)
-{
-    on_hostname_completion_activated(str);
-    hostname_completer->popup()->hide();
+void GuiCompactSettingsWindow::on_cb_hostname_activated(QString str) {
+  on_hostname_completion_activated(str);
+  hostname_completer->popup()->hide();
 }
 
-void GuiCompactSettingsWindow::on_hostname_completion_activated(QString str)
-{
-    QStringList split = str.split('|');
-    if (split.length() > 1) {
-        hostname_completer->setText(split[0]);
+void GuiCompactSettingsWindow::on_hostname_completion_activated(QString str) {
+  QStringList split = str.split('|');
+  if (split.length() > 1) {
+    hostname_completer->setText(split[0]);
 
-        /*
-         * Based on the suggestion/technique from below url:
-         * http://www.qtcentre.org/threads/14699-QCombobox-with-QTreeView-QTreeWidget
-         */
-        bool old = QApplication::isEffectEnabled(Qt::UI_AnimateCombo);
-        if (old)
-            QApplication::setEffectEnabled(Qt::UI_AnimateCombo, false);
+    /*
+     * Based on the suggestion/technique from below url:
+     * http://www.qtcentre.org/threads/14699-QCombobox-with-QTreeView-QTreeWidget
+     */
+    bool old = QApplication::isEffectEnabled(Qt::UI_AnimateCombo);
+    if (old) QApplication::setEffectEnabled(Qt::UI_AnimateCombo, false);
 
-        QString fullsessname = split[1];
-        QAbstractItemView *treeview = cb_session_list->view();
-        QModelIndex m_index = session_list_model->findIndexForSessionName(fullsessname);
-        treeview->setCurrentIndex(m_index.parent());
-        cb_session_list->setRootModelIndex(treeview->currentIndex());
-        cb_session_list->setCurrentIndex(m_index.row());
-        treeview->setCurrentIndex(QModelIndex());
-        cb_session_list->setRootModelIndex(treeview->currentIndex());
+    QString fullsessname = split[1];
+    QAbstractItemView *treeview = cb_session_list->view();
+    QModelIndex m_index = session_list_model->findIndexForSessionName(fullsessname);
+    treeview->setCurrentIndex(m_index.parent());
+    cb_session_list->setRootModelIndex(treeview->currentIndex());
+    cb_session_list->setCurrentIndex(m_index.row());
+    treeview->setCurrentIndex(QModelIndex());
+    cb_session_list->setRootModelIndex(treeview->currentIndex());
 
-        cb_session_list->showPopup();
-        cb_session_list->hidePopup();
-        if (old)
-            QApplication::setEffectEnabled(Qt::UI_AnimateCombo, true);
-    }
+    cb_session_list->showPopup();
+    cb_session_list->hidePopup();
+    if (old) QApplication::setEffectEnabled(Qt::UI_AnimateCombo, true);
+  }
 }
 
-void GuiCompactSettingsWindow::setConnectionType(int conntype)
-{
-    if(conntype == PROT_TELNET)
-        cb_connection_type->setCurrentIndex(0);
-    else
-        cb_connection_type->setCurrentIndex(1);
+void GuiCompactSettingsWindow::setConnectionType(int conntype) {
+  if (conntype == PROT_TELNET)
+    cb_connection_type->setCurrentIndex(0);
+  else
+    cb_connection_type->setCurrentIndex(1);
 }
 
-int GuiCompactSettingsWindow::getConnectionType()
-{
-    if(cb_connection_type->currentIndex() == 0)
-        return PROT_TELNET;
-    return PROT_SSH;
+int GuiCompactSettingsWindow::getConnectionType() {
+  if (cb_connection_type->currentIndex() == 0) return PROT_TELNET;
+  return PROT_SSH;
 }

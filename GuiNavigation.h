@@ -16,38 +16,36 @@ using namespace std;
 class GuiMainWindow;
 class GuiTerminalWindow;
 
-class GuiTabNavigation : public QListWidget
-{
-    GuiMainWindow *mainWindow;
+class GuiTabNavigation : public QListWidget {
+  GuiMainWindow *mainWindow;
 
-public:
-    GuiTabNavigation(GuiMainWindow *p);
+ public:
+  GuiTabNavigation(GuiMainWindow *p);
 
-    void navigateToTab(bool next);
-    void acceptNavigation();
+  void navigateToTab(bool next);
+  void acceptNavigation();
 
-protected:
-    void focusOutEvent ( QFocusEvent * e );
-    void keyPressEvent ( QKeyEvent * e );
-    void keyReleaseEvent ( QKeyEvent * e );
+ protected:
+  void focusOutEvent(QFocusEvent *e);
+  void keyPressEvent(QKeyEvent *e);
+  void keyReleaseEvent(QKeyEvent *e);
 };
 
-class GuiPaneNavigation : public QWidget
-{
-    GuiMainWindow *mainWindow;
-    map<uint32_t,GuiTerminalWindow*> mrupanemap;
-    uint32_t curr_sel;
+class GuiPaneNavigation : public QWidget {
+  GuiMainWindow *mainWindow;
+  map<uint32_t, GuiTerminalWindow *> mrupanemap;
+  uint32_t curr_sel;
 
-public:
-    GuiPaneNavigation(GuiMainWindow *p, bool is_direction_mode=false);
+ public:
+  GuiPaneNavigation(GuiMainWindow *p, bool is_direction_mode = false);
 
-    void navigateToDirectionPane(Qt::Key key);
-    void navigateToMRUPane(bool next);
-    void acceptNavigation();
+  void navigateToDirectionPane(Qt::Key key);
+  void navigateToMRUPane(bool next);
+  void acceptNavigation();
 
-protected:
-    void focusOutEvent ( QFocusEvent * e );
-    void keyReleaseEvent ( QKeyEvent * e );
+ protected:
+  void focusOutEvent(QFocusEvent *e);
+  void keyReleaseEvent(QKeyEvent *e);
 };
 
-#endif // GUINAVIGATION_H
+#endif  // GUINAVIGATION_H

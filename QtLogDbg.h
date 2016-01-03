@@ -14,4 +14,4 @@ using namespace std;
 
 extern ofstream logg;
 
-#endif // LOG_H
+#endif  // LOG_H

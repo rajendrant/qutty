@@ -6,7 +6,4 @@
 
 #include "GuiBase.h"
 
-GuiBase::GuiBase() :
-    parentSplit(NULL)
-{
-}
+GuiBase::GuiBase() : parentSplit(NULL) {}

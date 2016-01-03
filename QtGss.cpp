@@ -11,11 +11,6 @@ extern "C" {
 
 const int ngsslibs = 3;
 
-extern "C" struct ssh_gss_liblist *ssh_gss_setup(const Config *)
-{
-    return NULL;
-}
+extern "C" struct ssh_gss_liblist *ssh_gss_setup(const Config *) { return NULL; }
 
- extern "C" void ssh_gss_cleanup(struct ssh_gss_liblist *)
-{
-}
+extern "C" void ssh_gss_cleanup(struct ssh_gss_liblist *) {}

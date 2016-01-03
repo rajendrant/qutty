@@ -15,57 +15,53 @@ extern "C" {
 #include <stddef.h>
 #include <QFile>
 
-
 using namespace std;
 
 class QtMenuActionConfig {
-public:
-    uint32_t id;
-    QKeySequence shortcut;
-    QString name;
-    QString str_data;
-    uint32_t int_data;
+ public:
+  uint32_t id;
+  QKeySequence shortcut;
+  QString name;
+  QString str_data;
+  uint32_t int_data;
 
-    QtMenuActionConfig(uint32_t _id, QKeySequence &k, QString n="",
-                       QString s="", uint32_t i=0)
-        : id(_id), shortcut(k), name(n), str_data(s), int_data(i)
-    { }
+  QtMenuActionConfig(uint32_t _id, QKeySequence &k, QString n = "", QString s = "", uint32_t i = 0)
+      : id(_id), shortcut(k), name(n), str_data(s), int_data(i) {}
 };
 
 typedef struct qutty_mainwindow_settings_t__ {
-    QSize size;
-    QPoint pos;
-    int state;
-    int flag;
-    bool menubar_visible;
-    bool titlebar_tabs;
+  QSize size;
+  QPoint pos;
+  int state;
+  int flag;
+  bool menubar_visible;
+  bool titlebar_tabs;
 } qutty_mainwindow_settings_t;
 
 class QtConfig : public QObject {
+  Q_OBJECT
 
-    Q_OBJECT
+ public:
+  map<string, string> ssh_host_keys;
+  map<QString, Config> config_list;
+  map<uint32_t, QtMenuActionConfig> menu_action_list;
+  qutty_mainwindow_settings_t mainwindow;
 
-public:
-    map<string, string> ssh_host_keys;
-    map<QString, Config> config_list;
-    map<uint32_t, QtMenuActionConfig> menu_action_list;
-    qutty_mainwindow_settings_t mainwindow;
+  QtConfig();
 
-    QtConfig();
-
-    bool restoreConfig();
-    bool saveConfig();
-    void importFromFile(QFile*);
-    void importFromPutty();
-    void exportToFile(QFile*);
+  bool restoreConfig();
+  bool saveConfig();
+  void importFromFile(QFile *);
+  void importFromPutty();
+  void exportToFile(QFile *);
 
 signals:
-    void savedSessionsChanged();
+  void savedSessionsChanged();
 
-private:
-    int readFromXML(QIODevice *device);
-    int writeToXML(QIODevice *device);
-    bool restoreFromPuttyWinRegistry();
+ private:
+  int readFromXML(QIODevice *device);
+  int writeToXML(QIODevice *device);
+  bool restoreFromPuttyWinRegistry();
 };
 
 // all global config is here
@@ -78,4 +74,4 @@ extern vector<string> qutty_string_split(const string &str, char delim);
 
 int initConfigDefaults(Config *cfg);
 
-#endif // QTCONFIG_H
+#endif  // QTCONFIG_H

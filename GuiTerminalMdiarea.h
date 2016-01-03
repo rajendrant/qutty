@@ -3,10 +3,9 @@
 
 #include <QMdiArea>
 
-class TerminalMdiArea : public QMdiArea
-{
-public:
-    TerminalMdiArea(QWidget *parent = 0);
+class TerminalMdiArea : public QMdiArea {
+ public:
+  TerminalMdiArea(QWidget *parent = 0);
 };
 
-#endif // TERMINALMDIAREA_H
+#endif  // TERMINALMDIAREA_H

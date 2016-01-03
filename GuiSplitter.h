@@ -11,31 +11,30 @@ class GuiBase;
 class GuiTerminalWindow;
 #include "GuiBase.h"
 
-class GuiSplitter : public QSplitter, public GuiBase
-{
-    Q_OBJECT
-    Q_INTERFACES(GuiBase)
+class GuiSplitter : public QSplitter, public GuiBase {
+  Q_OBJECT
+  Q_INTERFACES(GuiBase)
 
-public:
-    vector<GuiBase*> child;
-    GuiSplitter(Qt::Orientation split, GuiSplitter *parentsplit=NULL, int ind=-1);
-    virtual ~GuiSplitter() { };
+ public:
+  vector<GuiBase *> child;
+  GuiSplitter(Qt::Orientation split, GuiSplitter *parentsplit = NULL, int ind = -1);
+  virtual ~GuiSplitter(){};
 
-    QWidget *getWidget() { return this; }
+  QWidget *getWidget() { return this; }
 
-    void addBaseWidget(int ind, GuiBase *base);
-    void removeBaseWidget(GuiBase *base);
+  void addBaseWidget(int ind, GuiBase *base);
+  void removeBaseWidget(GuiBase *base);
 
-    void createSplitLayout(Qt::Orientation orient, SplitType split, GuiTerminalWindow *oldTerm, GuiTerminalWindow *newTerm);
-    void reqCloseTerminal(bool userRequest);
-    void removeSplitLayout(GuiTerminalWindow *term);
+  void createSplitLayout(Qt::Orientation orient, SplitType split, GuiTerminalWindow *oldTerm,
+                         GuiTerminalWindow *newTerm);
+  void reqCloseTerminal(bool userRequest);
+  void removeSplitLayout(GuiTerminalWindow *term);
 
-    void populateAllTerminals(vector<GuiTerminalWindow*> *list) {
-        for(auto it=child.begin(); it != child.end(); it++)
-            (*it)->populateAllTerminals(list);
-    }
+  void populateAllTerminals(vector<GuiTerminalWindow *> *list) {
+    for (auto it = child.begin(); it != child.end(); it++) (*it)->populateAllTerminals(list);
+  }
 
-    GuiTerminalWindow* navigatePane(Qt::Key key, GuiTerminalWindow *tofind, int splitind=-1);
+  GuiTerminalWindow *navigatePane(Qt::Key key, GuiTerminalWindow *tofind, int splitind = -1);
 };
 
-#endif // GUISPLITTER_H
+#endif  // GUISPLITTER_H

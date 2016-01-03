@@ -12,28 +12,27 @@
 
 class GuiMainWindow;
 
-class GuiFindToolBar : public QToolBar
-{
-    Q_OBJECT
+class GuiFindToolBar : public QToolBar {
+  Q_OBJECT
 
-    GuiMainWindow *mainWnd;
-    QLineEdit *searchedText;
+  GuiMainWindow *mainWnd;
+  QLineEdit *searchedText;
 
-public:
-    bool findTextFlag;
-    int currentRow;
-    int currentCol;
-    int pageStartPosition;
-    QString currentSearchedText;
-    GuiFindToolBar(GuiMainWindow *p);
-    virtual ~GuiFindToolBar() { }
-    QString getSearchedText();
-    bool eventFilter(QObject  *obj, QEvent * event);
+ public:
+  bool findTextFlag;
+  int currentRow;
+  int currentCol;
+  int pageStartPosition;
+  QString currentSearchedText;
+  GuiFindToolBar(GuiMainWindow *p);
+  virtual ~GuiFindToolBar() {}
+  QString getSearchedText();
+  bool eventFilter(QObject *obj, QEvent *event);
 
-public slots:
-    void on_findUp();
-    void on_findDown();
-    void on_findClose();
+ public slots:
+  void on_findUp();
+  void on_findDown();
+  void on_findClose();
 };
 
-#endif // GUIFINDTOOLBAR_H
+#endif  // GUIFINDTOOLBAR_H

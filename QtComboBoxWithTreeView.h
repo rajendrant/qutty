@@ -18,53 +18,44 @@
  * https://codereview.qt-project.org/#change,16716
  */
 
-class QtComboBoxWithTreeView : public QComboBox
-{
-    Q_OBJECT
-public:
-    explicit QtComboBoxWithTreeView(QWidget *parent = 0) :
-        QComboBox(parent), skipNextHide(false)
-    {
-        QTreeView *view = new QTreeView(this);
-        view->setHeaderHidden(true);
-        setView(view);
-        view->viewport()->installEventFilter(this);
-    }
+class QtComboBoxWithTreeView : public QComboBox {
+  Q_OBJECT
+ public:
+  explicit QtComboBoxWithTreeView(QWidget* parent = 0) : QComboBox(parent), skipNextHide(false) {
+    QTreeView* view = new QTreeView(this);
+    view->setHeaderHidden(true);
+    setView(view);
+    view->viewport()->installEventFilter(this);
+  }
 
-    bool eventFilter(QObject* object, QEvent* event)
-    {
-        if (event->type() == QEvent::MouseButtonPress && object == view()->viewport())
-        {
-            QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
-            QModelIndex index = view()->indexAt(mouseEvent->pos());
-            if (!view()->visualRect(index).contains(mouseEvent->pos()))
-                skipNextHide = true;
-        }
-        return false;
+  bool eventFilter(QObject* object, QEvent* event) {
+    if (event->type() == QEvent::MouseButtonPress && object == view()->viewport()) {
+      QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+      QModelIndex index = view()->indexAt(mouseEvent->pos());
+      if (!view()->visualRect(index).contains(mouseEvent->pos())) skipNextHide = true;
     }
+    return false;
+  }
 
-    virtual void hidePopup()
-    {
-        if (skipNextHide) {
-            skipNextHide = false;
-            /*
-             * We are doing a big hack here.
-             * This is done in order to expand/shrink the popup
-             * as trees expand/shrink
-             */
-            bool old = QApplication::isEffectEnabled(Qt::UI_AnimateCombo);
-            if (old)
-                QApplication::setEffectEnabled(Qt::UI_AnimateCombo, false);
-            QComboBox::hidePopup();
-            QComboBox::showPopup();
-            if (old)
-                QApplication::setEffectEnabled(Qt::UI_AnimateCombo, true);
-        } else
-            QComboBox::hidePopup();
-    }
+  virtual void hidePopup() {
+    if (skipNextHide) {
+      skipNextHide = false;
+      /*
+       * We are doing a big hack here.
+       * This is done in order to expand/shrink the popup
+       * as trees expand/shrink
+       */
+      bool old = QApplication::isEffectEnabled(Qt::UI_AnimateCombo);
+      if (old) QApplication::setEffectEnabled(Qt::UI_AnimateCombo, false);
+      QComboBox::hidePopup();
+      QComboBox::showPopup();
+      if (old) QApplication::setEffectEnabled(Qt::UI_AnimateCombo, true);
+    } else
+      QComboBox::hidePopup();
+  }
 
-private:
-    bool skipNextHide;
+ private:
+  bool skipNextHide;
 };
 
-#endif // QTCOMBOBOXWITHTREEVIEW_H
+#endif  // QTCOMBOBOXWITHTREEVIEW_H

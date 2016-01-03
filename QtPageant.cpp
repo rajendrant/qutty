@@ -12,13 +12,9 @@ extern "C" {
 #define FLAG_SYNCAGENT 0x1000
 int flags = FLAG_SYNCAGENT;
 
-int agent_exists(void)
-{
-    return FALSE;
-}
+int agent_exists(void) { return FALSE; }
 
 int agent_query(void * /*in*/, int /*inlen*/, void ** /*out*/, int * /*outlen*/,
-        void (* /*callback*/)(void *, void *, int), void * /*callback_ctx*/)
-{
-    return 0;
+                void (*/*callback*/)(void *, void *, int), void * /*callback_ctx*/) {
+  return 0;
 }

@@ -6,19 +6,18 @@
 #include <QPair>
 #include <QString>
 
-class QtMRUSessionList
-{
-public:
-    QtMRUSessionList() { }
-    void initialize();
-    void insertSession(QString &sessname, QString &hostname);
-    void deleteSession(QString &sessname);
-    QVector<QPair<QString, QString> > mru_list;
+class QtMRUSessionList {
+ public:
+  QtMRUSessionList() {}
+  void initialize();
+  void insertSession(QString &sessname, QString &hostname);
+  void deleteSession(QString &sessname);
+  QVector<QPair<QString, QString> > mru_list;
 
-private:
-    void save();
+ private:
+  void save();
 };
 
 extern QtMRUSessionList qutty_mru_sesslist;
 
-#endif // QTMRUSESSIONLIST_H
+#endif  // QTMRUSESSIONLIST_H

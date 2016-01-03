@@ -14,18 +14,18 @@ class GuiMainWindow;
 class GuiTabBar;
 
 class GuiTabWidget : public QTabWidget {
-    Q_OBJECT
+  Q_OBJECT
 
-    GuiMainWindow *mainWindow;
-    GuiTabBar *guiTabBar;
+  GuiMainWindow *mainWindow;
+  GuiTabBar *guiTabBar;
 
-public:
-    GuiTabWidget(GuiMainWindow *parent);
+ public:
+  GuiTabWidget(GuiMainWindow *parent);
 
-    GuiTabBar* getGuiTabBar() { return guiTabBar; }
+  GuiTabBar *getGuiTabBar() { return guiTabBar; }
 
-public slots:
-    void showContextMenu(const QPoint &point);
+ public slots:
+  void showContextMenu(const QPoint &point);
 };
 
-#endif // GUITABWIDGET_H
+#endif  // GUITABWIDGET_H
